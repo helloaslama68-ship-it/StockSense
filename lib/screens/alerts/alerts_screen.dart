@@ -25,7 +25,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // ── APP BAR ───────────────────────────────
+            // ── APP BAR 
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
@@ -39,7 +39,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
               ),
             ),
 
-            // ── TABS ──────────────────────────────────
+            // ── TABS 
             SizedBox(
               height: 38,
               child: ListView.separated(
@@ -376,9 +376,8 @@ class _ExpiryCard extends StatelessWidget {
   }
 }
 
-// -----------------------------------------------------------
+
 // CREDIT CARD
-// -------------------------------------------------------
 class _CreditCard extends StatelessWidget {
   final String name;
   final String amount;
@@ -462,7 +461,7 @@ class _CreditCard extends StatelessWidget {
   }
 }
 
-// ── SHARED BADGE ---------------
+// ── SHARED BADGE 
 Widget _urgentBadge(String label, Color color) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

@@ -738,9 +738,9 @@ class _DashboardBodyState extends State<_DashboardBody> {
     );
   }
 
-  // ---------------------------------------------------------
+  
   //  HELPER WIDGETS
-  // -------------------------------------------------------------
+  
 
   /// Quick-action icon button backed by an asset image.
   Widget _quickImageIcon(BuildContext context, String iconPath, String label,
