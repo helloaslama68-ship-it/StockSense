@@ -1,29 +1,19 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:provider/provider.dart';
 import '../../core/colors.dart';
-import '../../services/storage_service.dart';
+import '../../providers/profile_provider.dart';
 import '../onboarding/onboarding_main.dart';
-import 'package:image_picker/image_picker.dart';
 import 'edit_profile_screen.dart';
 import 'settings_screen.dart';
-class ProfileScreen extends StatefulWidget {
+
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
+  void _showImagePicker(BuildContext context) {
+    final provider = context.read<ProfileProvider>();
+    final hasPhoto = provider.imagePath != null && provider.imagePath!.isNotEmpty;
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  final _storage = StorageService();
-  String? _imagePath;
-
-  @override
-  void initState() {
-    super.initState();
-    _imagePath = _storage.getProfileImage();
-  }
-
-  Future<void> _pickImage() async {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -33,9 +23,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle bar
             Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: AppColors.lightGrey,
                 borderRadius: BorderRadius.circular(10),
@@ -54,8 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: AppColors.goldDark,
                   onTap: () async {
                     Navigator.pop(context);
-                    await _getImage(fromCamera: true);
-                  },
+await provider.pickImage(context: context, fromCamera: true);                  },
                 ),
                 _photoOption(
                   icon: Icons.photo_library_rounded,
@@ -63,18 +52,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: AppColors.blue,
                   onTap: () async {
                     Navigator.pop(context);
-                    await _getImage(fromCamera: false);
+                  await provider.pickImage(context: context, fromCamera: false);
                   },
                 ),
-                if (_imagePath != null && _imagePath!.isNotEmpty)
+                if (hasPhoto)
                   _photoOption(
                     icon: Icons.delete_rounded,
                     label: "Remove",
                     color: AppColors.darkRed,
                     onTap: () {
                       Navigator.pop(context);
-                      _storage.saveProfileImage('');
-                      setState(() => _imagePath = null);
+                      provider.removeImage();
                     },
                   ),
               ],
@@ -84,31 +72,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _getImage({required bool fromCamera}) async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? picked = await picker.pickImage(
-        source: fromCamera ? ImageSource.camera : ImageSource.gallery,
-        imageQuality: 80,
-        maxWidth: 400,
-      );
-      if (picked != null) {
-        _storage.saveProfileImage(picked.path);
-        setState(() => _imagePath = picked.path);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not pick image'),
-            backgroundColor: AppColors.darkRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
   }
 
   Widget _photoOption({
@@ -137,14 +100,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title:
+            Text('Logout?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to logout?',
+            style: TextStyle(color: AppColors.grey)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: AppColors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+             context.read<ProfileProvider>().logout();
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => OnboardingMain()),
+                  (route) => false,
+                );
+              }
+            },
+            child: Text('Logout',
+                style: TextStyle(
+                    color: AppColors.darkRed, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ownerName = _storage.getOwnerName();
-    final storeName = _storage.getStoreName();
-    final phone = _storage.getPhone();
-    final address = _storage.getAddress();
+    final profile = context.watch<ProfileProvider>();
 
-    final hasPhoto = _imagePath != null && _imagePath!.isNotEmpty;
+    final ownerName = profile.ownerName ?? '';
+    final storeName = profile.storeName ?? '';
+    final phone = profile.phone ?? '';
+    final address = profile.address ?? '';
+    final imagePath = profile.imagePath;
+    final hasPhoto = imagePath != null && imagePath.isNotEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundTop,
@@ -164,9 +164,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           IconButton(
             icon: Icon(Icons.settings_rounded, color: AppColors.black),
             onPressed: () => Navigator.push(
-  context,
-  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-),
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
           ),
         ],
       ),
@@ -175,7 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
 
-            // ── PROFILE HERO CARD ────────────────────────
+            // PROFILE HERO CARD 
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: 28, horizontal: 20),
@@ -193,9 +193,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
 
-                  // ── TAPPABLE AVATAR ──────────────────
+                  // TAPPABLE AVATAR 
                   GestureDetector(
-                    onTap: _pickImage,
+                    onTap: () => _showImagePicker(context),
                     child: Stack(
                       children: [
                         Container(
@@ -209,20 +209,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(22),
-                            // REPLACE:
-child: hasPhoto
-    ? Image.file(
-        File(_imagePath!),
-        fit: BoxFit.cover,
-      )
-    : Icon(
-        Icons.person_rounded,
-        size: 48,
-        color: AppColors.goldDark,
-      ),
+                            child: hasPhoto
+                                ? Image.file(File(imagePath!), fit: BoxFit.cover)
+                                : Icon(Icons.person_rounded,
+                                    size: 48, color: AppColors.goldDark),
                           ),
                         ),
-                        // Gold verified badge
                         Positioned(
                           bottom: 0,
                           right: 0,
@@ -231,20 +223,11 @@ child: hasPhoto
                             decoration: BoxDecoration(
                               color: AppColors.goldDark,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                  color: AppColors.white, width: 2),
+                              border:
+                                  Border.all(color: AppColors.white, width: 2),
                             ),
                             child: Icon(Icons.verified_rounded,
                                 color: AppColors.white, size: 14),
-                          ),
-                        ),
-                        // Camera overlay hint
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(22),
-                              color: AppColors.black.withOpacity(0.0),
-                            ),
                           ),
                         ),
                       ],
@@ -253,9 +236,8 @@ child: hasPhoto
 
                   SizedBox(height: 6),
 
-                  // Tap to change hint
                   GestureDetector(
-                    onTap: _pickImage,
+                    onTap: () => _showImagePicker(context),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -273,7 +255,6 @@ child: hasPhoto
 
                   SizedBox(height: 14),
 
-                  // Name
                   Text(
                     ownerName.isEmpty ? 'Owner Name' : ownerName,
                     style: TextStyle(
@@ -284,7 +265,6 @@ child: hasPhoto
 
                   SizedBox(height: 6),
 
-                  // Store name pill
                   Container(
                     padding:
                         EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -314,7 +294,7 @@ child: hasPhoto
 
             SizedBox(height: 16),
 
-            // ── CONTACT CARD ─────────────────────────────
+            // CONTACT CARD 
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -353,25 +333,20 @@ child: hasPhoto
                       ],
                     ),
                   ),
-
                   SizedBox(height: 8),
-
                   _contactRow(
                     icon: Icons.phone_rounded,
                     label: 'PHONE NUMBER',
                     value: phone.isEmpty ? '+91 00000 00000' : phone,
                     iconColor: AppColors.darkGreen,
                   ),
-
                   _divider(),
-
                   _contactRow(
                     icon: Icons.location_on_rounded,
                     label: 'SHOP ADDRESS',
                     value: address.isEmpty ? 'Shop Address' : address,
                     iconColor: AppColors.darkRed,
                   ),
-
                   SizedBox(height: 8),
                 ],
               ),
@@ -379,7 +354,7 @@ child: hasPhoto
 
             SizedBox(height: 24),
 
-            // ── EDIT PROFILE BUTTON ──────────────────────
+            // EDIT PROFILE BUTTON 
             Container(
               width: double.infinity,
               height: 52,
@@ -402,27 +377,24 @@ child: hasPhoto
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: Icon(Icons.edit_rounded, color: AppColors.white, size: 18),
+                icon:
+                    Icon(Icons.edit_rounded, color: AppColors.white, size: 18),
                 label: Text('Edit Profile',
                     style: TextStyle(
                         color: AppColors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
-               onPressed: () async {
-  final updated = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => EditProfileScreen()),
-  );
-  if (updated == true) {
-    setState(() {}); // refresh name/store/phone/address
-  }
-},
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => EditProfileScreen()),
+                ),
+                // No need for setState on return — ProfileProvider notifies listeners
               ),
             ),
 
             SizedBox(height: 12),
 
-            // ── LOGOUT BUTTON ────────────────────────────
+            // LOGOUT BUTTON
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -432,54 +404,19 @@ child: hasPhoto
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: Icon(Icons.logout_rounded, color: AppColors.darkRed, size: 18),
+                icon: Icon(Icons.logout_rounded,
+                    color: AppColors.darkRed, size: 18),
                 label: Text('Logout',
                     style: TextStyle(
                         color: AppColors.darkRed,
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      title: Text('Logout?',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      content: Text('Are you sure you want to logout?',
-                          style: TextStyle(color: AppColors.grey)),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Cancel',
-                              style: TextStyle(color: AppColors.grey)),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            StorageService().logout();
-                            Navigator.pop(context);
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => OnboardingMain()),
-                              (route) => false,
-                            );
-                          },
-                          child: Text('Logout',
-                              style: TextStyle(
-                                  color: AppColors.darkRed,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                onPressed: () => _showLogoutDialog(context),
               ),
             ),
 
             SizedBox(height: 12),
 
-            // ── VERSION TAG ──────────────────────────────
             Text(
               "© 2025 StockSense · Offline Inventory System",
               style: TextStyle(fontSize: 10, color: AppColors.grey),
@@ -524,8 +461,8 @@ child: hasPhoto
                         fontWeight: FontWeight.w500)),
                 SizedBox(height: 3),
                 Text(value,
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600)),
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
               ],
             ),
           ),

@@ -6,6 +6,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/colors.dart';
 import '../../models/product.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/scanner_provider.dart';
 import '../inventory/add_product_screen.dart';
 import '../sales/sale_screen.dart';
 
@@ -20,9 +21,6 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen>
     with SingleTickerProviderStateMixin {
   final MobileScannerController _cameraCtrl = MobileScannerController();
-  bool _flashOn = false;
-  bool _canScan = true;
-  Product? _foundProduct;
 
   late AnimationController _cardCtrl;
   late Animation<Offset> _cardSlide;
@@ -46,21 +44,23 @@ class _ScannerScreenState extends State<ScannerScreen>
   void dispose() {
     _cameraCtrl.dispose();
     _cardCtrl.dispose();
+    // Reset scanner state when leaving screen
+    context.read<ScannerProvider>().reset();
     super.dispose();
   }
 
-  // FIX 1: extracted into _handleCode — no fake BarcodeCapture needed
   void _handleCode(String code) {
-    if (!_canScan) return;
+    final scannerP = context.read<ScannerProvider>();
+    if (!scannerP.canScan) return;
     if (code.isEmpty) return;
 
-    setState(() => _canScan = false);
+    scannerP.lockScan();
     HapticFeedback.mediumImpact();
 
-    final product = context.read<ProductProvider>().getProductByBarcode(code);
+    final product = context.read<ProductProvider>().getByBarcode(code);
 
     if (product != null) {
-      setState(() => _foundProduct = product);
+      scannerP.onProductFound(product);
       _cardCtrl.forward();
     } else {
       _showNotFound(code);
@@ -75,12 +75,7 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   void _resetScanner() {
     _cardCtrl.reverse().then((_) {
-      if (mounted) {
-        setState(() {
-          _canScan = true;
-          _foundProduct = null;
-        });
-      }
+      if (mounted) context.read<ScannerProvider>().reset();
     });
   }
 
@@ -90,8 +85,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       barrierColor: Colors.black54,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.white,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             Container(
@@ -105,8 +99,7 @@ class _ScannerScreenState extends State<ScannerScreen>
             ),
             const SizedBox(width: 10),
             const Text('Not Found',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
           ],
         ),
         content: Column(
@@ -118,8 +111,7 @@ class _ScannerScreenState extends State<ScannerScreen>
             const SizedBox(height: 6),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: AppColors.lightGrey.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(8),
@@ -138,8 +130,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               Navigator.pop(context);
               _resetScanner();
             },
-            child: Text('Scan Again',
-                style: TextStyle(color: AppColors.grey)),
+            child: Text('Scan Again', style: TextStyle(color: AppColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -154,8 +145,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      AddProductScreen(initialBarcode: barcode),
+                  builder: (_) => AddProductScreen(initialBarcode: barcode),
                 ),
               ).then((_) => _resetScanner());
             },
@@ -167,19 +157,18 @@ class _ScannerScreenState extends State<ScannerScreen>
     );
   }
 
-  void _addToSale() {
-    if (_foundProduct == null) return;
+  void _addToSale(Product product) {
     HapticFeedback.lightImpact();
 
     if (widget.returnBarcodeOnly) {
-      Navigator.pop(context, _foundProduct!.barcode);
+      Navigator.pop(context, product.barcode);
       return;
     }
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => SaleScreen(preselectedProduct: _foundProduct),
+        builder: (_) => SaleScreen(preselectedProduct: product),
       ),
     ).then((_) => _resetScanner());
   }
@@ -190,8 +179,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       context: context,
       backgroundColor: AppColors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(24))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       isScrollControlled: true,
       builder: (_) => Padding(
         padding: EdgeInsets.only(
@@ -206,8 +194,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           children: [
             Center(
               child: Container(
-                width: 40,
-                height: 4,
+                width: 40, height: 4,
                 decoration: BoxDecoration(
                   color: AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(10),
@@ -216,12 +203,10 @@ class _ScannerScreenState extends State<ScannerScreen>
             ),
             const SizedBox(height: 16),
             const Text('Enter Barcode',
-                style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text('Type barcode number manually',
-                style:
-                    TextStyle(fontSize: 13, color: AppColors.grey)),
+                style: TextStyle(fontSize: 13, color: AppColors.grey)),
             const SizedBox(height: 16),
             TextField(
               controller: ctrl,
@@ -232,16 +217,14 @@ class _ScannerScreenState extends State<ScannerScreen>
                 hintStyle: TextStyle(color: AppColors.grey),
                 filled: true,
                 fillColor: AppColors.lightGrey.withOpacity(0.3),
-                prefixIcon: Icon(Icons.qr_code_rounded,
-                    color: AppColors.goldDark),
+                prefixIcon: Icon(Icons.qr_code_rounded, color: AppColors.goldDark),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                      color: AppColors.goldDark, width: 1.5),
+                  borderSide: BorderSide(color: AppColors.goldDark, width: 1.5),
                 ),
               ),
             ),
@@ -261,12 +244,10 @@ class _ScannerScreenState extends State<ScannerScreen>
                   final code = ctrl.text.trim();
                   if (code.isEmpty) return;
                   Navigator.pop(context);
-                  // FIX 1: call _handleCode directly, no fake BarcodeCapture
                   _handleCode(code);
                 },
                 child: const Text('Search',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             ),
           ],
@@ -277,104 +258,108 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.black,
-      body: Stack(
-        children: [
-          // camera
-          MobileScanner(
-            controller: _cameraCtrl,
-            onDetect: _onDetect,
-          ),
-
-          // overlay
-          _ScanOverlay(active: _canScan),
-
-          // top bar
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _TopBtn(
-                    icon: Icons.arrow_back_ios_new_rounded,
-                    onTap: () => Navigator.pop(context),
-                  ),
-                  const Text('Scanner',
-                      style: TextStyle(
-                          color: AppColors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3)),
-                  _TopBtn(
-                    icon: _flashOn
-                        ? Icons.flashlight_on_rounded
-                        : Icons.flashlight_off_rounded,
-                    active: _flashOn,
-                    onTap: () {
-                      _cameraCtrl.toggleTorch();
-                      setState(() => _flashOn = !_flashOn);
-                    },
-                  ),
-                ],
+    return Consumer<ScannerProvider>(
+      builder: (context, scannerP, _) {
+        return Scaffold(
+          backgroundColor: AppColors.black,
+          body: Stack(
+            children: [
+              // camera
+              MobileScanner(
+                controller: _cameraCtrl,
+                onDetect: _onDetect,
               ),
-            ),
-          ),
 
-          // hint
-          if (_canScan)
-            Positioned(
-              bottom: 240,
-              left: 0,
-              right: 0,
-              child: Column(
-                children: [
-                  Text(
-                    'Align barcode within the frame to scan',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: AppColors.white.withOpacity(0.75),
-                        fontSize: 13),
-                  ),
-                  const SizedBox(height: 14),
-                  GestureDetector(
-                    onTap: _showManualEntry,
-                    child: Text(
-                      'ENTER BARCODE MANUALLY',
-                      style: TextStyle(
-                        color: AppColors.goldDark,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.5,
+              // overlay
+              _ScanOverlay(active: scannerP.canScan),
+
+              // top bar
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _TopBtn(
+                        icon: Icons.arrow_back_ios_new_rounded,
+                        onTap: () => Navigator.pop(context),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // product card
-          if (_foundProduct != null)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: SlideTransition(
-                position: _cardSlide,
-                child: FadeTransition(
-                  opacity: _cardFade,
-                  child: _ProductCard(
-                    product: _foundProduct!,
-                    onAdd: _addToSale,
-                    onDismiss: _resetScanner,
+                      const Text('Scanner',
+                          style: TextStyle(
+                              color: AppColors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.3)),
+                      _TopBtn(
+                        icon: scannerP.flashOn
+                            ? Icons.flashlight_on_rounded
+                            : Icons.flashlight_off_rounded,
+                        active: scannerP.flashOn,
+                        onTap: () {
+                          _cameraCtrl.toggleTorch();
+                          scannerP.toggleFlash();
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-        ],
-      ),
+
+              // hint
+              if (scannerP.canScan)
+                Positioned(
+                  bottom: 240,
+                  left: 0,
+                  right: 0,
+                  child: Column(
+                    children: [
+                      Text(
+                        'Align barcode within the frame to scan',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: AppColors.white.withOpacity(0.75),
+                            fontSize: 13),
+                      ),
+                      const SizedBox(height: 14),
+                      GestureDetector(
+                        onTap: _showManualEntry,
+                        child: Text(
+                          'ENTER BARCODE MANUALLY',
+                          style: TextStyle(
+                            color: AppColors.goldDark,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // product card
+              if (scannerP.foundProduct != null)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: SlideTransition(
+                    position: _cardSlide,
+                    child: FadeTransition(
+                      opacity: _cardFade,
+                      child: _ProductCard(
+                        product: scannerP.foundProduct!,
+                        onAdd: () => _addToSale(scannerP.foundProduct!),
+                        onDismiss: _resetScanner,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -437,19 +422,16 @@ class _OverlayPainter extends CustomPainter {
     final top = (size.height - _fh) / 2 - 40;
     final frame = Rect.fromLTWH(left, top, _fw, _fh);
 
-    // dark overlay
     canvas.drawPath(
       Path.combine(
         PathOperation.difference,
         Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
         Path()
-          ..addRRect(RRect.fromRectAndRadius(
-              frame, const Radius.circular(12))),
+          ..addRRect(RRect.fromRectAndRadius(frame, const Radius.circular(12))),
       ),
       Paint()..color = AppColors.black.withOpacity(0.55),
     );
 
-    // corners
     final cp = Paint()
       ..color = AppColors.goldDark
       ..strokeWidth = _cThick
@@ -467,11 +449,9 @@ class _OverlayPainter extends CustomPainter {
         frame.topRight + const Offset(0, _cLen));
     corner(frame.bottomLeft, frame.bottomLeft + const Offset(_cLen, 0),
         frame.bottomLeft + const Offset(0, -_cLen));
-    corner(frame.bottomRight,
-        frame.bottomRight + const Offset(-_cLen, 0),
+    corner(frame.bottomRight, frame.bottomRight + const Offset(-_cLen, 0),
         frame.bottomRight + const Offset(0, -_cLen));
 
-    // scan line
     if (active) {
       final ly = top + _fh * lineProgress;
       canvas.drawLine(
@@ -494,23 +474,21 @@ class _OverlayPainter extends CustomPainter {
       o.lineProgress != lineProgress || o.active != active;
 }
 
-// ─── Top Button ──────────────────────────────────────────────────────────────
+// Top Button 
 
 class _TopBtn extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool active;
 
-  const _TopBtn(
-      {required this.icon, required this.onTap, this.active = false});
+  const _TopBtn({required this.icon, required this.onTap, this.active = false});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: 40, height: 40,
         decoration: BoxDecoration(
           color: active
               ? AppColors.goldLight.withOpacity(0.9)
@@ -528,7 +506,7 @@ class _TopBtn extends StatelessWidget {
   }
 }
 
-// ─── Product Card ────────────────────────────────────────────────────────────
+// Product Card 
 
 class _ProductCard extends StatelessWidget {
   final Product product;
@@ -536,9 +514,7 @@ class _ProductCard extends StatelessWidget {
   final VoidCallback onDismiss;
 
   const _ProductCard(
-      {required this.product,
-      required this.onAdd,
-      required this.onDismiss});
+      {required this.product, required this.onAdd, required this.onDismiss});
 
   @override
   Widget build(BuildContext context) {
@@ -547,13 +523,9 @@ class _ProductCard extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.white,
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black26,
-              blurRadius: 20,
-              offset: Offset(0, -4))
+          BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, -4))
         ],
       ),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -561,8 +533,7 @@ class _ProductCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 40,
-            height: 4,
+            width: 40, height: 4,
             decoration: BoxDecoration(
               color: AppColors.grey[300],
               borderRadius: BorderRadius.circular(10),
@@ -571,19 +542,14 @@ class _ProductCard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              // image / icon
               Container(
-                width: 56,
-                height: 56,
+                width: 56, height: 56,
                 decoration: BoxDecoration(
                   color: AppColors.backgroundBottom,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: AppColors.goldDark.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.goldDark.withOpacity(0.3)),
                 ),
-                // FIX 2: Image.file instead of Image.asset for runtime paths
-                child: product.imagePath != null &&
-                        product.imagePath!.isNotEmpty
+                child: product.imagePath != null && product.imagePath!.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(11),
                         child: Image.file(
@@ -600,16 +566,13 @@ class _ProductCard extends StatelessWidget {
                         color: AppColors.goldDark, size: 28),
               ),
               const SizedBox(width: 14),
-
-              // name + stock
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(product.name,
                         style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
+                            fontSize: 16, fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
@@ -649,8 +612,6 @@ class _ProductCard extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // price + add
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -665,8 +626,7 @@ class _ProductCard extends StatelessWidget {
                   GestureDetector(
                     onTap: product.quantity > 0 ? onAdd : null,
                     child: Container(
-                      width: 36,
-                      height: 36,
+                      width: 36, height: 36,
                       decoration: BoxDecoration(
                         color: product.quantity > 0
                             ? AppColors.goldDark
@@ -681,9 +641,7 @@ class _ProductCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           SizedBox(
             width: double.infinity,
             height: 44,
@@ -695,8 +653,7 @@ class _ProductCard extends StatelessWidget {
               ),
               onPressed: onDismiss,
               child: Text('Scan Another',
-                  style: TextStyle(
-                      color: AppColors.grey[600], fontSize: 14)),
+                  style: TextStyle(color: AppColors.grey[600], fontSize: 14)),
             ),
           ),
         ],

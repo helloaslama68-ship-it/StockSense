@@ -42,8 +42,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Color _statusColor(CreditStatus s) {
     switch (s) {
-      case CreditStatus.highDue: return Colors.red;
-      case CreditStatus.noDue:   return Colors.green;
+      case CreditStatus.highDue: return AppColors.darkRed;
+      case CreditStatus.noDue:   return AppColors.darkGreen;
       case CreditStatus.pending: return AppColors.goldDark;
     }
   }
@@ -69,7 +69,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── HEADER ──────────────────────────────────
+            // HEADER 
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
@@ -99,12 +99,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                 child: Column(
                   children: [
-                    // ── SEARCH ───────────────────────────
+                    // SEARCH 
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 8)],
                       ),
                       child: TextField(
                         controller: _searchCtrl,
@@ -121,7 +121,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
                     const SizedBox(height: 16),
 
-                    // ── STATS ─────────────────────────────
+                    // STATS
                     Row(
                       children: [
                         Expanded(
@@ -130,7 +130,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.white,
                               borderRadius: BorderRadius.circular(14),
-                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+                              boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 8)],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,15 +147,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.06),
+                              color: AppColors.darkRed.withOpacity(0.06),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('TOTAL DUE', style: const TextStyle(fontSize: 9, letterSpacing: 1, color: Colors.red, fontWeight: FontWeight.w600)),
+                                Text('TOTAL DUE', style: const TextStyle(fontSize: 9, letterSpacing: 1, color: AppColors.darkRed, fontWeight: FontWeight.w600)),
                                 const SizedBox(height: 6),
-                                Text('₹${_totalDue.toStringAsFixed(0)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red)),
+                                Text('₹${_totalDue.toStringAsFixed(0)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.darkRed)),
                               ],
                             ),
                           ),
@@ -165,7 +165,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
                     const SizedBox(height: 20),
 
-                    // ── LIST ─────────────────────────────
+                    // LIST 
                     if (_filtered.isEmpty)
                       Container(
                         width: double.infinity,
@@ -191,7 +191,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddSheet(context),
         backgroundColor: AppColors.goldDark,
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+        child: const Icon(Icons.add_rounded, color: AppColors.white, size: 28),
       ),
     );
   }
@@ -204,7 +204,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
@@ -237,7 +237,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               Text(
                 '₹${c.amountDue.toStringAsFixed(2)}',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16,
-                    color: c.amountDue == 0 ? Colors.green : color),
+                    color: c.amountDue == 0 ? AppColors.darkGreen : color),
               ),
             ],
           ),
@@ -257,13 +257,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
       builder: (_) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Container(
-          decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          decoration: const BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)))),
+              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.grey[300], borderRadius: BorderRadius.circular(10)))),
               const SizedBox(height: 16),
               const Text('Add Customer', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
@@ -281,7 +281,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text('Customer added!'),
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppColors.darkGreen,
                       behavior: SnackBarBehavior.floating,
                     ));
                   },
@@ -306,7 +306,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           labelText: label,
           hintText: hint,
           filled: true,
-          fillColor: Colors.grey[100],
+          fillColor: AppColors.grey[100],
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.goldDark, width: 1.5)),
         ),

@@ -1,152 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
-import '../../providers/product_provider.dart';
-import '../../providers/sale_provider.dart';
-import '../../services/storage_service.dart';
+import '../../providers/notification_provider.dart';
+import '../../models/app_notification.dart';
 import '../inventory/inventory_screen.dart';
 import '../alerts/alerts_screen.dart';
 import '../sales/sales_list_screen.dart';
 import '../credit/customers_screen.dart';
 
-// Notification Types 
-enum NotifType { lowStock, expiry, expired, sale, credit }
-
-class AppNotification {
-  final String id;
-  final NotifType type;
-  final String title;
-  final String subtitle;
-  final DateTime time;
-  bool isRead;
-
-  AppNotification({
-    required this.id,
-    required this.type,
-    required this.title,
-    required this.subtitle,
-    required this.time,
-    this.isRead = false,
-  });
-
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'type': type.index,
-    'title': title,
-    'subtitle': subtitle,
-    'time': time.toIso8601String(),
-    'isRead': isRead,
-  };
-
-  factory AppNotification.fromMap(Map<String, dynamic> m) => AppNotification(
-    id: m['id'],
-    type: NotifType.values[m['type']],
-    title: m['title'],
-    subtitle: m['subtitle'],
-    time: DateTime.parse(m['time']),
-    isRead: m['isRead'] ?? false,
-  );
-}
-
-// Notification Screen 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
 
-  @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
-}
-
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  final _storage = StorageService();
-  List<AppNotification> _notifications = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _buildNotifications();
-  }
-
-  void _buildNotifications() {
-    final provider = context.read<ProductProvider>();
-    final saleProvider = context.read<SaleProvider>();
-    final List<AppNotification> notifs = [];
-
-    // Low stock alerts
-    for (final p in provider.lowStockProducts) {
-      notifs.add(AppNotification(
-        id: 'low_${p.id}',
-        type: NotifType.lowStock,
-        title: 'Low Stock Alert',
-        subtitle: '${p.name} is running low (${p.quantity} units left)',
-        time: DateTime.now().subtract(const Duration(minutes: 2)),
-      ));
-    }
-
-    // Expiring soon (within 30 days but not expired)
-    final now = DateTime.now();
-    for (final p in provider.expiringProducts) {
-      if (p.expiryDate == null) continue;
-      final expiry = DateTime.tryParse(p.expiryDate!);
-      if (expiry == null) continue;
-      final daysLeft = expiry.difference(now).inDays;
-      if (daysLeft >= 0) {
-        notifs.add(AppNotification(
-          id: 'expiry_${p.id}',
-          type: NotifType.expiry,
-          title: 'Expiry Warning',
-          subtitle: '${p.name} expires in $daysLeft day${daysLeft == 1 ? '' : 's'}',
-          time: DateTime.now().subtract(const Duration(hours: 1)),
-        ));
-      } else {
-        notifs.add(AppNotification(
-          id: 'expired_${p.id}',
-          type: NotifType.expired,
-          title: 'Item Expired',
-          subtitle: '${p.name} expired ${(-daysLeft)} day${-daysLeft == 1 ? '' : 's'} ago',
-          time: DateTime.now().subtract(const Duration(days: 1)),
-        ));
-      }
-    }
-
-    // Recent sales
-    final recentSales = saleProvider.allSales
-        .where((s) => DateTime.now().difference(s.saleDate).inHours < 24)
-        .toList();
-    for (final s in recentSales.take(3)) {
-      notifs.add(AppNotification(
-        id: 'sale_${s.id}',
-        type: NotifType.sale,
-        title: 'Sale Recorded',
-        subtitle: '₹${s.totalAmount.toStringAsFixed(0)} sale completed',
-        time: s.saleDate,
-      ));
-    }
-
-    // Sort by time descending
-    notifs.sort((a, b) => b.time.compareTo(a.time));
-
-    // Load read state from storage
-    final readIds = _storage.getReadNotificationIds();
-    for (final n in notifs) {
-      if (readIds.contains(n.id)) n.isRead = true;
-    }
-
-    setState(() => _notifications = notifs);
-  }
-
-  void _markRead(AppNotification notif) {
-    setState(() => notif.isRead = true);
-    _storage.markNotificationRead(notif.id);
-  }
-
-  void _clearAll() {
-    final ids = _notifications.map((n) => n.id).toList();
-    _storage.clearAllNotifications(ids);
-    setState(() => _notifications.clear());
-  }
-
-  void _onTap(AppNotification notif) {
-    _markRead(notif);
+  void _onTap(BuildContext context, AppNotification notif) {
+    context.read<NotificationProvider>().markRead(notif);
     switch (notif.type) {
       case NotifType.lowStock:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const InventoryScreen()));
@@ -164,6 +30,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  void _confirmClearAll(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Clear All?',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('Remove all notifications?',
+            style: TextStyle(color: AppColors.grey)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: AppColors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.goldDark,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<NotificationProvider>().clearAll();
+            },
+            child: const Text('Clear All',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _timeAgo(DateTime time) {
     final diff = DateTime.now().difference(time);
     if (diff.inMinutes < 1) return 'Just now';
@@ -176,7 +76,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final unread = _notifications.where((n) => !n.isRead).length;
+    final provider = context.watch<NotificationProvider>();
+    final notifications = provider.notifications;
+    final unread = provider.unreadCount;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundTop,
@@ -184,7 +86,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: AppColors.backgroundTop,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppColors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -204,39 +107,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ],
         ),
         actions: [
-          if (_notifications.isNotEmpty)
+          if (notifications.isNotEmpty)
             TextButton(
-              onPressed: () => showDialog(
-                context: context,
-                builder: (_) => AlertDialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  title: const Text('Clear All?',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  content: Text('Remove all notifications?',
-                      style: TextStyle(color: AppColors.grey)),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Cancel', style: TextStyle(color: AppColors.grey)),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.goldDark,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        elevation: 0,
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _clearAll();
-                      },
-                      child: const Text('Clear All',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-              ),
+              onPressed: () => _confirmClearAll(context),
               child: Text('Clear All',
                   style: TextStyle(
                       color: AppColors.goldDark,
@@ -245,22 +118,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
         ],
       ),
-      body: _notifications.isEmpty
+      body: notifications.isEmpty
           ? _emptyState()
           : ListView.separated(
               padding: const EdgeInsets.all(16),
-              itemCount: _notifications.length,
+              itemCount: notifications.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (_, i) => _notifTile(_notifications[i]),
+              itemBuilder: (_, i) =>
+                  _notifTile(context, notifications[i]),
             ),
     );
   }
 
-  Widget _notifTile(AppNotification notif) {
+  Widget _notifTile(BuildContext context, AppNotification notif) {
     final config = _notifConfig(notif.type);
 
     return GestureDetector(
-      onTap: () => _onTap(notif),
+      onTap: () => _onTap(context, notif),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(14),
@@ -269,7 +143,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           borderRadius: BorderRadius.circular(14),
           border: notif.isRead
               ? Border.all(color: AppColors.lightGrey.withOpacity(0.5))
-              : Border.all(color: (config['color'] as Color).withOpacity(0.2)),
+              : Border.all(
+                  color: (config['color'] as Color).withOpacity(0.2)),
           boxShadow: [
             BoxShadow(
               color: AppColors.black.withOpacity(0.03),
@@ -281,12 +156,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // icon
             Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: (config['color'] as Color).withOpacity(notif.isRead ? 0.08 : 0.15),
+                color: (config['color'] as Color)
+                    .withOpacity(notif.isRead ? 0.08 : 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -296,8 +171,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ),
             const SizedBox(width: 12),
-
-            // content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,8 +203,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ],
               ),
             ),
-
-            // unread dot
             if (!notif.isRead) ...[
               const SizedBox(width: 8),
               Container(

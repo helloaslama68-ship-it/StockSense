@@ -15,5 +15,6 @@ class Product extends HiveObject {
   @HiveField(8)  String? barcode;
   @HiveField(9)  String? unit;
   @HiveField(10) late DateTime createdAt;
-  @HiveField(11) String? imagePath;   
+  @HiveField(11) String? imagePath;
+  @HiveField(12) String? brand;   
 }

@@ -5,11 +5,11 @@ import 'onboarding1.dart';
 import 'onboarding2.dart';
 import 'onboarding3.dart';
 
-/// 
+
 /// ONBOARDING MAIN SCREEN
 /// Controls swipe navigation between onboarding pages
 /// Uses PageView + PageController
-/// 
+
 class OnboardingMain extends StatefulWidget {
   @override
   State<OnboardingMain> createState() => _OnboardingMainState();

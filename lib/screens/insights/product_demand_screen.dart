@@ -74,10 +74,10 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
   bool get _isHighDemand => _daysRemaining <= 7;
 
   Color get _alertColor {
-    if (_daysRemaining <= 1) return Colors.red;
+    if (_daysRemaining <= 1) return AppColors.darkRed;
     if (_daysRemaining <= 3) return AppColors.goldDark;
-    if (_daysRemaining <= 7) return Colors.orange;
-    return Colors.green;
+    if (_daysRemaining <= 7) return AppColors.orange;
+    return AppColors.darkGreen;
   }
 
   String get _alertMessage {
@@ -96,7 +96,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
     final trendUp = _trendPercent >= 0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.black,
       body: Column(
         children: [
           // top bar
@@ -108,7 +108,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white, size: 20),
+                        color: AppColors.white, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -171,7 +171,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF8E1),
+                        color:  AppColors.white,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
@@ -221,8 +221,8 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: trendUp
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.red.withOpacity(0.1),
+                                ? AppColors.darkGreen.withOpacity(0.1)
+                                : AppColors.darkRed.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -231,7 +231,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                                 trendUp
                                     ? Icons.trending_up_rounded
                                     : Icons.trending_down_rounded,
-                                color: trendUp ? Colors.green : Colors.red,
+                                color: trendUp ? AppColors.darkGreen : AppColors.darkRed,
                                 size: 14,
                               ),
                               const SizedBox(width: 3),
@@ -239,7 +239,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                                 '${trendUp ? '+' : ''}${_trendPercent.toStringAsFixed(1)}%',
                                 style: TextStyle(
                                     fontSize: 11,
-                                    color: trendUp ? Colors.green : Colors.red,
+                                    color: trendUp ? AppColors.darkGreen : AppColors.darkRed,
                                     fontWeight: FontWeight.bold),
                               ),
                             ],
@@ -316,7 +316,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                               _isHighDemand
                                   ? Icons.bolt_rounded
                                   : Icons.check_circle_rounded,
-                              color: Colors.white,
+                              color: AppColors.white,
                               size: 20,
                             ),
                             const SizedBox(width: 10),
@@ -324,7 +324,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                               child: Text(
                                 _alertMessage,
                                 style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13,
                                     height: 1.4),
@@ -332,7 +332,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                             ),
                             if (_isHighDemand)
                               const Icon(Icons.arrow_forward_ios_rounded,
-                                  color: Colors.white, size: 14),
+                                  color: AppColors.white, size: 14),
                           ],
                         ),
                       ),
@@ -369,7 +369,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.goldDark,
-                          foregroundColor: Colors.white,
+                          foregroundColor: AppColors.white,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14)),
                           elevation: 0,
@@ -419,7 +419,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
           Text(label,
               style: TextStyle(
                   fontSize: 9,
-                  color: dark ? Colors.white54 : AppColors.grey,
+                  color: dark ? AppColors.white : AppColors.grey,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.8)),
           const SizedBox(height: 6),
@@ -427,11 +427,11 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
               style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: dark ? Colors.white : AppColors.black)),
+                  color: dark ? AppColors.white : AppColors.black)),
           Text(unit,
               style: TextStyle(
                   fontSize: 11,
-                  color: dark ? Colors.white54 : AppColors.grey)),
+                  color: dark ? AppColors.white : AppColors.grey)),
         ],
       ),
     );
@@ -461,7 +461,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
   }
 }
 
-// ── Line Chart Painter ────────────────────────────────────
+// Line Chart Painter 
 
 class _ChartPainter extends CustomPainter {
   final List<double> data;
@@ -526,7 +526,7 @@ class _ChartPainter extends CustomPainter {
     canvas.drawCircle(
       Offset(lastX, lastY),
       3,
-      Paint()..color = Colors.white,
+      Paint()..color = AppColors.white,
     );
   }
 

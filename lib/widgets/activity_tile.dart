@@ -62,11 +62,23 @@ class ActivityTile extends StatelessWidget {
                 Text(time,
                     style: TextStyle(fontSize: 10, color: timeColor)),
                 if (badge != null)
-                  Text(badge!,
+                  Container(
+                    margin: const EdgeInsets.only(top: 3),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightRed,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      badge!,
                       style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold)),
+                        fontSize: 10,
+                        color: AppColors.darkRed,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ],

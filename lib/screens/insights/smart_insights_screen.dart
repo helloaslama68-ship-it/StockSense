@@ -23,27 +23,12 @@ class ProductPrediction {
   });
 }
 
-class SmartInsightsScreen extends StatefulWidget {
+class SmartInsightsScreen extends StatelessWidget {
   const SmartInsightsScreen({Key? key}) : super(key: key);
 
-  @override
-  State<SmartInsightsScreen> createState() => _SmartInsightsScreenState();
-}
-
-class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
-  late List<ProductPrediction> _predictions;
-
-  @override
-  void initState() {
-    super.initState();
-    _buildPredictions();
-  }
-
-  void _buildPredictions() {
-    final provider = context.read<ProductProvider>();
-    final saleProvider = context.read<SaleProvider>();
-    final products = provider.allProducts;
-    final allSales = saleProvider.allSales;
+  List<ProductPrediction> _computePredictions(BuildContext context) {
+    final products = context.watch<ProductProvider>().allProducts;
+    final allSales  = context.watch<SaleProvider>().allSales;
     final List<ProductPrediction> preds = [];
 
     for (final p in products) {
@@ -98,38 +83,38 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
     }
 
     preds.sort((a, b) => a.status.index.compareTo(b.status.index));
-    _predictions = preds;
+    return preds;
   }
-
-  int get _fastMoving => _predictions
-      .where((p) => p.daysSupply >= 0 && p.daysSupply <= 7)
-      .length;
-
-  int get _runningOut => _predictions
-      .where((p) => p.status == PredictionStatus.critical)
-      .length;
-
-  int get _slowMoving => _predictions
-      .where((p) => p.status == PredictionStatus.stable && p.daysSupply > 14)
-      .length;
 
   @override
   Widget build(BuildContext context) {
+    final predictions = _computePredictions(context);
+
+    final fastMoving = predictions
+        .where((p) => p.daysSupply >= 0 && p.daysSupply <= 7)
+        .length;
+    final runningOut = predictions
+        .where((p) => p.status == PredictionStatus.critical)
+        .length;
+    final slowMoving = predictions
+        .where((p) => p.status == PredictionStatus.stable && p.daysSupply > 14)
+        .length;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundTop,
       appBar: AppBar(
         backgroundColor: AppColors.backgroundTop,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
           children: [
-            Icon(Icons.bolt_rounded, color: AppColors.goldDark, size: 16),
+            const Icon(Icons.bolt_rounded, color: AppColors.goldDark, size: 16),
             const SizedBox(width: 4),
-            Text('SMART INSIGHTS',
+            const Text('SMART INSIGHTS',
                 style: TextStyle(
                     color: AppColors.goldDark,
                     fontWeight: FontWeight.w800,
@@ -138,7 +123,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
           ],
         ),
       ),
-      body: _predictions.isEmpty
+      body: predictions.isEmpty
           ? _emptyState()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -168,7 +153,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                                     letterSpacing: 0.8,
                                     fontWeight: FontWeight.w600)),
                             const SizedBox(height: 4),
-                            Text('$_fastMoving Items',
+                            Text('$fastMoving Items',
                                 style: const TextStyle(
                                     fontSize: 22, fontWeight: FontWeight.bold)),
                           ],
@@ -192,10 +177,10 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                       Expanded(
                         child: _statCard(
                           label: 'CRITICAL',
-                          value: '$_runningOut',
-                          sub: '$_runningOut item${_runningOut == 1 ? '' : 's'} below threshold',
-                          color: Colors.red,
-                          bg: const Color(0xFFFFF0F0),
+                          value: '$runningOut',
+                          sub: '$runningOut item${runningOut == 1 ? '' : 's'} below threshold',
+                          color: AppColors.darkRed,
+                          bg: AppColors.white,
                           icon: Icons.warning_rounded,
                         ),
                       ),
@@ -204,7 +189,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                         child: _statCard(
                           label: 'OPTIMIZATION',
                           value: 'Slow Moving',
-                          sub: '$_slowMoving item${_slowMoving == 1 ? '' : 's'} stagnant',
+                          sub: '$slowMoving item${slowMoving == 1 ? '' : 's'} stagnant',
                           color: AppColors.grey,
                           bg: AppColors.white,
                           icon: Icons.trending_down_rounded,
@@ -220,8 +205,8 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                     children: [
                       const Text('Predictions',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('${_predictions.length} ITEMS',
-                          style: TextStyle(
+                      Text('${predictions.length} ITEMS',
+                          style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.goldDark,
                               fontWeight: FontWeight.w700,
@@ -231,7 +216,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
 
                   const SizedBox(height: 12),
 
-                  ..._predictions.map((pred) => _predictionCard(pred)),
+                  ...predictions.map((pred) => _predictionCard(context, pred)),
 
                   const SizedBox(height: 24),
                 ],
@@ -240,7 +225,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
     );
   }
 
-  Widget _predictionCard(ProductPrediction pred) {
+  Widget _predictionCard(BuildContext context, ProductPrediction pred) {
     final config = _statusConfig(pred.status);
     final p = pred.product;
     final hasImage = p.imagePath != null && p.imagePath!.isNotEmpty;
@@ -252,7 +237,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: AppColors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -268,7 +253,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF8E1),
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: hasImage
@@ -276,7 +261,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                           borderRadius: BorderRadius.circular(12),
                           child: Image.file(File(p.imagePath!), fit: BoxFit.cover),
                         )
-                      : Icon(Icons.inventory_2_rounded,
+                      : const Icon(Icons.inventory_2_rounded,
                           color: AppColors.goldDark, size: 26),
                 ),
                 const SizedBox(width: 12),
@@ -339,7 +324,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.goldDark,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                     elevation: 0,
@@ -349,7 +334,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                     MaterialPageRoute(
                       builder: (_) => ProductDemandScreen(product: pred.product),
                     ),
-                  ).then((_) => setState(() => _buildPredictions())),
+                  ),
                   child: const Text('View',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 ),
@@ -372,7 +357,7 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
                     MaterialPageRoute(
                       builder: (_) => ProductDemandScreen(product: pred.product),
                     ),
-                  ).then((_) => setState(() => _buildPredictions())),
+                  ),
                   child: Text('Sufficient Stock',
                       style: TextStyle(
                           color: AppColors.grey,
@@ -429,11 +414,11 @@ class _SmartInsightsScreenState extends State<SmartInsightsScreen> {
   Map<String, dynamic> _statusConfig(PredictionStatus status) {
     switch (status) {
       case PredictionStatus.critical:
-        return {'icon': Icons.warning_rounded, 'color': Colors.red};
+        return {'icon': Icons.warning_rounded, 'color': AppColors.darkRed};
       case PredictionStatus.warning:
         return {'icon': Icons.access_time_rounded, 'color': AppColors.goldDark};
       case PredictionStatus.stable:
-        return {'icon': Icons.check_circle_rounded, 'color': Colors.green};
+        return {'icon': Icons.check_circle_rounded, 'color': AppColors.darkGreen};
     }
   }
 

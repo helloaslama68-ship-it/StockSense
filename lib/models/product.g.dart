@@ -1,4 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+
 
 part of 'product.dart';
 
@@ -28,13 +28,14 @@ class ProductAdapter extends TypeAdapter<Product> {
       ..barcode = fields[8] as String?
       ..unit = fields[9] as String?
       ..createdAt = fields[10] as DateTime
-      ..imagePath = fields[11] as String?;
+      ..imagePath = fields[11] as String?
+      ..brand = fields[12] as String?;
   }
 
   @override
   void write(BinaryWriter writer, Product obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -58,7 +59,9 @@ class ProductAdapter extends TypeAdapter<Product> {
       ..writeByte(10)
       ..write(obj.createdAt)
       ..writeByte(11)
-      ..write(obj.imagePath);
+      ..write(obj.imagePath)
+      ..writeByte(12)
+      ..write(obj.brand);
   }
 
   @override

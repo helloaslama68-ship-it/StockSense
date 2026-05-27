@@ -1,319 +1,200 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
+
 import '../../core/colors.dart';
+import '../../providers/navigation_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../providers/sale_provider.dart';
-import '../inventory/inventory_screen.dart';
-import '../inventory/add_product_screen.dart';
+import '../../widgets/activity_row.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/app_decorations.dart';
+import '../../widgets/app_section_label.dart';
+import '../../widgets/bottom_nav_bar.dart';
+import '../../widgets/gold_button.dart';
+import '../../widgets/photo_option.dart';
+import '../../widgets/quick_action_button.dart';
+import '../../widgets/stat_box.dart';
 import '../alerts/alerts_screen.dart';
-import '../../services/storage_service.dart';
-import '../profile/profile_screen.dart';
-import 'package:image_picker/image_picker.dart';
-import '../reports/reports_screen.dart';
-import '../purchase/purchase_list_screen.dart';
-import '../sales/sales_list_screen.dart';
 import '../credit/customers_screen.dart';
-import '../scanner/scanner_screen.dart';
-import '../notifications/notifications_screen.dart';
 import '../insights/smart_insights_screen.dart';
+import '../inventory/add_product_screen.dart';
+import '../inventory/inventory_screen.dart';
+import '../manage/manage_screen.dart';
+import '../notifications/notifications_screen.dart';
+import '../profile/profile_screen.dart';
+import '../purchase/purchase_list_screen.dart';
+import '../reports/reports_screen.dart';
+import '../sales/sales_list_screen.dart';
+import '../scanner/scanner_screen.dart';
+import '../loss/loss_log_screen.dart';
 
-// ----------------------------------------------------------
-//  HOME SCREEN
-//  Root shell. Owns the bottom nav and swaps between
-//  Dashboard, Inventory, Alerts, and Reports tabs.
-// --------------------------------------------------------------
-class HomeScreen extends StatefulWidget {
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
+//  ROOT SHELL 
 
-class _HomeScreenState extends State<HomeScreen> {
-  int currentIndex = 0; // Active bottom-nav tab index
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
-  /// Called by child widgets (e.g. dashboard cards) to switch tabs programmatically.
-  void switchTab(int index) {
-    setState(() => currentIndex = index);
-  }
-
-  /// Tab screens; lazily constructed once via `late final`.
-  late final List<Widget> _screens = [
+  static const List<Widget> _screens = [
     _DashboardBody(),
-    const InventoryScreen(),
-    const AlertsScreen(),
-    const ReportsScreen(),
+    InventoryScreen(),
+    AlertsScreen(),
+    ReportsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final idx = context.watch<NavigationProvider>().currentIndex;
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
-      bottomNavigationBar: _bottomNav(),
-      body: _screens[currentIndex],
-    );
-  }
-
-  /// Floating pill-shaped bottom navigation bar.
-  Widget _bottomNav() {
-    return Container(
-      margin: EdgeInsets.all(12),
-      padding: EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: AppColors.black, blurRadius: 10)],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _navItem(Icons.dashboard, "Dashboard", 0),
-          _navItem(Icons.inventory_2, "Inventory", 1),
-          _navItem(Icons.warning, "Alerts", 2),
-          _navItem(Icons.bar_chart, "Reports", 3),
-        ],
-      ),
-    );
-  }
-
-  /// Single nav tab: icon + label, gold when active, grey otherwise.
-  Widget _navItem(IconData icon, String label, int index) {
-    bool isActive = currentIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => currentIndex = index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: isActive ? AppColors.goldDark : AppColors.grey),
-          SizedBox(height: 4),
-          Text(label,
-              style: TextStyle(
-                fontSize: 11,
-                color: isActive ? AppColors.goldDark : AppColors.grey,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              )),
-        ],
-      ),
+      backgroundColor: const Color(0xFFF6F5F2),
+      bottomNavigationBar: const BottomNavBar(),
+      body: _screens[idx],
     );
   }
 }
 
-// --------------------------------------------------------------
-//  DASHBOARD BODY
-//  Main scrollable dashboard shown on the Home tab.
-//  Handles profile image, greeting, quick actions, and KPI cards.
-// ------------------------------------------------------------
-class _DashboardBody extends StatefulWidget {
-  @override
-  State<_DashboardBody> createState() => _DashboardBodyState();
-}
+//  DASHBOARD BODY 
 
-class _DashboardBodyState extends State<_DashboardBody> {
-  final _storage = StorageService();
-  String? _imagePath; // Local file path for the owner's profile photo
+class _DashboardBody extends StatelessWidget {
+  const _DashboardBody();
 
-  @override
-  void initState() {
-    super.initState();
-    _imagePath = _storage.getProfileImage(); // Load saved photo on first build
+  static String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    if (h < 21) return 'Good evening';
+    return 'Good night';
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Refresh providers after frame completes to avoid setState-during-build errors.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      context.read<ProductProvider>().refresh();
-      context.read<SaleProvider>().refresh();
-    });
-    // Sync profile image in case it changed in another screen.
-    final fresh = _storage.getProfileImage();
-    if (fresh != _imagePath) {
-      setState(() => _imagePath = fresh);
-    }
-  }
-
-  /// Traverses the widget tree to call [_HomeScreenState.switchTab].
-  void switchTab(int index) {
-    final homeState = context.findAncestorStateOfType<_HomeScreenState>();
-    homeState?.switchTab(index);
-  }
-
-  // ── Profile image picker 
-
-  /// Shows bottom sheet with Camera / Gallery / Remove options.
-  Future<void> _pickImage() async {
+  void _showPhotoPicker(BuildContext context) {
+    final profile = context.read<ProfileProvider>();
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => Container(
-        padding: EdgeInsets.all(20),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle
             Container(
-              width: 40,
-              height: 4,
+              width: 36, height: 4,
               decoration: BoxDecoration(
-                color: AppColors.lightGrey,
+                color: const Color(0xFFE0DDD8),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            SizedBox(height: 16),
-            Text("Change Profile Photo",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
+            const Text('Change profile photo',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _photoOption(
+                PhotoOption(
                   icon: Icons.camera_alt_rounded,
-                  label: "Camera",
+                  label: 'Camera',
                   color: AppColors.goldDark,
-                  onTap: () async {
+                  onTap: () {
                     Navigator.pop(context);
-                    await _getImage(fromCamera: true);
+                    profile.pickImage(fromCamera: true, context: context);
                   },
                 ),
-                _photoOption(
+                PhotoOption(
                   icon: Icons.photo_library_rounded,
-                  label: "Gallery",
+                  label: 'Gallery',
                   color: AppColors.blue,
-                  onTap: () async {
+                  onTap: () {
                     Navigator.pop(context);
-                    await _getImage(fromCamera: false);
+                    profile.pickImage(fromCamera: false, context: context);
                   },
                 ),
-                // Show Remove option only when a photo exists
-                if (_imagePath != null && _imagePath!.isNotEmpty)
-                  _photoOption(
+                if (profile.hasPhoto)
+                  PhotoOption(
                     icon: Icons.delete_rounded,
-                    label: "Remove",
+                    label: 'Remove',
                     color: AppColors.darkRed,
                     onTap: () {
                       Navigator.pop(context);
-                      _storage.saveProfileImage('');
-                      setState(() => _imagePath = null);
+                      profile.removeImage();
                     },
                   ),
               ],
             ),
-            SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  /// Launches the image picker (camera or gallery), saves the result.
-  Future<void> _getImage({required bool fromCamera}) async {
-    try {
-      final picker = ImagePicker();
-      final XFile? picked = await picker.pickImage(
-        source: fromCamera ? ImageSource.camera : ImageSource.gallery,
-        imageQuality: 80,  // Compress to reduce storage size
-        maxWidth: 400,     // Downscale large photos
-      );
-      if (picked != null) {
-        _storage.saveProfileImage(picked.path);
-        setState(() => _imagePath = picked.path);
-      }
-    } catch (e) {
-      // Show error snackbar if picker fails (e.g. permission denied)
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not pick image'),
-            backgroundColor: AppColors.darkRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
-  /// Circular icon + label button used inside the photo picker sheet.
-  Widget _photoOption({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          CircleAvatar(
-            backgroundColor: color.withOpacity(0.1),
-            radius: 28,
-            child: Icon(icon, color: color, size: 26),
-          ),
-          SizedBox(height: 8),
-          Text(label,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final ownerName = _storage.getOwnerName();
-    final hasPhoto = _imagePath != null && _imagePath!.isNotEmpty;
-
-    /// Returns time-appropriate greeting string.
-    String getGreeting() {
-      final hour = DateTime.now().hour;
-      if (hour < 12) return "Good Morning";
-      if (hour < 17) return "Good Afternoon";
-      if (hour < 21) return "Good Evening";
-      return "Good Night";
-    }
+    final profile = context.watch<ProfileProvider>();
 
     return SafeArea(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // ── HEADER: logo + notification bell + avatar ──
+            // TOP BAR
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // App logo + name
-                Row(
-                  children: [
-                    Image.asset('assets/images/logo.png', width: 30),
-                    SizedBox(width: 8),
-                    Text("StockSense",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    // Notification bell with red dot badge when alerts exist
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                      ),
+                // Logo + App name
+                Row(children: [
+                  Image.asset('assets/images/logo.png', width: 36),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'StockSense',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ]),
+                // Actions
+                Row(children: [
+                  // Menu
+                  GestureDetector(
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const ManageScreen())),
+                    child: Container(
+                      width: 38, height: 38,
+                      decoration: appCard(radius: 12),
+                      child: const Icon(Icons.menu_rounded,
+                          size: 20, color: Color(0xFF1A1A1A)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Notifications
+                  GestureDetector(
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(
+                            builder: (_) => const NotificationsScreen())),
+                    child: Container(
+                      width: 38, height: 38,
+                      decoration: appDarkCard(radius: 12),
                       child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          const Icon(Icons.notifications_none_rounded),
+                          const Icon(Icons.notifications_none_rounded,
+                              color: Colors.white, size: 20),
                           Consumer<ProductProvider>(
                             builder: (_, p, __) {
-                              final count = p.lowStockProducts.length + p.expiringProducts.length;
-                              if (count == 0) return const SizedBox.shrink(); // No badge when clean
+                              final count = p.lowStockProducts.length +
+                                  p.expiringProducts.length;
+                              if (count == 0) return const SizedBox.shrink();
                               return Positioned(
-                                right: 0, top: 0,
+                                right: 7, top: 7,
                                 child: Container(
                                   width: 8, height: 8,
                                   decoration: const BoxDecoration(
-                                    color: AppColors.darkRed,
+                                    color: Color(0xFFE04545),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -323,593 +204,696 @@ class _DashboardBodyState extends State<_DashboardBody> {
                         ],
                       ),
                     ),
-                    SizedBox(width: 10),
-
-                    // Profile avatar — navigates to ProfileScreen on tap
-                    GestureDetector(
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
+                  ),
+                  const SizedBox(width: 8),
+                  // Avatar
+                  GestureDetector(
+                    onTap: () async {
+                      await Navigator.push(context,
                           MaterialPageRoute(
-                              builder: (_) => const ProfileScreen()),
-                        );
-                        // Refresh image in case it was changed inside ProfileScreen
-                        setState(() {
-                          _imagePath = _storage.getProfileImage();
-                        });
-                      },
+                              builder: (_) => const ProfileScreen()));
+                      if (context.mounted) {
+                        context.read<ProfileProvider>().reload();
+                      }
+                    },
+                    onLongPress: () => _showPhotoPicker(context),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: AppColors.goldDark.withOpacity(0.4),
+                            width: 2),
+                      ),
                       child: CircleAvatar(
                         backgroundColor: AppColors.goldDark,
-                        radius: 18,
-                        backgroundImage: hasPhoto
-                            ? FileImage(File(_imagePath!))
+                        radius: 17,
+                        backgroundImage: profile.hasPhoto
+                            ? FileImage(File(profile.imagePath!))
                             : null,
-                        child: !hasPhoto
-                            ? Icon(Icons.person_rounded,
-                                size: 20, color: AppColors.white)
-                            : null,
+                        child: profile.hasPhoto
+                            ? null
+                            : const Icon(Icons.person_rounded,
+                                size: 18, color: Colors.white),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ]),
               ],
             ),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-            // ── GREETING 
-            Text(
-              "${getGreeting()}, $ownerName 👋",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text("Here's your inventory snapshot.",
-                style: TextStyle(color: AppColors.grey)),
-
-            SizedBox(height: 20),
-
-            // ── QUICK ACTIONS ROW 
-            // Five shortcut icons: Add Item, Purchase, Sales, Credit, Scan
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _quickImageIcon(
-                  context,
-                  'assets/icons/addicon.png',
-                  "ADD ITEM",
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => AddProductScreen())),
-                ),
-                _quickImageIcon(
-                  context,
-                  'assets/icons/purchaseicon.png',
-                  "PURCHASE",
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PurchaseListScreen()),
-                  ),
-                ),
-                _quickImageIcon(
-                  context,
-                  'assets/icons/saleicon.png',
-                  "SALES",
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SalesListScreen()),
-                  ),
-                ),
-                _quickImageIcon(
-                  context,
-                  'assets/icons/crediticon.png',
-                  "CREDIT",
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CustomersScreen()),
-                  ),
-                ),
-                _quickImageIcon(
-                  context,
-                  'assets/icons/barcodeicon .png',
-                  "SCAN",
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ScannerScreen()),
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 20),
-
-            // ── TOTAL PRODUCTS CARD 
-            // Tapping navigates to Inventory tab (index 1).
-            Consumer<ProductProvider>(
-              builder: (_, p, __) => GestureDetector(
-                onTap: () => switchTab(1),
-                child: Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Total Products",
-                              style: TextStyle(color: AppColors.grey)),
-                          SizedBox(height: 5),
-                          Text(p.totalProducts.toString(),
-                              style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      Icon(Icons.grid_view_rounded,
-                          color: AppColors.lightGrey, size: 28),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            SizedBox(height: 15),
-
-            // ── LOW STOCK + EXPIRY ALERT CARDS 
-            // Side-by-side; both tap to Alerts tab (index 2).
-            Consumer<ProductProvider>(
-              builder: (_, p, __) => Row(
+            // GREETING 
+            Consumer<ProfileProvider>(
+              builder: (_, p, __) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => switchTab(2),
-                    child: _alertStat(
-                      "LOW STOCK",
-              p.lowStockProducts.length.toString(),
-                "items need\nimmediate restock",
-                AppColors.darkRed,
-                 AppColors.lightRed,
-              icon: Icons.warning_amber_rounded,
-                subtitleColor: AppColors.darkRed,
-                   ),
+                  Text(
+                    '${_greeting()}, ${p.ownerName} 👋',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                      color: Color(0xFF1A1A1A),
                     ),
                   ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => switchTab(2),
-                     child: _alertStat(
-                    "EXPIRY",
-                p.expiringProducts.length.toString(),
-                "items in\nnext 30 days",
-               AppColors.goldDark,
-               AppColors.white,
-         subtitleColor: AppColors.grey,
-                    ),
-                    ),
+                  const SizedBox(height: 3),
+                  Text(
+                    "Here's your inventory snapshot.",
+                    style: TextStyle(
+                        color: Colors.black.withOpacity(0.4), fontSize: 13),
                   ),
                 ],
               ),
             ),
 
-            SizedBox(height: 15),
+            const SizedBox(height: 18),
 
-            // ── TODAY SALES CARD 
-            // Dark card; total sourced live from SaleProvider.
-            // NOTE: "+12% vs yesterday" is currently a static placeholder.
+            // TODAY'S REVENUE HERO CARD 
             Consumer<SaleProvider>(
               builder: (_, s, __) => Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.black,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: appDarkCard(),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("TODAY SALES",
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "TODAY'S REVENUE",
                             style: TextStyle(
-                                color: Colors.white70, fontSize: 11)),
-                        SizedBox(height: 6),
-                        Text(
-                          "₹${s.todaySalesTotal.toStringAsFixed(2)}",
-                          style: TextStyle(
+                              color: Color(0xFF888580),
+                              fontSize: 10,
+                              letterSpacing: 1.2,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '₹${s.todaySalesTotal.toStringAsFixed(0)}',
+                            style: const TextStyle(
                               color: AppColors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.arrow_upward_rounded,
-                                color: AppColors.darkGreen, size: 13),
-                            Text("+12% vs yesterday", // TODO: compute dynamically
-                                style: TextStyle(
-                                    color: AppColors.darkGreen,
-                                    fontSize: 11)),
-                          ],
-                        ),
-                      ],
+                              fontSize: 34,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6FCF97).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.arrow_upward_rounded,
+                                    color: Color(0xFF6FCF97), size: 12),
+                                const SizedBox(width: 3),
+                                Text(
+                                  s.salesChangeLabel,
+                                  style: const TextStyle(
+                                    color: Color(0xFF6FCF97),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    Icon(Icons.bar_chart_rounded,
-                        color: AppColors.goldDark, size: 40),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldDark.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(Icons.bar_chart_rounded,
+                          color: AppColors.goldLight, size: 32),
+                    ),
                   ],
                 ),
               ),
             ),
 
-            SizedBox(height: 15),
+            const SizedBox(height: 16),
 
-            // ── PENDING CREDIT CARD 
-            // TODO: source ₹1,450.00 dynamically from a CreditProvider.
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
+            // QUICK ACTIONS 
+            AppCard(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: AppColors.lightGrey.withOpacity(0.5),
-                    child: Icon(Icons.account_balance_wallet_rounded,
-                        color: AppColors.grey, size: 20),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("PENDING CREDIT",
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.grey,
-                                letterSpacing: 0.5)),
-                        SizedBox(height: 2),
-                        Text("₹1,450.00", // TODO: replace with live value
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold)),
-                      ],
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6, bottom: 12),
+                    child: Text(
+                      'QUICK ACTIONS',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.warmGrey,
+                        letterSpacing: 1.2,
+                      ),
                     ),
                   ),
-                  // "View All" navigates to CustomersScreen
-                  TextButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CustomersScreen()),
-                    ),
-                    child: Text("View All",
-                        style: TextStyle(
-                            color: AppColors.goldDark,
-                            fontWeight: FontWeight.bold)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      QuickActionButton(
+                        iconPath: 'assets/icons/addicon.png',
+                        label: 'Add item',
+                        bgColor: AppColors.goldDark,
+                        iconColor: Colors.white,
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(
+                                builder: (_) => AddProductScreen())),
+                      ),
+                      QuickActionButton(
+                        iconPath: 'assets/icons/purchaseicon.png',
+                        label: 'Purchase',
+                        bgColor: const Color(0xFFF1EFE8),
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(
+                                builder: (_) => const PurchaseListScreen())),
+                      ),
+                      QuickActionButton(
+                        iconPath: 'assets/icons/saleicon.png',
+                        label: 'Sales',
+                        bgColor: const Color(0xFFF1EFE8),
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(
+                                builder: (_) => const SalesListScreen())),
+                      ),
+                      QuickActionButton(
+                        iconPath: 'assets/icons/crediticon.png',
+                        label: 'Credit',
+                        bgColor: const Color(0xFFF1EFE8),
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(
+                                builder: (_) => const CustomersScreen())),
+                      ),
+                      QuickActionButton(
+                        iconPath: 'assets/icons/barcodeicon .png',
+                        label: 'Scan',
+                        bgColor: const Color(0xFFF1EFE8),
+                        iconColor: Colors.black,
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(
+                                builder: (_) => const ScannerScreen())),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
 
-            SizedBox(height: 15),
+            const SizedBox(height: 16),
 
-            // ── SMART DEMAND PREDICTION CARD 
-            // Gold promo card; content is currently hardcoded.
-            // CTA opens SmartInsightsScreen to create a purchase order.
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.goldDark,
-                borderRadius: BorderRadius.circular(16),
+            // STAT GRID
+            Consumer<ProductProvider>(
+              builder: (_, p, __) => Column(
+                children: [
+                  // Top row: total products full-width
+                  GestureDetector(
+                    onTap: () =>
+                        context.read<NavigationProvider>().switchTab(1),
+                    child: AppCard(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 14),
+                      child: Row(children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1EFE8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.inventory_2_rounded,
+                              color: Color(0xFF5F5E5A), size: 20),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'TOTAL PRODUCTS',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  letterSpacing: 1.0,
+                                  color: Color(0xFF888780),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                p.totalProducts.toString(),
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.5,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColors.goldDark.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('View all',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.goldDark,
+                                    fontWeight: FontWeight.w700,
+                                  )),
+                              const SizedBox(width: 3),
+                              Icon(Icons.arrow_forward_ios_rounded,
+                                  size: 10, color: AppColors.goldDark),
+                            ],
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Bottom row: low stock + expiry
+                  Row(children: [
+                    // LOW STOCK
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () =>
+                            context.read<NavigationProvider>().switchTab(2),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFCEBEB),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                                color: const Color(0xFFA32D2D).withOpacity(0.2),
+                                width: 1),
+                          ),
+                          child: Stack(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Alert badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 7, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFA32D2D),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.warning_rounded,
+                                            size: 10, color: Colors.white),
+                                        SizedBox(width: 3),
+                                        Text('LOW STOCK',
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.5,
+                                            )),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    p.lowStockProducts.length.toString(),
+                                    style: const TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFFA32D2D),
+                                      letterSpacing: -1,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'items need\nrestock now',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFFD85A30),
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Icon(Icons.inventory_2_rounded,
+                                    size: 44,
+                                    color: const Color(0xFFA32D2D)
+                                        .withOpacity(0.08)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // EXPIRING 
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () =>
+                            context.read<NavigationProvider>().switchTab(2),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF8EC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                                color: AppColors.goldDark.withOpacity(0.2),
+                                width: 1),
+                          ),
+                          child: Stack(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Expiry badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 7, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.goldDark,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.hourglass_bottom_rounded,
+                                            size: 10, color: Colors.white),
+                                        SizedBox(width: 3),
+                                        Text('EXPIRING',
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.5,
+                                            )),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    p.expiringProducts.length.toString(),
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.goldDark,
+                                      letterSpacing: -1,
+                                    ),
+                                  ),
+                                  Text(
+                                    'items expire\nnext 90 days',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.goldDark.withOpacity(0.7),
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Icon(Icons.access_time_rounded,
+                                    size: 44,
+                                    color: AppColors.goldDark.withOpacity(0.08)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ],
               ),
+            ),
+
+            const SizedBox(height: 16),
+
+            //  PENDING CREDIT 
+            Consumer<SaleProvider>(
+              builder: (_, s, __) => GestureDetector(
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(
+                        builder: (_) => const CustomersScreen())),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFFFAEEDA),
+                        const Color(0xFFFDF6EC),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(18), 
+                    border: Border.all(
+                        color: AppColors.goldDark.withOpacity(0.2), width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.goldDark.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldDark.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.account_balance_wallet_rounded,
+                          color: Color(0xFF854F0B), size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'PENDING CREDIT',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF888780),
+                              letterSpacing: 1.0,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '₹${s.pendingCreditTotal.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF1A1A1A),
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldDark,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'View all',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // SMART DEMAND PREDICTION
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: appColorCard(color: AppColors.goldDark),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.bolt_rounded, color: Colors.white, size: 14),
-                      SizedBox(width: 4),
-                      Text("SMART DEMAND PREDICTION",
-                          style: TextStyle(
-                              color: AppColors.white.withOpacity(0.9),
-                              fontSize: 10,
-                              letterSpacing: 1)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 9, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(children: [
+                          Icon(Icons.bolt_rounded,
+                              color: Colors.white, size: 12),
+                          SizedBox(width: 3),
+                          Text(
+                            'SMART PREDICTION',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              letterSpacing: 1.0,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ]),
+                      ),
+                      Icon(Icons.trending_up_rounded,
+                          color: Colors.white.withOpacity(0.5), size: 20),
                     ],
                   ),
-                  SizedBox(height: 10),
-                  Text("Artisan Bread predicted to run\nout in 6 hours.", // TODO: dynamic prediction
-                      style: TextStyle(
-                          color: AppColors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold)),
-                  SizedBox(height: 6),
-                  Text(
-                      "Based on your Friday evening sales velocity,\nconsider restocking now.",
-                      style: TextStyle(
-                          color: AppColors.white.withOpacity(0.85),
-                          fontSize: 12)),
-                  SizedBox(height: 14),
-                  SizedBox(
-                    height: 40,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.white,
-                        foregroundColor: AppColors.black,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SmartInsightsScreen()),
-                      ),
-                      child: Text("Create Purchase Order",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Artisan Bread predicted to\nrun out in 6 hours.',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                      height: 1.3,
                     ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Based on your Friday evening sales velocity,\nconsider restocking now.',
+                    style: TextStyle(
+                        color: Colors.white70, fontSize: 12, height: 1.5),
+                  ),
+                  const SizedBox(height: 16),
+                  GoldButton(
+                    label: 'Create purchase order',
+                    outlined: false,
+                    height: 44,
+                    icon: Icons.add_shopping_cart_rounded,
+                    onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(
+                            builder: (_) => const SmartInsightsScreen())),
                   ),
                 ],
               ),
             ),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-            // ── RECENT ACTIVITY 
-            // Header row; "See History" is non-functional placeholder.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Recent Activity",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15)),
-                Text("See History", // TODO: wire to a full activity log screen
-                    style: TextStyle(
-                        color: AppColors.goldDark,
-                        fontWeight: FontWeight.w500)),
-              ],
+            //  RECENT ACTIVITY 
+            AppSectionLabel(
+              label: 'RECENT ACTIVITY',
+              actionLabel: 'See history',
+              onAction: () {},
+            ),
+            const SizedBox(height: 12),
+
+            // Activity inside AppCard using ActivityRow
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ActivityRow(
+                    icon: Icons.add_circle_rounded,
+                    iconBg: const Color(0xFFE8F5E9),
+                    iconColor: const Color(0xFF3B6D11),
+                    title: 'Stock Added',
+                    subtitle: '+50 Whole Milk',
+                    time: '10:45 AM',
+                    timeColor: const Color(0xFF3B6D11),
+                    isLast: false,
+                  ),
+                  ActivityRow(
+                    icon: Icons.receipt_rounded,
+                    iconBg: const Color(0xFFE6F1FB),
+                    iconColor: const Color(0xFF185FA5),
+                    title: 'Sales Transaction',
+                    subtitle: 'Order #SL0923 · 4 items',
+                    time: '09:12 AM',
+                    timeColor: AppColors.warmGrey,
+                    isLast: false,
+                  ),
+                  ActivityRow(
+                    icon: Icons.delete_rounded,
+                    iconBg: AppColors.lightRed,
+                    iconColor: AppColors.darkRed,
+                    title: 'Waste Logged',
+                    subtitle: '10x Green Yogurt (Expired)',
+                    time: 'Yesterday',
+                    timeColor: AppColors.darkRed,
+                    badge: '-₹165',
+                    isLast: true,
+                  ),
+                ],
+              ),
             ),
 
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-            // Hardcoded sample activity tiles — replace with live feed
-            _activityTile(
-              icon: Icons.add_circle_rounded,
-              color: AppColors.darkGreen,
-              title: "Stock Added",
-              subtitle: "+50 Whole Milk",
-              time: "10:45 AM",
-              timeColor: AppColors.darkGreen,
-            ),
-            _activityTile(
-              icon: Icons.receipt_rounded,
-              color: AppColors.blue,
-              title: "Sales Transaction",
-              subtitle: "Order #SL0923 — 4 items",
-              time: "09:12 AM",
-              timeColor: AppColors.grey,
-            ),
-            _activityTile(
-              icon: Icons.delete_rounded,
-              color: AppColors.darkRed,
-              title: "Waste Logged",
-              subtitle: "10x Green Yogurt (Expired)",
-              time: "Yesterday",
-              timeColor: AppColors.darkRed,
-              badge: "-₹165", // Monetary loss badge
-            ),
-
-            SizedBox(height: 16),
-
-            // ── WASTED ITEMS 
-            // TODO: wire onTap to a waste details screen
+            // WASTED ITEMS 
             GestureDetector(
-              onTap: () {},
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LossLogScreen())),
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.black,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Text("SEE DETAILS OF",
-                        style: TextStyle(
-                            color: AppColors.lightGrey,
-                            fontSize: 9,
-                            letterSpacing: 2)),
-                    SizedBox(height: 2),
-                    Text("WASTED ITEMS →",
-                        style: TextStyle(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            letterSpacing: 1)),
-                  ],
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: appDarkCard(radius: 14),
+                child: const Column(children: [
+                  Text(
+                    'SEE DETAILS OF',
+                    style: TextStyle(
+                      color: Color(0xFF888580),
+                      fontSize: 9,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'WASTED ITEMS →',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ]),
               ),
             ),
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
           ],
         ),
-      ),
-    );
-  }
-
-  
-  //  HELPER WIDGETS
-  
-
-  /// Quick-action icon button backed by an asset image.
-  Widget _quickImageIcon(BuildContext context, String iconPath, String label,
-      {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          CircleAvatar(
-            backgroundColor: AppColors.lightGrey,
-            radius: 24,
-            child: Image.asset(iconPath, width: 20, height: 20),
-          ),
-          SizedBox(height: 5),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 9, color: AppColors.grey, letterSpacing: 0.3)),
-        ],
-      ),
-    );
-  }
-
-  /// Quick-action icon button backed by a Material [IconData].
-  /// Currently unused — kept for future use or migration.
-  Widget _quickIconTap(IconData icon, String label,
-      {required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          CircleAvatar(
-            backgroundColor: AppColors.white,
-            radius: 24,
-            child: Icon(icon, size: 20),
-          ),
-          SizedBox(height: 5),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 9, color: AppColors.grey, letterSpacing: 0.3)),
-        ],
-      ),
-    );
-  }
-
-  /// Colored stat card used for Low Stock and Expiry alerts.
-  /// [valueColor] tints both the count and the title label.
-Widget _alertStat(
-  String title,
-  String value,
-  String subtitle,
-  Color valueColor,
-  Color bgColor, {
-  IconData? icon,
-  Color? subtitleColor,
-}) {
-  return Container(
-    padding: EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: bgColor,
-      borderRadius: BorderRadius.circular(14),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-
-        // Top row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: valueColor,
-                letterSpacing: 0.5,
-              ),
-            ),
-
-            // Show icon only if provided
-            if (icon != null)
-              Icon(
-                icon,
-                color: valueColor,
-                size: 20,
-              ),
-          ],
-        ),
-
-        SizedBox(height: 6),
-
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: valueColor,
-          ),
-        ),
-
-        SizedBox(height: 4),
-
-      Text(
-  subtitle,
-  style: TextStyle(
-    fontSize: 10,
-    color: subtitleColor ?? AppColors.grey,
-    fontWeight: FontWeight.w500,
-  ),
-),
-      ],
-    ),
-  );
-}
-
-  /// Activity feed tile with a colored left border and optional monetary badge.
-  Widget _activityTile({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required String time,
-    required Color timeColor,
-    String? badge, // Optional red monetary-loss label (e.g. "-₹165")
-  }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border(left: BorderSide(color: color, width: 3)), // Accent stripe
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: color.withOpacity(0.1),
-            radius: 18,
-            child: Icon(icon, color: color, size: 18),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 13)),
-                Text(subtitle,
-                    style:
-                        TextStyle(color: AppColors.grey, fontSize: 11)),
-              ],
-            ),
-          ),
-          // Timestamp + optional loss badge aligned to the right
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(time,
-                  style: TextStyle(fontSize: 10, color: timeColor)),
-              if (badge != null)
-                Text(badge,
-                    style: TextStyle(
-                        fontSize: 10,
-                        color:AppColors.darkRed,
-                        fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ],
       ),
     );
   }

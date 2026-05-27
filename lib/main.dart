@@ -9,89 +9,148 @@ import 'screens/splash.dart';
 import 'models/product.dart';
 import 'models/sale.dart';
 import 'models/purchase.dart';
+import 'models/inventory_loss.dart';
+
+// Services
+import 'services/storage_service.dart';
+
+// Repositories
+import 'repositories/auth_repository.dart';
+import 'repositories/profile_repository.dart';
+import 'repositories/inventory_repository.dart';
+import 'repositories/notification_repository.dart';
+import 'repositories/product_repository.dart';
+import 'repositories/loss_repository.dart';
 
 // Providers
 import 'providers/product_provider.dart';
 import 'providers/sale_provider.dart';
 import 'providers/alert_provider.dart';
+import 'providers/navigation_provider.dart';
+import 'providers/profile_provider.dart';
+import 'providers/inventory_provider.dart';
+import 'providers/notification_provider.dart';
+import 'providers/settings_provider.dart';
+import 'providers/purchase_provider.dart';
+import 'providers/purchase_form_provider.dart';
+import 'providers/product_form_provider.dart';
+import 'providers/loss_provider.dart';
+import 'providers/sale_form_provider.dart';
+import 'providers/scanner_provider.dart';
+import 'providers/log_loss_form_provider.dart';
+import 'providers/loss_filter_provider.dart';
+import 'providers/inventory_filter_provider.dart';
+import 'providers/product_unit_provider.dart';
 
 void main() async {
-
-  // Ensures Flutter engine is initialized before async operations
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive local database
   await Hive.initFlutter();
-
-  // Open general-purpose local storage boxes
   await Hive.openBox('appBox');
   await Hive.openBox('settings');
 
-  // Register Hive adapters
-  // Adapters convert Dart objects into storable binary data
   Hive.registerAdapter(ProductAdapter());
   Hive.registerAdapter(SaleAdapter());
   Hive.registerAdapter(PurchaseAdapter());
+  Hive.registerAdapter(InventoryLossAdapter());
 
-  // Open typed Hive boxes for storing app data locally
   await Hive.openBox<Product>('products');
   await Hive.openBox<Sale>('sales');
   await Hive.openBox<Purchase>('purchases');
+  await Hive.openBox<InventoryLoss>('losses');
 
-  // Start the app with Provider state management
   runApp(
-
-    // MultiProvider allows multiple providers across the app
     MultiProvider(
       providers: [
 
-        // Handles product CRUD operations and inventory logic
-        ChangeNotifierProvider(
-          create: (_) => ProductProvider(),
+        // SERVICES 
+        Provider<StorageService>(
+          create: (_) => StorageService(),
         ),
 
-        // Handles sales-related operations
-        ChangeNotifierProvider(
-          create: (_) => SaleProvider(),
+        // REPOSITORIES
+        ProxyProvider<StorageService, AuthRepository>(
+          update: (_, storage, __) => AuthRepository(storage),
+        ),
+        ProxyProvider<StorageService, ProfileRepository>(
+          update: (_, storage, __) => ProfileRepository(storage),
+        ),
+        ProxyProvider<StorageService, InventoryRepository>(
+          update: (_, storage, __) => InventoryRepository(storage),
+        ),
+        ProxyProvider<StorageService, NotificationRepository>(
+          update: (_, storage, __) => NotificationRepository(storage),
+        ),
+        Provider<ProductRepository>(
+          create: (_) => ProductRepository(),
         ),
 
-        // Handles stock alerts and notifications
-        ChangeNotifierProvider(
-          create: (_) => AlertProvider(),
+        // PROVIDERS 
+        ChangeNotifierProxyProvider2<AuthRepository, ProfileRepository, ProfileProvider>(
+          create: (ctx) => ProfileProvider(
+            ctx.read<AuthRepository>(),
+            ctx.read<ProfileRepository>(),
+          ),
+          update: (_, authRepo, profileRepo, prev) =>
+              prev ?? ProfileProvider(authRepo, profileRepo),
         ),
+
+        ChangeNotifierProvider(create: (_) => NavigationProvider()),
+
+        ChangeNotifierProxyProvider<ProductRepository, ProductProvider>(
+          create: (ctx) => ProductProvider(ctx.read<ProductRepository>()),
+          update: (_, repo, prev) => prev ?? ProductProvider(repo),
+        ),
+
+        ChangeNotifierProxyProvider<InventoryRepository, InventoryProvider>(
+          create: (ctx) => InventoryProvider(ctx.read<InventoryRepository>()),
+          update: (_, repo, prev) => prev ?? InventoryProvider(repo),
+        ),
+
+        ChangeNotifierProvider(create: (_) => SaleProvider()),
+        ChangeNotifierProvider(create: (_) => AlertProvider()),
+        ChangeNotifierProvider(create: (_) => PurchaseProvider()),
+        ChangeNotifierProvider(create: (_) => PurchaseFormProvider()),
+        ChangeNotifierProvider(create: (_) => ProductFormProvider()),
+        ChangeNotifierProvider(create: (_) => LossProvider(LossRepository())),
+
+        // NOTIFICATION PROVIDER
+        ChangeNotifierProxyProvider3<NotificationRepository, ProductProvider, SaleProvider, NotificationProvider>(
+          create: (ctx) => NotificationProvider(
+            ctx.read<NotificationRepository>(),
+          ),
+          update: (_, repo, pp, sp, prev) =>
+              (prev ?? NotificationProvider(repo))..update(pp, sp),
+        ),
+
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+
+        
+        ChangeNotifierProvider(create: (_) => SaleFormProvider()),
+        ChangeNotifierProvider(create: (_) => ScannerProvider()),
+        ChangeNotifierProvider(create: (_) => LogLossFormProvider()),
+        ChangeNotifierProvider(create: (_) => LossFilterProvider()),
+        ChangeNotifierProvider(create: (_) => InventoryFilterProvider()),
+        ChangeNotifierProvider(create: (_) => ProductUnitProvider()),
+
       ],
-
-      // Main application widget
-      child: StockSenseApp(),
+      child: const StockSenseApp(),
     ),
   );
 }
 
-// Root widget of the application
 class StockSenseApp extends StatelessWidget {
+  const StockSenseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
-
-      // Removes debug banner
       debugShowCheckedModeBanner: false,
-
-      // Application title
       title: 'StockSense',
-
-      // Global app theme
       theme: ThemeData(
-
-        // Default screen background color
         scaffoldBackgroundColor: AppColors.white,
-
-        // Main theme color
         primaryColor: AppColors.primary,
       ),
-
-      // First screen shown when app starts
       home: Splash(),
     );
   }

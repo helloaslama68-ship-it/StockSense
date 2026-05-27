@@ -2,97 +2,64 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/product.dart';
 
-// ---------------------------------------------------------------
+
 // ALERT PROVIDER
 // Handles:
-// Low stock alerts
-// Expiry alerts
-// Refreshing UI updates
+// - Low stock alerts
+// - Expiry alerts
+// - Tab filter selection (selectedTab)
+// - Refreshing UI updates
 //
 // Uses Hive local database to read product data.
-// ----------------------------------------------------------------
+
 class AlertProvider extends ChangeNotifier {
 
-  // ── HIVE PRODUCT BOX 
-  // Opens the local Hive storage box named "products"
+  // HIVE PRODUCT BOX
   final Box<Product> _box = Hive.box<Product>('products');
 
-  // -------------------------------------------------------
+  //TAB FILTER STATE
+  
+  static const List<String> tabs = ['All', 'Low Stock', 'Expiry', 'High Due'];
+  String _selectedTab = 'All';
+  String get selectedTab => _selectedTab;
+
+  void selectTab(String tab) {
+    if (_selectedTab == tab) return;
+    _selectedTab = tab;
+    notifyListeners();
+  }
+
   // LOW STOCK ALERTS
-  // Returns products where:
-  // quantity <= lowStockThreshold
-  // --------------------------------------------------
   List<Product> get lowStockAlerts =>
-
       _box.values
-
-          // Filter low stock products
-          .where(
-            (p) => p.quantity <= p.lowStockThreshold,
-          )
-
-          // Convert to list
+          .where((p) => p.quantity <= p.lowStockThreshold)
           .toList();
 
-  // --------------------------------------------------------
   // EXPIRY ALERTS
-  // Returns products expiring within 30 days
-  // Also identifies expired products
-  // --------------------------------------------------
   List<Map<String, dynamic>> get expiryAlerts {
-
-    // Current date and time
-    final now = DateTime.now();
-
-    // Final result list
+    final now    = DateTime.now();
     final result = <Map<String, dynamic>>[];
 
-    // Loop through all products
     for (final p in _box.values) {
-
-      // Skip if expiry date is null
       if (p.expiryDate == null) continue;
-
-      // Convert expiry string to DateTime
       final expiry = DateTime.tryParse(p.expiryDate!);
-
-      // Skip invalid date
       if (expiry == null) continue;
-
-      // Calculate days remaining
       final days = expiry.difference(now).inDays;
-
-      // Add products expiring within 30 days
       if (days <= 30) {
-
         result.add({
-
-          // Product object
-          'product': p,
-
-          // Remaining days
-          'daysLeft': days,
-
-          // Expired status
+          'product':   p,
+          'daysLeft':  days,
           'isExpired': days < 0,
         });
       }
     }
 
-    // ── SORT ALERTS 
-    // Closest expiry first
-    result.sort(
-      (a, b) =>
-          (a['daysLeft'] as int)
-              .compareTo(b['daysLeft'] as int),
-    );
+    result.sort((a, b) =>
+        (a['daysLeft'] as int).compareTo(b['daysLeft'] as int));
 
     return result;
   }
 
-  // -------------------------------------------------------
-  // REFRESH PROVIDER
-  // Notifies listeners to rebuild UI
-  // ---------------------------------------------------------
+  // REFRESH
   void refresh() => notifyListeners();
 }

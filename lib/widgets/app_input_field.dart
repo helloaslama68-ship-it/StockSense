@@ -32,6 +32,11 @@ class AppInputField extends StatelessWidget {
       validator: validator,
       readOnly: readOnly,
       onTap: onTap,
+      style: const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        color: Colors.black,
+      ),
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: prefix != null
@@ -43,20 +48,27 @@ class AppInputField extends StatelessWidget {
             : null,
         prefixIconConstraints:
             const BoxConstraints(minWidth: 0, minHeight: 0),
-        hintStyle: TextStyle(color: AppColors.grey, fontSize: 14),
+        hintStyle: TextStyle(
+          color: AppColors.warmGrey,
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+        ),
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: AppColors.backgroundBottom,
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: AppColors.goldDark, width: 1.5)),
         errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: Colors.red, width: 1)),
         focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: Colors.red, width: 1.5)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

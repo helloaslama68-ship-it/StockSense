@@ -1,5 +1,4 @@
-// 
-// IMPORTS
+
 
 
 // Flutter material package
@@ -8,10 +7,10 @@ import 'package:flutter/material.dart';
 // App color constants
 import '../../core/colors.dart';
 
-// ─────────────────────────────────────────────────────────────
+
 // REPORTS SCREEN
 // Main analytics dashboard screen
-// ─────────────────────────────────────────────────────────────
+
 class ReportsScreen extends StatelessWidget {
 
   const ReportsScreen({super.key});
@@ -38,9 +37,9 @@ class ReportsScreen extends StatelessWidget {
 
             children: [
 
-              // 
+               
               // APP BAR TITLE
-              // ─────────────────────────────────────────
+              
               Text(
                 'Reports',
 
@@ -53,9 +52,9 @@ class ReportsScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // ─────────────────────────────────────────
+              
               // ANALYTICS HUB LABEL
-              // ─────────────────────────────────────────
+              
               Text(
                 'ANALYTICS HUB',
 
@@ -94,9 +93,9 @@ class ReportsScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // ─────────────────────────────────────────
+              
               // FEATURED SALES REPORT CARD
-              // ─────────────────────────────────────────
+              
               _FeaturedReportCard(
 
                 // Card icon
@@ -114,9 +113,9 @@ class ReportsScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // ─────────────────────────────────────────
+              
               // REPORT GRID SECTION
-              // ─────────────────────────────────────────
+              
               GridView.count(
 
                 // 2 columns
@@ -140,9 +139,9 @@ class ReportsScreen extends StatelessWidget {
 
                 children: [
 
-                  // ───────────────────────────────────
+                  
                   // PURCHASE REPORT CARD
-                  // ───────────────────────────────────
+                  
                   _GridReportCard(
 
                     icon:
@@ -163,9 +162,9 @@ class ReportsScreen extends StatelessWidget {
                     onTap: () {},
                   ),
 
-                  // ───────────────────────────────────
+                  
                   // STOCK REPORT CARD
-                  // ───────────────────────────────────
+                  
                   _GridReportCard(
 
                     icon:
@@ -184,9 +183,9 @@ class ReportsScreen extends StatelessWidget {
                     onTap: () {},
                   ),
 
-                  // ───────────────────────────────────
+                  
                   // CREDIT REPORT CARD
-                  // ───────────────────────────────────
+                  
                   _GridReportCard(
 
                     icon:
@@ -206,9 +205,9 @@ class ReportsScreen extends StatelessWidget {
                     onTap: () {},
                   ),
 
-                  // --------------------------------------
+                  
                   // LOSS REPORT CARD
-                  // -------------------------------------
+            
                   _GridReportCard(
 
                     icon:
@@ -241,10 +240,10 @@ class ReportsScreen extends StatelessWidget {
   }
 }
 
-// ------------------------------------------------------------
+
 // FEATURED REPORT CARD
 // Large top card for sales analytics
-// ---------------------------------------------------------------
+
 class _FeaturedReportCard extends StatelessWidget {
 
   // Card icon
@@ -307,9 +306,9 @@ class _FeaturedReportCard extends StatelessWidget {
 
           children: [
 
-            // ------------------------------------------------
+            
             // ICON CONTAINER
-            // ----------------------------------------------
+            
             Container(
 
               width: 52,
@@ -334,9 +333,9 @@ class _FeaturedReportCard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // -------------------------------------------
+            
             // REPORT TITLE
-            // -------------------------------------------
+            
             Text(
               title,
 
@@ -348,9 +347,9 @@ class _FeaturedReportCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // ---------------------------------------------
+            
             // FOOTER SECTION
-            // ----------------------------------------------
+            
             Row(
 
               mainAxisAlignment:
@@ -393,10 +392,10 @@ class _FeaturedReportCard extends StatelessWidget {
   }
 }
 
-// --------------------------------------------
+
 // GRID REPORT CARD
 // Small analytics cards shown in grid
-// -----------------------------------------
+
 class _GridReportCard extends StatelessWidget {
 
   // Card icon
@@ -482,9 +481,9 @@ class _GridReportCard extends StatelessWidget {
 
           children: [
 
-            // ------------------------------------------
+            
             // ICON CONTAINER
-            // --------------------------------------------
+            
             Container(
 
               width: 36,
@@ -505,9 +504,9 @@ class _GridReportCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // ------------------------------------
+            
             // TITLE
-            // ------------------------------------
+            
             Text(
               title,
 
@@ -519,9 +518,9 @@ class _GridReportCard extends StatelessWidget {
 
             const SizedBox(height: 4),
 
-            // ---------
+            
             // SUBTITLE
-            // ----------
+            
             Text(
               subtitle,
 

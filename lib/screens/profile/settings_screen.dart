@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../providers/settings_provider.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _lowStockAlerts  = true;
-  bool _expiryAlerts    = true;
-  bool _creditDueAlerts = false;
-  bool _darkMode        = false;
-  String _language      = 'English (EN)';
-
-  @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.backgroundTop,
       appBar: AppBar(
@@ -49,7 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 24),
 
-            // ── NOTIFICATIONS ─────────────────────────
+            //  NOTIFICATIONS 
             _sectionLabel('NOTIFICATIONS'),
             const SizedBox(height: 10),
             _buildCard(children: [
@@ -57,34 +50,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.warning_amber_rounded,
                 iconColor: AppColors.orange,
                 title: 'Low Stock Alerts',
-                value: _lowStockAlerts,
-                onChanged: (v) => setState(() => _lowStockAlerts = v),
+                value: settings.lowStockAlerts,
+                onChanged: (v) => context.read<SettingsProvider>().setLowStockAlerts(v),
               ),
               _divider(),
               _toggleTile(
                 icon: Icons.calendar_today_rounded,
                 iconColor: AppColors.blue,
                 title: 'Expiry Alerts',
-                value: _expiryAlerts,
-                onChanged: (v) => setState(() => _expiryAlerts = v),
+                value: settings.expiryAlerts,
+                onChanged: (v) => context.read<SettingsProvider>().setExpiryAlerts(v),
               ),
               _divider(),
               _toggleTile(
                 icon: Icons.credit_card_rounded,
                 iconColor: AppColors.grey,
                 title: 'Credit Due Alerts',
-                value: _creditDueAlerts,
-                onChanged: (v) => setState(() => _creditDueAlerts = v),
+                value: settings.creditDueAlerts,
+                onChanged: (v) => context.read<SettingsProvider>().setCreditDueAlerts(v),
               ),
             ]),
 
             const SizedBox(height: 20),
 
-            // ── PREFERENCES ───────────────────────────
+            // PREFERENCES 
             _sectionLabel('PREFERENCES'),
             const SizedBox(height: 10),
             _buildCard(children: [
-              // Dark mode + Language side by side
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
@@ -113,9 +105,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               scale: 0.8,
                               alignment: Alignment.centerLeft,
                               child: Switch(
-                                value: _darkMode,
-                                onChanged: (v) =>
-                                    setState(() => _darkMode = v),
+                                value: settings.darkMode,
+                                onChanged: (v) => context.read<SettingsProvider>().setDarkMode(v),
                                 activeColor: AppColors.goldDark,
                               ),
                             ),
@@ -144,7 +135,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.black)),
                             const SizedBox(height: 4),
-                            Text(_language,
+                            Text(settings.language,
                                 style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.goldDark,
@@ -160,7 +151,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 20),
 
-            // ── ABOUT ─────────────────────────────────
+            //  ABOUT 
             _sectionLabel('ABOUT'),
             const SizedBox(height: 10),
             _buildCard(children: [
@@ -183,7 +174,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ── HELPERS ──────────────────────────────────────────
+  //  HELPERS 
 
   Widget _sectionLabel(String label) => Text(label,
       style: TextStyle(

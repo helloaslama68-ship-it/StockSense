@@ -1,258 +1,155 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:uuid/uuid.dart';
 import '../models/product.dart';
+import '../repositories/product_repository.dart';
+import '../screens/inventory/inventory_filter_sheet.dart';
 
-// ----------------------------------------------------------
-// PRODUCT PROVIDER
-// Handles:
-// Adding products
-// Updating products
-// Deleting products
-// Product filtering
-// Search functionality
-// Category filtering
-// Low stock alerts
-// Expiry alerts
-//
-// Uses Hive local database for offline storage.
-// ------------------------------------------------------------
 class ProductProvider extends ChangeNotifier {
+  final ProductRepository _repo;
+  ProductProvider(this._repo);
 
-  // ── HIVE PRODUCT BOX 
-  // Access local database box named "products"
-  final Box<Product> _box = Hive.box<Product>('products');
-
-  // UUID generator for unique product IDs
-  final _uuid = const Uuid();
-
-  // ── SEARCH & FILTER VARIABLES 
   String _searchQuery = '';
   String _selectedCategory = 'All';
+  InventoryFilter _filter = const InventoryFilter();
 
-  // ---------------------------------------------------------
-  // ALL PRODUCTS
-  // Returns complete product list
-  // -----------------------------------------------------------
-  List<Product> get allProducts => _box.values.toList();
+  // GETTERS 
+  List<Product> get allProducts => _repo.getAll();
 
-  // ---------------------------------------------------------------
-  // FILTERED PRODUCTS
-  // Filters products using:
-  // Search query
-  // Selected category
-  // --------------------------------------------------------------
-  List<Product> get filteredProducts =>
-
-      _box.values.where((p) {
-
-        // Match product name with search query
+  List<Product> get filteredProducts => _repo.getAll().where((p) {
         final matchSearch =
-            p.name.toLowerCase()
-                .contains(_searchQuery.toLowerCase());
-
-        // Match category
+            p.name.toLowerCase().contains(_searchQuery.toLowerCase());
         final matchCat =
-            _selectedCategory == 'All' ||
-            p.category == _selectedCategory;
-
+            _selectedCategory == 'All' || p.category == _selectedCategory;
         return matchSearch && matchCat;
-
       }).toList();
 
-  // ----------------------------------------------------------
-  // LOW STOCK PRODUCTS
-  // Returns products with low quantity
-  // ----------------------------------------------------------
+  List<Product> get filteredAndSorted {
+    var list = List<Product>.from(filteredProducts);
+
+    if (_filter.statuses.isNotEmpty) {
+      list = list.where((p) {
+        if (_filter.statuses.contains('outOfStock') && p.quantity == 0)
+          return true;
+        if (_filter.statuses.contains('lowStock') &&
+            p.quantity > 0 &&
+            p.quantity <= p.lowStockThreshold) return true;
+        if (_filter.statuses.contains('nearExpiry') && p.expiryDate != null) {
+          final exp = DateTime.tryParse(p.expiryDate!);
+          if (exp != null) {
+            final days = exp.difference(DateTime.now()).inDays;
+            if (days >= 0 && days <= 7) return true;
+          }
+        }
+        return false;
+      }).toList();
+    }
+
+    if (_filter.categories.isNotEmpty) {
+      list = list
+          .where((p) => _filter.categories.contains(p.category))
+          .toList();
+    }
+
+    list = list
+        .where((p) =>
+            p.sellingPrice >= _filter.minPrice &&
+            p.sellingPrice <= _filter.maxPrice)
+        .toList();
+
+    switch (_filter.sortBy) {
+      case SortOption.newlyAdded:
+        list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case SortOption.qtyLowHigh:
+        list.sort((a, b) => a.quantity.compareTo(b.quantity));
+        break;
+      case SortOption.qtyHighLow:
+        list.sort((a, b) => b.quantity.compareTo(a.quantity));
+        break;
+      case SortOption.expirySoonest:
+        list.sort((a, b) {
+          if (a.expiryDate == null && b.expiryDate == null) return 0;
+          if (a.expiryDate == null) return 1;
+          if (b.expiryDate == null) return -1;
+          return DateTime.parse(a.expiryDate!)
+              .compareTo(DateTime.parse(b.expiryDate!));
+        });
+        break;
+      case SortOption.priceLowHigh:
+        list.sort((a, b) => a.sellingPrice.compareTo(b.sellingPrice));
+        break;
+      case SortOption.priceHighLow:
+        list.sort((a, b) => b.sellingPrice.compareTo(a.sellingPrice));
+        break;
+    }
+
+    return list;
+  }
+
   List<Product> get lowStockProducts =>
+      _repo.getAll().where((p) => p.quantity <= p.lowStockThreshold).toList();
 
-      _box.values.where(
-        (p) => p.quantity <= p.lowStockThreshold,
-      ).toList();
-
-  // ----------------------------------------------------------
-  // EXPIRING PRODUCTS
-  // Returns products expiring within 30 days
-  // ---------------------------------------------------------
   List<Product> get expiringProducts {
-
-    // Expiry threshold date
-    final threshold =
-        DateTime.now().add(
-          const Duration(days: 30),
-        );
-
-    return _box.values.where((p) {
-
-      // Skip if expiry date is null
+    final threshold = DateTime.now().add(const Duration(days: 30));
+    return _repo.getAll().where((p) {
       if (p.expiryDate == null) return false;
-
-      // Convert string date to DateTime
-      final expiry =
-          DateTime.tryParse(p.expiryDate!);
-
-      // Check if product expires before threshold
-      return expiry != null &&
-          expiry.isBefore(threshold);
-
+      final expiry = DateTime.tryParse(p.expiryDate!);
+      return expiry != null && expiry.isBefore(threshold);
     }).toList();
   }
 
-  // ------------------------------------------------------------
-  // GET PRODUCT BY BARCODE
-  // Used in barcode scanner feature
-  // --------------------------------------------------------------
-  Product? getProductByBarcode(String barcode) {
+  Product? getByBarcode(String barcode) => _repo.getByBarcode(barcode);
 
-    try {
-
-      return _box.values.firstWhere(
-
-        (p) =>
-            p.barcode != null &&
-            p.barcode == barcode,
-      );
-
-    } catch (_) {
-
-      // Return null if barcode not found
-      return null;
-    }
-  }
-
-  // -----------------------------------------------------------------
-  // PRODUCT CATEGORIES
-  // Returns all unique categories
-  // Adds "All" at beginning
-  // ------------------------------------------------------------------
   List<String> get categories =>
+      ['All', ..._repo.getAll().map((p) => p.category).toSet()];
 
-      [
-        'All',
-
-        ..._box.values
-            .map((p) => p.category)
-            .toSet()
-      ];
-
-  // --------------------------------------------------------
-  // SIMPLE GETTERS
-  // ------------------------------------------------------
-
-  // Total number of products
-  int get totalProducts => _box.length;
-
-  // Current search query
+  int get totalProducts => _repo.getAll().length;
   String get searchQuery => _searchQuery;
-
-  // Current selected category
   String get selectedCategory => _selectedCategory;
+  InventoryFilter get filter => _filter;
 
-  // ------------------------------------------------------
-  // ADD PRODUCT
-  // Creates and stores a new product
-  // -----------------------------------------------------
+  // ACTIONS 
   Future<void> addProduct({
-
     required String name,
     required String category,
     required double costPrice,
     required double sellingPrice,
     required int quantity,
     required int lowStockThreshold,
-
     String? expiryDate,
     String? barcode,
     String? unit,
     String? imagePath,
-
+    String? brand, // ← ADDED
   }) async {
-
-    // Create new product object
-    final p = Product()
-
-      // Generate unique ID
-      ..id = _uuid.v4()
-
-      // Product details
-      ..name = name
-      ..category = category
-
-      // Pricing
-      ..costPrice = costPrice
-      ..sellingPrice = sellingPrice
-
-      // Inventory details
-      ..quantity = quantity
-      ..lowStockThreshold = lowStockThreshold
-
-      // Optional details
-      ..expiryDate = expiryDate
-      ..barcode = barcode
-      ..unit = unit
-      ..imagePath = imagePath
-
-      // Product creation date
-      ..createdAt = DateTime.now();
-
-    // Save product to Hive
-    await _box.put(p.id, p);
-
-    // Refresh UI
+    await _repo.add(
+      name: name,
+      category: category,
+      costPrice: costPrice,
+      sellingPrice: sellingPrice,
+      quantity: quantity,
+      lowStockThreshold: lowStockThreshold,
+      expiryDate: expiryDate,
+      barcode: barcode,
+      unit: unit,
+      imagePath: imagePath,
+      brand: brand, // ← ADDED
+    );
     notifyListeners();
   }
 
-  // ------------------------------------------------------
-  // UPDATE PRODUCT
-  // Saves edited product changes
-  // ------------------------------------------------------------
   Future<void> updateProduct(Product p) async {
-
-    // Save updated product
-    await p.save();
-
-    // Refresh UI
+    await _repo.update(p);
     notifyListeners();
   }
 
-  // --------------------------------------------------------
-  // DELETE PRODUCT
-  // Removes product from Hive database
-  // ----------------------------------------------------
   Future<void> deleteProduct(String id) async {
-
-    // Delete product using ID
-    await _box.delete(id);
-
-    // Refresh UI
+    await _repo.delete(id);
     notifyListeners();
   }
 
-  // --------------------------------------------------------------
-  // SET SEARCH QUERY
-  // Updates search text
-  // --------------------------------------------------------------
-  void setSearch(String q) {
-
-    _searchQuery = q;
-
-    notifyListeners();
-  }
-
-  // -------------------------------------------------------------------
-  // SET CATEGORY FILTER
-  // Updates selected category
-  // -----------------------------------------------------------
-  void setCategory(String c) {
-
-    _selectedCategory = c;
-
-    notifyListeners();
-  }
-
-  // -----------------------------------------------------------
-  // REFRESH PROVIDER
-  // Forces UI rebuild
-  // ----------------------------------------------------------
+  void setSearch(String q) { _searchQuery = q; notifyListeners(); }
+  void setCategory(String c) { _selectedCategory = c; notifyListeners(); }
+  void setFilter(InventoryFilter f) { _filter = f; notifyListeners(); }
+  void clearFilter() { _filter = const InventoryFilter(); notifyListeners(); }
   void refresh() => notifyListeners();
 }

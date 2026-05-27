@@ -1,0 +1,73 @@
+import 'package:flutter/material.dart';
+import '../models/purchase_record.dart';
+
+class PurchaseProvider with ChangeNotifier {
+  final List<PurchaseRecord> _purchases = [
+    PurchaseRecord(
+      id: '1',
+      productName: 'Fresh Produce Restock',
+      supplierName: 'Green Valley Organics',
+      quantityPurchased: 120,
+      totalAmount: 450.00,
+      purchaseDate: DateTime(2025, 10, 25, 10, 30),
+    ),
+    PurchaseRecord(
+      id: '2',
+      productName: 'Dairy Supply',
+      supplierName: 'Lakeside Creamery',
+      quantityPurchased: 45,
+      totalAmount: 215.00,
+      purchaseDate: DateTime(2025, 10, 24, 8, 15),
+    ),
+    PurchaseRecord(
+      id: '3',
+      productName: 'Dry Goods Bulk',
+      supplierName: 'Global Pantry Wholesalers',
+      quantityPurchased: 300,
+      totalAmount: 1120.00,
+      purchaseDate: DateTime(2025, 10, 22, 14, 45),
+    ),
+    PurchaseRecord(
+      id: '4',
+      productName: 'Artisan Bakery Items',
+      supplierName: 'Old Mill Flour Co.',
+      quantityPurchased: 60,
+      totalAmount: 380.00,
+      purchaseDate: DateTime(2025, 10, 21, 9, 0),
+    ),
+    PurchaseRecord(
+      id: '5',
+      productName: 'Packaging Supplies',
+      supplierName: 'EcoPack Solutions',
+      quantityPurchased: 500,
+      totalAmount: 89.50,
+      purchaseDate: DateTime(2025, 10, 15, 11, 30),
+    ),
+  ];
+
+  List<PurchaseRecord> get allPurchases => List.unmodifiable(_purchases);
+
+  double get monthlyTotal =>
+      _purchases.fold(0, (s, p) => s + p.totalAmount);
+
+  int get supplierCount =>
+      _purchases.map((p) => p.supplierName).toSet().length;
+
+  void addPurchase(PurchaseRecord record) {
+    _purchases.insert(0, record);
+    notifyListeners();
+  }
+
+  void deletePurchase(String id) {
+    _purchases.removeWhere((p) => p.id == id);
+    notifyListeners();
+  }
+
+  void updatePurchase(PurchaseRecord updated) {
+    final i = _purchases.indexWhere((p) => p.id == updated.id);
+    if (i != -1) {
+      _purchases[i] = updated;
+      notifyListeners();
+    }
+  }
+}

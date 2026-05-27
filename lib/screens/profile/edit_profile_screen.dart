@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/colors.dart';
-import '../../services/storage_service.dart';
+import '../../providers/profile_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,7 +11,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _storage = StorageService();
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _ownerNameCtrl;
@@ -18,15 +18,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _phoneCtrl;
   late TextEditingController _addressCtrl;
 
-  bool _saving = false;
+  
 
   @override
   void initState() {
     super.initState();
-    _ownerNameCtrl = TextEditingController(text: _storage.getOwnerName());
-    _storeNameCtrl = TextEditingController(text: _storage.getStoreName());
-    _phoneCtrl     = TextEditingController(text: _storage.getPhone());
-    _addressCtrl   = TextEditingController(text: _storage.getAddress());
+    final profile = context.read<ProfileProvider>();
+    _ownerNameCtrl = TextEditingController(text: profile.ownerName ?? '');
+    _storeNameCtrl = TextEditingController(text: profile.storeName ?? '');
+    _phoneCtrl     = TextEditingController(text: profile.phone ?? '');
+    _addressCtrl   = TextEditingController(text: profile.address ?? '');
   }
 
   @override
@@ -38,19 +39,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _save() async {
+  void _save() {                                    
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _saving = true);
-
-     _storage.saveUserData(
+    context.read<ProfileProvider>().saveUserData( 
       ownerName: _ownerNameCtrl.text.trim(),
       storeName: _storeNameCtrl.text.trim(),
       phone:     _phoneCtrl.text.trim(),
       address:   _addressCtrl.text.trim(),
     );
-
-    setState(() => _saving = false);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,16 +61,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           backgroundColor: AppColors.darkGreen,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: EdgeInsets.all(16),
         ),
       );
-      Navigator.pop(context, true); // true = updated
+      Navigator.pop(context, true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final saving = context.watch<ProfileProvider>().saving; 
+
     return Scaffold(
       backgroundColor: AppColors.backgroundTop,
       appBar: AppBar(
@@ -93,7 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: _saving ? null : _save,
+            onPressed: saving ? null : _save,       
             child: Text(
               'Save',
               style: TextStyle(
@@ -113,7 +113,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              // ── SECTION: Personal ───────────────────────
+              // SECTION: Personal
               _sectionHeader('PERSONAL DETAILS'),
               SizedBox(height: 12),
 
@@ -142,7 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               SizedBox(height: 16),
 
-              // ── SECTION: Store ───────────────────────────
+              // SECTION: Store 
               _sectionHeader('STORE DETAILS'),
               SizedBox(height: 12),
 
@@ -154,7 +154,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   hint: 'e.g. Ravi General Store',
                   iconColor: AppColors.goldDark,
                   validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Store name required' : null,
+                      v == null || v.trim().isEmpty
+                          ? 'Store name required'
+                          : null,
                 ),
                 _divider(),
                 _field(
@@ -169,7 +171,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               SizedBox(height: 32),
 
-              // ── SAVE BUTTON ──────────────────────────────
+              // SAVE BUTTON
               Container(
                 width: double.infinity,
                 height: 52,
@@ -193,7 +195,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                  icon: _saving
+                  icon: saving                        
                       ? SizedBox(
                           width: 18,
                           height: 18,
@@ -202,16 +204,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Icon(Icons.save_rounded, color: Colors.white, size: 18),
+                      : Icon(Icons.save_rounded,
+                          color: Colors.white, size: 18),
                   label: Text(
-                    _saving ? 'Saving...' : 'Save Changes',
+                    saving ? 'Saving...' : 'Save Changes',   
                     style: TextStyle(
                       color: AppColors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  onPressed: _saving ? null : _save,
+                  onPressed: saving ? null : _save,  
                 ),
               ),
 
@@ -316,23 +319,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: AppColors.goldDark,
-                    width: 1.5,
-                  ),
+                  borderSide:
+                      BorderSide(color: AppColors.goldDark, width: 1.5),
                 ),
                 errorBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.darkRed, width: 1),
+                  borderSide:
+                      BorderSide(color: AppColors.darkRed, width: 1),
                 ),
                 focusedErrorBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.darkRed, width: 1.5),
+                  borderSide:
+                      BorderSide(color: AppColors.darkRed, width: 1.5),
                 ),
                 contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
           ),
         ],
