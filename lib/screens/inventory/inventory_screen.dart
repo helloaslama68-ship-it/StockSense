@@ -56,16 +56,9 @@ class InventoryScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // HEADER
               _InventoryHeader(onFilterTap: _openFilter),
-
-              // STATS STRIP
               const _StatsStrip(),
-
-              // SEARCH BAR
               _SearchBar(onFilterTap: _openFilter),
-
-              // LIST
               const Expanded(child: _ProductList()),
             ],
           ),
@@ -75,9 +68,7 @@ class InventoryScreen extends StatelessWidget {
   }
 }
 
-
 // HEADER
-
 
 class _InventoryHeader extends StatelessWidget {
   final Future<void> Function(BuildContext, List<Product>) onFilterTap;
@@ -94,26 +85,20 @@ class _InventoryHeader extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'INVENTORY',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.goldLight,
-                    letterSpacing: 3.5,
-                  ),
-                ),
+                Text('INVENTORY',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.goldLight,
+                        letterSpacing: 3.5)),
                 const SizedBox(height: 2),
-                Text(
-                  'My Products',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.goldDark,
-                    height: 1.1,
-                    letterSpacing: -0.5,
-                  ),
-                ),
+                Text('My Products',
+                    style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.goldDark,
+                        height: 1.1,
+                        letterSpacing: -0.5)),
               ],
             ),
             const Spacer(),
@@ -123,16 +108,15 @@ class _InventoryHeader extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: AppColors.goldDark,
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                    color: AppColors.goldDark,
+                    borderRadius: BorderRadius.circular(20)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.filter_alt_rounded,
+                  children: const [
+                    Icon(Icons.filter_alt_rounded,
                         size: 12, color: Colors.white),
-                    const SizedBox(width: 4),
-                    const Text('Filtered',
+                    SizedBox(width: 4),
+                    Text('Filtered',
                         style: TextStyle(
                             fontSize: 11,
                             color: Colors.white,
@@ -141,7 +125,6 @@ class _InventoryHeader extends StatelessWidget {
                   ],
                 ),
               ),
-            // Total count badge
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -151,14 +134,11 @@ class _InventoryHeader extends StatelessWidget {
                 border: Border.all(
                     color: AppColors.goldDark.withOpacity(0.15), width: 1),
               ),
-              child: Text(
-                '${provider.allProducts.length} items',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.goldDark,
-                ),
-              ),
+              child: Text('${provider.allProducts.length} items',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.goldDark)),
             ),
           ],
         ),
@@ -167,9 +147,7 @@ class _InventoryHeader extends StatelessWidget {
   }
 }
 
-
 // STATS STRIP
-
 
 class _StatsStrip extends StatelessWidget {
   const _StatsStrip();
@@ -180,14 +158,17 @@ class _StatsStrip extends StatelessWidget {
       builder: (_, provider, __) {
         final all = provider.allProducts;
         final outOfStock = all.where((p) => p.quantity == 0).length;
-        final lowStock =
-            all.where((p) => p.quantity > 0 && p.quantity <= p.lowStockThreshold).length;
-        final totalValue =
-            all.fold<double>(0, (sum, p) => sum + p.sellingPrice * p.quantity);
+        final lowStock = all
+            .where(
+                (p) => p.quantity > 0 && p.quantity <= p.lowStockThreshold)
+            .length;
+        final totalValue = all.fold<double>(
+            0, (sum, p) => sum + p.sellingPrice * p.quantity);
 
         return Container(
           margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [AppColors.goldDark, const Color(0xFFB87C1A)],
@@ -197,37 +178,33 @@ class _StatsStrip extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: AppColors.goldDark.withOpacity(0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
+                  color: AppColors.goldDark.withOpacity(0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6)),
             ],
           ),
           child: Row(
             children: [
               _StatItem(
-                label: 'Total Value',
-                value: '₹${_formatValue(totalValue)}',
-                icon: Icons.account_balance_wallet_rounded,
-              ),
+                  label: 'Total Value',
+                  value: '₹${_formatValue(totalValue)}',
+                  icon: Icons.account_balance_wallet_rounded),
               _divider(),
               _StatItem(
-                label: 'Low Stock',
-                value: '$lowStock',
-                icon: Icons.warning_amber_rounded,
-                valueColor: lowStock > 0
-                    ? const Color(0xFFFFE082)
-                    : Colors.white,
-              ),
+                  label: 'Low Stock',
+                  value: '$lowStock',
+                  icon: Icons.warning_amber_rounded,
+                  valueColor: lowStock > 0
+                      ? const Color(0xFFFFE082)
+                      : Colors.white),
               _divider(),
               _StatItem(
-                label: 'Out of Stock',
-                value: '$outOfStock',
-                icon: Icons.remove_shopping_cart_rounded,
-                valueColor: outOfStock > 0
-                    ? const Color(0xFFFF8A80)
-                    : Colors.white,
-              ),
+                  label: 'Out of Stock',
+                  value: '$outOfStock',
+                  icon: Icons.remove_shopping_cart_rounded,
+                  valueColor: outOfStock > 0
+                      ? const Color(0xFFFF8A80)
+                      : Colors.white),
             ],
           ),
         );
@@ -279,24 +256,19 @@ class _StatItem extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: valueColor ?? Colors.white,
-              letterSpacing: -0.3,
-            ),
-          ),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: valueColor ?? Colors.white,
+                  letterSpacing: -0.3)),
         ],
       ),
     );
   }
 }
 
-
 // SEARCH BAR
-
 
 class _SearchBar extends StatelessWidget {
   final Future<void> Function(BuildContext, List<Product>) onFilterTap;
@@ -317,10 +289,9 @@ class _SearchBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.goldDark.withOpacity(0.07),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
+                        color: AppColors.goldDark.withOpacity(0.07),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2))
                   ],
                 ),
                 child: TextField(
@@ -358,12 +329,11 @@ class _SearchBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: provider.filter.isActive
-                          ? AppColors.goldDark.withOpacity(0.35)
-                          : AppColors.goldDark.withOpacity(0.07),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
+                        color: provider.filter.isActive
+                            ? AppColors.goldDark.withOpacity(0.35)
+                            : AppColors.goldDark.withOpacity(0.07),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2))
                   ],
                 ),
                 child: Icon(Icons.tune_rounded,
@@ -380,9 +350,7 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-
 // PRODUCT LIST
-
 
 class _ProductList extends StatelessWidget {
   const _ProductList();
@@ -392,22 +360,24 @@ class _ProductList extends StatelessWidget {
     return Consumer<ProductProvider>(
       builder: (_, provider, __) {
         final products = provider.filteredAndSorted;
+        final filter = provider.filter;
 
         if (products.isEmpty) {
           return EmptyState(
             icon: Icons.inventory_2_outlined,
-            title: provider.filter.isActive
+            title: filter.isActive
                 ? 'No products match filters'
                 : 'No products yet',
-            subtitle: provider.filter.isActive
+            subtitle: filter.isActive
                 ? 'Try adjusting your filters'
                 : 'Tap to add your first product',
             iconColor: AppColors.lightGrey,
             buttonLabel:
-                provider.filter.isActive ? 'Clear Filters' : 'Add Product',
-            onButton: provider.filter.isActive
+                filter.isActive ? 'Clear Filters' : 'Add Product',
+            onButton: filter.isActive
                 ? provider.clearFilter
-                : () => Navigator.push(context,
+                : () => Navigator.push(
+                    context,
                     MaterialPageRoute(
                         builder: (_) => const AddProductScreen())),
           );
@@ -417,7 +387,11 @@ class _ProductList extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 110),
           itemCount: products.length,
           itemBuilder: (context, index) {
-            return _ProductCard(product: products[index], index: index);
+            return _ProductCard(
+              product: products[index],
+              index: index,
+              filter: filter,
+            );
           },
         );
       },
@@ -425,18 +399,30 @@ class _ProductList extends StatelessWidget {
   }
 }
 
-
 // PRODUCT CARD
-
 
 class _ProductCard extends StatelessWidget {
   final Product product;
   final int index;
-  const _ProductCard({required this.product, required this.index});
+  final InventoryFilter filter;
+  const _ProductCard({
+    required this.product,
+    required this.index,
+    required this.filter,
+  });
 
   @override
   Widget build(BuildContext context) {
     final status = _getStatus(product);
+
+    final showBrand = filter.brands.isNotEmpty &&
+        product.brand != null &&
+        product.brand!.isNotEmpty;
+    final showUnit = filter.isActive &&
+        product.unit != null &&
+        product.unit!.isNotEmpty;
+    final showCost = (filter.minPrice != 0 || filter.maxPrice != 10000) &&
+        product.costPrice > 0;
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -450,10 +436,9 @@ class _ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.goldDark.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
+                color: AppColors.goldDark.withOpacity(0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 3))
           ],
         ),
         child: ClipRRect(
@@ -461,7 +446,7 @@ class _ProductCard extends StatelessWidget {
           child: IntrinsicHeight(
             child: Row(
               children: [
-                // Left accent bar
+                // Accent bar
                 Container(
                   width: 4,
                   color: status != null
@@ -482,7 +467,7 @@ class _ProductCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Badges row
+                        // Badges
                         Row(
                           children: [
                             if (status != null) ...[
@@ -501,44 +486,89 @@ class _ProductCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14.5,
-                            letterSpacing: -0.2,
-                          ),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14.5,
+                              letterSpacing: -0.2),
                         ),
+                        // Brand + Unit
+                        if (showBrand || showUnit) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              if (showBrand) ...[
+                                Icon(Icons.label_outline_rounded,
+                                    size: 11, color: AppColors.warmGrey),
+                                const SizedBox(width: 3),
+                                Flexible(
+                                  child: Text(product.brand!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.warmGrey,
+                                          fontWeight: FontWeight.w500)),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                              if (showUnit) ...[
+                                Icon(Icons.straighten_rounded,
+                                    size: 11, color: AppColors.warmGrey),
+                                const SizedBox(width: 3),
+                                Flexible(
+                                  child: Text(product.unit!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.warmGrey,
+                                          fontWeight: FontWeight.w500)),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 4),
-                        // Price + Expiry
+                        // Price + Cost
                         Row(
                           children: [
                             Text(
                               '₹${product.sellingPrice.toStringAsFixed(2)}',
                               style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                                color: AppColors.goldDark,
-                              ),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  color: AppColors.goldDark),
                             ),
-                            if (product.expiryDate != null) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.warmGrey.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  'Exp ${_formatDate(product.expiryDate!)}',
-                                  style: TextStyle(
-                                      fontSize: 10,
-                                      color: AppColors.warmGrey,
-                                      fontWeight: FontWeight.w500),
-                                ),
+                            if (showCost) ...[
+                              const SizedBox(width: 6),
+                              Text(
+                                'Cost ₹${product.costPrice.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.warmGrey,
+                                    fontWeight: FontWeight.w500),
                               ),
                             ],
                           ],
                         ),
+                        // Expiry — own line, no overflow
+                        if (product.expiryDate != null) ...[
+                          const SizedBox(height: 3),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.warmGrey.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Exp ${_formatDate(product.expiryDate!)}',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.warmGrey,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -550,7 +580,6 @@ class _ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Quantity
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -561,24 +590,22 @@ class _ProductCard extends StatelessWidget {
                               fontWeight: FontWeight.w800,
                               color: product.quantity == 0
                                   ? AppColors.darkRed
-                                  : product.quantity <= product.lowStockThreshold
+                                  : product.quantity <=
+                                          product.lowStockThreshold
                                       ? AppColors.orange
                                       : AppColors.goldDark,
                               letterSpacing: -1,
                             ),
                           ),
-                          Text(
-                            'units',
-                            style: TextStyle(
-                                fontSize: 9,
-                                color: AppColors.warmGrey,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5),
-                          ),
+                          Text('units',
+                              style: TextStyle(
+                                  fontSize: 9,
+                                  color: AppColors.warmGrey,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5)),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      // Actions
                       Row(
                         children: [
                           _ActionBtn(
@@ -642,9 +669,7 @@ class _ProductCard extends StatelessWidget {
   }
 }
 
-
 // HELPERS & MICRO WIDGETS
-
 
 class _GoldFAB extends StatelessWidget {
   final VoidCallback onTap;
@@ -666,10 +691,9 @@ class _GoldFAB extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.goldDark.withOpacity(0.45),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
+                color: AppColors.goldDark.withOpacity(0.45),
+                blurRadius: 16,
+                offset: const Offset(0, 6))
           ],
         ),
         child: const Icon(Icons.add_rounded, color: AppColors.white, size: 28),
@@ -692,15 +716,12 @@ class _StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withOpacity(0.3), width: 0.8),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          color: color,
-          letterSpacing: 0.4,
-        ),
-      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: 0.4)),
     );
   }
 }
@@ -750,11 +771,8 @@ Widget _productImage({
             child: Image.file(
               File(imagePath),
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.inventory_2_rounded,
-                color: AppColors.warmGrey,
-                size: size * 0.4,
-              ),
+              errorBuilder: (_, __, ___) => Icon(Icons.inventory_2_rounded,
+                  color: AppColors.warmGrey, size: size * 0.4),
             ),
           )
         : Icon(Icons.inventory_2_rounded,

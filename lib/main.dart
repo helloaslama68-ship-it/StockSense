@@ -10,6 +10,7 @@ import 'models/product.dart';
 import 'models/sale.dart';
 import 'models/purchase.dart';
 import 'models/inventory_loss.dart';
+import 'models/sale_item.dart';
 
 // Services
 import 'services/storage_service.dart';
@@ -41,6 +42,8 @@ import 'providers/log_loss_form_provider.dart';
 import 'providers/loss_filter_provider.dart';
 import 'providers/inventory_filter_provider.dart';
 import 'providers/product_unit_provider.dart';
+import 'providers/brand_search_provider.dart';
+import 'providers/category_search_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,10 +52,12 @@ void main() async {
   await Hive.openBox('appBox');
   await Hive.openBox('settings');
 
-  Hive.registerAdapter(ProductAdapter());
-  Hive.registerAdapter(SaleAdapter());
-  Hive.registerAdapter(PurchaseAdapter());
-  Hive.registerAdapter(InventoryLossAdapter());
+  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(ProductAdapter());
+  if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SaleAdapter());
+  if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(SaleItemAdapter());
+  if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(PurchaseAdapter());
+  if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(InventoryLossAdapter());
+  
 
   await Hive.openBox<Product>('products');
   await Hive.openBox<Sale>('sales');
@@ -132,6 +137,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LossFilterProvider()),
         ChangeNotifierProvider(create: (_) => InventoryFilterProvider()),
         ChangeNotifierProvider(create: (_) => ProductUnitProvider()),
+        ChangeNotifierProvider(create: (_) => BrandSearchProvider()),
+        ChangeNotifierProvider(create: (_) => CategorySearchProvider()),
+        
 
       ],
       child: const StockSenseApp(),

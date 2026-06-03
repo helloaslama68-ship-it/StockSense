@@ -12,9 +12,9 @@ class StorageService {
   // Shortcut getter for accessing Hive box
   Box get _box => Hive.box(boxName);
 
-  // ─────────────────────────────────────────────────────
+  
   // USER / STORE DATA
-  // ─────────────────────────────────────────────────────
+  
 
   // Save store and owner information locally
   void saveUserData({
@@ -56,9 +56,9 @@ class StorageService {
   bool hasAccount() =>
       _box.get('hasAccount', defaultValue: false);
 
-  // ─────────────────────────────────────────────────────
+  
   // PROFILE IMAGE
-  // ─────────────────────────────────────────────────────
+
 
   // Save profile image path locally
   void saveProfileImage(String path) =>
@@ -68,9 +68,9 @@ class StorageService {
   String? getProfileImage() =>
       _box.get('profileImage');
 
-  // ─────────────────────────────────────────────────────
+
   // LOGOUT
-  // ─────────────────────────────────────────────────────
+  
 
   void logout() {
 
@@ -81,9 +81,9 @@ class StorageService {
     // So next app launch opens login screen instead of onboarding
   }
 
-  // ─────────────────────────────────────────────────────
+  
   // CLEAR USER DATA
-  // ─────────────────────────────────────────────────────
+  
 
   Future<void> clearAllUserData() async {
 
@@ -103,9 +103,9 @@ class StorageService {
     _box.delete('categories');
   }
 
-  // ─────────────────────────────────────────────────────
+  
   // BRANDS MANAGEMENT
-  // ─────────────────────────────────────────────────────
+  
 
   // Get all saved brands
   List<String> getBrands() {
@@ -142,10 +142,9 @@ class StorageService {
 
     _box.put('brands', list);
   }
-
-  // ─────────────────────────────────────────────────────
+  
   // CATEGORY MANAGEMENT
-  // ─────────────────────────────────────────────────────
+  
 
   // Get categories list
   List<String> getCategories() {
@@ -201,9 +200,9 @@ class StorageService {
     _box.put('categories', list);
   }
 
-  // ─────────────────────────────────────────────────────
+  
   // NOTIFICATION MANAGEMENT
-  // ─────────────────────────────────────────────────────
+  
 
   // Get IDs of already-read notifications
   List<String> getReadNotificationIds() {

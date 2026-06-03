@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/sale_form_provider.dart';
+import '../../providers/sale_provider.dart';
 import '../../models/product.dart';
 import '../scanner/scanner_screen.dart';
+import '../sales/sale_details_screen.dart';
+import '../../widgets/app_snack_bar.dart';
 
 class SaleScreen extends StatelessWidget {
   final Product? preselectedProduct;
@@ -60,21 +63,32 @@ class _SaleScreenBody extends StatelessWidget {
     );
   }
 
-  void _completeSale(BuildContext context, SaleFormProvider p) {
-    if (p.cart.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Add at least one item'),
-        backgroundColor: AppColors.darkRed,
-        behavior: SnackBarBehavior.floating,
-      ));
+  Future<void> _completeSale(BuildContext context, SaleFormProvider form) async {
+    if (form.cart.isEmpty) {
+      AppSnackBar.error(context, 'Add at least one item');
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Sale completed successfully!'),
-      backgroundColor: AppColors.darkGreen,
-      behavior: SnackBarBehavior.floating,
-    ));
-    Navigator.pop(context);
+
+    final saleProvider = context.read<SaleProvider>();
+    final customerCtrl = form.customerName;
+
+    try {
+      final sale = await saleProvider.recordCartSale(
+        cart: form.cart,
+        taxPercent: form.taxPercent,
+        customerName: customerCtrl,
+      );
+
+      if (!context.mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => SaleDetailsScreen(sale: sale)),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      AppSnackBar.error(context, 'Failed to save sale');
+    }
   }
 
   void _editTax(BuildContext context, SaleFormProvider p) {
@@ -149,6 +163,7 @@ class _SaleScreenBody extends StatelessWidget {
                       child: Column(
                         children: [
                           TextField(
+                            onChanged: (v) => p.setCustomerName(v),
                             decoration: InputDecoration(
                               hintText: 'Customer Name (Optional)',
                               hintStyle: TextStyle(color: AppColors.grey, fontSize: 13),
@@ -339,11 +354,7 @@ class _CartTile extends StatelessWidget {
                   if (item.quantity < item.product.quantity) {
                     p.incrementAt(index);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('Only ${item.product.quantity} units available'),
-                      backgroundColor: AppColors.darkRed,
-                      behavior: SnackBarBehavior.floating,
-                    ));
+                    AppSnackBar.error(context, 'Only ${item.product.quantity} units available');
                   }
                 }),
               ]),
@@ -385,17 +396,40 @@ class _TotalRow extends StatelessWidget {
   );
 }
 
-class _ProductPickerSheet extends StatelessWidget {
+// StatefulWidget kept for: TextEditingController lifecycle + mounted check only
+// All reactive state (searchQuery, selectedProduct) lives in provider
+class _ProductPickerSheet extends StatefulWidget {
   final List<Product> products;
   const _ProductPickerSheet({required this.products});
 
+  @override
+  State<_ProductPickerSheet> createState() => _ProductPickerSheetState();
+}
+
+class _ProductPickerSheetState extends State<_ProductPickerSheet> {
+  final TextEditingController searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    searchCtrl.dispose();
+    super.dispose();
+  }
+
   List<Product> _filtered(String q) =>
-      products.where((p) => p.name.toLowerCase().contains(q.toLowerCase()) && p.quantity > 0).toList();
+      widget.products
+          .where((p) => p.name.toLowerCase().contains(q.toLowerCase()) && p.quantity > 0)
+          .toList();
 
   @override
   Widget build(BuildContext context) {
     final p = context.watch<SaleFormProvider>();
-    final searchCtrl = TextEditingController();
+
+    // Sync controller text with provider (e.g. after scan fills it)
+    if (searchCtrl.text != p.searchQuery) {
+      searchCtrl.text = p.searchQuery;
+      searchCtrl.selection = TextSelection.collapsed(offset: p.searchQuery.length);
+    }
+
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
@@ -428,42 +462,104 @@ class _ProductPickerSheet extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              TextField(
-                controller: searchCtrl,
-                onChanged: (_) => p.clearSelection(),
-                decoration: InputDecoration(
-                  hintText: 'Search product name or SKU',
-                  hintStyle: TextStyle(color: AppColors.grey, fontSize: 13),
-                  filled: true, fillColor: AppColors.grey[100],
-                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+
+              // ── BARCODE SCAN SECTION
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.grey[100],
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 56, height: 56,
+                      decoration: BoxDecoration(color: AppColors.goldDark, borderRadius: BorderRadius.circular(14)),
+                      child: const Icon(Icons.qr_code_scanner_rounded, color: AppColors.white, size: 28),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Scan Barcode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const SizedBox(height: 2),
+                    Text('Quick item entry via camera', style: TextStyle(fontSize: 11, color: AppColors.grey)),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () async {
+                        final code = await Navigator.push<String>(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ScannerScreen(returnBarcodeOnly: true)),
+                        );
+                        if (!mounted) return;
+                        if (code != null) {
+                          final match = widget.products
+                              .where((prod) =>
+                                  (prod.barcode != null && prod.barcode == code) ||
+                                  prod.name.toLowerCase().contains(code.toLowerCase()))
+                              .firstOrNull;
+                          if (match != null) {
+                            p.selectProduct(match);
+                            p.setSearchQueryOnly(match.name);
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.goldDark.withOpacity(0.3)),
+                        ),
+                        child: Text('Open Scanner',
+                            style: TextStyle(fontSize: 13, color: AppColors.goldDark, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              if (searchCtrl.text.isNotEmpty && p.selectedProduct == null) ...[
+
+              const SizedBox(height: 16),
+              Text('SELECT PRODUCT',
+                  style: TextStyle(fontSize: 10, letterSpacing: 1.2, color: AppColors.grey, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: searchCtrl,
+                onChanged: (val) {
+                  final match = widget.products
+                      .where((prod) =>
+                          prod.name.toLowerCase() == val.trim().toLowerCase() &&
+                          prod.quantity > 0)
+                      .firstOrNull;
+                  if (match != null) {
+                    // Update query text and select product (don't clear selection)
+                    p.setSearchQueryOnly(val);
+                    p.selectProduct(match);
+                  } else {
+                    // Update query and clear any stale selection
+                    p.setSearchQuery(val);
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: 'Enter product name',
+                  hintStyle: TextStyle(color: AppColors.grey, fontSize: 13),
+                  filled: true,
+                  fillColor: AppColors.grey[100],
+                  prefixIcon: const Icon(Icons.edit_outlined, size: 20),
+                  suffixIcon: p.selectedProduct != null
+                      ? const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20)
+                      : null,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.goldDark, width: 1.5),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                ),
+              ),
+              if (p.searchQuery.isNotEmpty && p.selectedProduct == null) ...[
                 const SizedBox(height: 4),
-                Container(
-                  constraints: const BoxConstraints(maxHeight: 160),
-                  decoration: BoxDecoration(
-                    color: AppColors.white, borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.grey[200]!),
-                    boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.05), blurRadius: 8)],
-                  ),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _filtered(searchCtrl.text).length,
-                    itemBuilder: (_, i) {
-                      final prod = _filtered(searchCtrl.text)[i];
-                      return ListTile(
-                        dense: true,
-                        onTap: () { p.selectProduct(prod); searchCtrl.text = prod.name; },
-                        title: Text(prod.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                        subtitle: Text('₹${prod.sellingPrice.toStringAsFixed(2)} · ${prod.quantity} in stock',
-                            style: TextStyle(fontSize: 11, color: AppColors.grey)),
-                        trailing: Icon(Icons.add_circle_outline_rounded, color: AppColors.goldDark, size: 20),
-                      );
-                    },
-                  ),
+                Text(
+                  'No matching product found',
+                  style: TextStyle(fontSize: 11, color: AppColors.grey),
                 ),
               ],
               const SizedBox(height: 16),

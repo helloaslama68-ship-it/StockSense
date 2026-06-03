@@ -8,7 +8,7 @@ part of 'purchase.dart';
 
 class PurchaseAdapter extends TypeAdapter<Purchase> {
   @override
-  final int typeId = 2;
+  final int typeId = 4;
 
   @override
   Purchase read(BinaryReader reader) {

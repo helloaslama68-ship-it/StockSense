@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import '../models/purchase_record.dart';
+import '../models/purchase_line_item.dart';
 
 class PurchaseProvider with ChangeNotifier {
   final List<PurchaseRecord> _purchases = [
     PurchaseRecord(
-      id: '1',
+      id: '94021',
       productName: 'Fresh Produce Restock',
       supplierName: 'Green Valley Organics',
-      quantityPurchased: 120,
-      totalAmount: 450.00,
+      quantityPurchased: 205,
+      totalAmount: 1245.50,
+      taxPercent: 7,
       purchaseDate: DateTime(2025, 10, 25, 10, 30),
+      lineItems: [
+        PurchaseLineItem(productName: 'Whole Milk 1L',  costPrice: 1.20, quantity: 50,  unit: 'units'),
+        PurchaseLineItem(productName: 'Organic Oranges', costPrice: 0.85, quantity: 120, unit: 'units'),
+        PurchaseLineItem(productName: 'Fresh Carrots 5kg', costPrice: 4.50, quantity: 20, unit: 'units'),
+        PurchaseLineItem(productName: 'Artisan Sourdough', costPrice: 2.50, quantity: 15, unit: 'units'),
+      ],
     ),
     PurchaseRecord(
       id: '2',
@@ -17,7 +25,12 @@ class PurchaseProvider with ChangeNotifier {
       supplierName: 'Lakeside Creamery',
       quantityPurchased: 45,
       totalAmount: 215.00,
+      taxPercent: 0,
       purchaseDate: DateTime(2025, 10, 24, 8, 15),
+      lineItems: [
+        PurchaseLineItem(productName: 'Full Cream Milk', costPrice: 2.80, quantity: 30, unit: 'L'),
+        PurchaseLineItem(productName: 'Cheddar Cheese',  costPrice: 5.50, quantity: 15, unit: 'units'),
+      ],
     ),
     PurchaseRecord(
       id: '3',
@@ -25,6 +38,7 @@ class PurchaseProvider with ChangeNotifier {
       supplierName: 'Global Pantry Wholesalers',
       quantityPurchased: 300,
       totalAmount: 1120.00,
+      taxPercent: 5,
       purchaseDate: DateTime(2025, 10, 22, 14, 45),
     ),
     PurchaseRecord(
@@ -33,6 +47,7 @@ class PurchaseProvider with ChangeNotifier {
       supplierName: 'Old Mill Flour Co.',
       quantityPurchased: 60,
       totalAmount: 380.00,
+      taxPercent: 0,
       purchaseDate: DateTime(2025, 10, 21, 9, 0),
     ),
     PurchaseRecord(
@@ -41,6 +56,7 @@ class PurchaseProvider with ChangeNotifier {
       supplierName: 'EcoPack Solutions',
       quantityPurchased: 500,
       totalAmount: 89.50,
+      taxPercent: 0,
       purchaseDate: DateTime(2025, 10, 15, 11, 30),
     ),
   ];
@@ -70,4 +86,4 @@ class PurchaseProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-}
+}                                                                                                                                                                                                 

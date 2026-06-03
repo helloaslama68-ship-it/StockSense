@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../providers/profile_provider.dart';
+import '../../widgets/app_snack_bar.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -50,22 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-              SizedBox(width: 10),
-              Text('Profile updated!'),
-            ],
-          ),
-          backgroundColor: AppColors.darkGreen,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: EdgeInsets.all(16),
-        ),
-      );
+      AppSnackBar.success(context, 'Profile updated!');
       Navigator.pop(context, true);
     }
   }

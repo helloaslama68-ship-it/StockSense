@@ -32,14 +32,19 @@ class SmartInsightsScreen extends StatelessWidget {
     final List<ProductPrediction> preds = [];
 
     for (final p in products) {
-      final productSales = allSales.where((s) => s.productId == p.id).toList();
+      final productSales = allSales
+          .where((s) => s.items.any((item) => item.productId == p.id))
+          .toList();
       double avgDailySales = 0;
 
       if (productSales.isNotEmpty) {
         final cutoff = DateTime.now().subtract(const Duration(days: 30));
         final recent = productSales.where((s) => s.saleDate.isAfter(cutoff)).toList();
         if (recent.isNotEmpty) {
-          final totalSold = recent.fold<int>(0, (sum, s) => sum + s.quantitySold);
+          final totalSold = recent.fold<int>(0, (sum, s) =>
+            sum + s.items
+              .where((item) => item.productId == p.id)
+              .fold<int>(0, (itemSum, item) => itemSum + item.quantity));
           avgDailySales = totalSold / 30;
         }
       }

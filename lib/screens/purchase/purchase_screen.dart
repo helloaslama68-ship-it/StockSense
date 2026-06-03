@@ -2,26 +2,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../models/product.dart';
 import '../../models/purchase_line_item.dart';
 import '../../models/purchase_record.dart';
 import '../../providers/purchase_provider.dart';
 import '../../providers/purchase_form_provider.dart';
+import '../../providers/purchase_filter_provider.dart';
 import '../../widgets/product_image_picker.dart';
+import '../../widgets/app_snack_bar.dart';
 
 class PurchaseScreen extends StatelessWidget {
   final Product? preselectedProduct;
   final PurchaseRecord? existingRecord;
-  const PurchaseScreen({super.key, this.preselectedProduct, this.existingRecord});
+  const PurchaseScreen(
+      {super.key, this.preselectedProduct, this.existingRecord});
 
-  String _formatDate(DateTime d) {
-    const months = [
-      'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'
-    ];
-    return '${months[d.month - 1]} ${d.day}, ${d.year}';
-  }
-
+  // ── date picker ────────────────────────────────────────────
   Future<void> _pickDate(BuildContext context) async {
     final form = context.read<PurchaseFormProvider>();
     final picked = await showDatePicker(
@@ -39,6 +36,7 @@ class PurchaseScreen extends StatelessWidget {
     if (picked != null) form.setDate(picked);
   }
 
+  // ── item sheet helpers ──────────────────────────────────────
   void _addItem(BuildContext context) {
     context.read<PurchaseFormProvider>().initTempForNew();
     showModalBottomSheet(
@@ -48,7 +46,8 @@ class PurchaseScreen extends StatelessWidget {
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<PurchaseFormProvider>(),
         child: _AddItemSheet(
-          onAdd: (item) => context.read<PurchaseFormProvider>().addItem(item),
+          onAdd: (item) =>
+              context.read<PurchaseFormProvider>().addItem(item),
         ),
       ),
     );
@@ -71,14 +70,15 @@ class PurchaseScreen extends StatelessWidget {
     );
   }
 
+  // ── save ───────────────────────────────────────────────────
   void _savePurchase(BuildContext context) {
     final form = context.read<PurchaseFormProvider>();
     if (form.supplierName.trim().isEmpty) {
-      _snack(context, 'Please enter supplier name', AppColors.darkRed);
+      AppSnackBar.error(context, 'Please enter supplier name');
       return;
     }
     if (form.items.isEmpty) {
-      _snack(context, 'Add at least one item', AppColors.darkRed);
+      AppSnackBar.error(context, 'Add at least one item');
       return;
     }
     final record = form.toRecord();
@@ -97,21 +97,17 @@ class PurchaseScreen extends StatelessWidget {
       provider.addPurchase(record);
     }
     form.reset();
-    _snack(context, existingRecord != null ? 'Purchase updated!' : 'Purchase recorded successfully!', AppColors.darkGreen);
+    existingRecord != null
+        ? AppSnackBar.success(context, 'Purchase updated!')
+        : AppSnackBar.success(context, 'Purchase recorded successfully!');
     Navigator.pop(context);
   }
 
-  void _snack(BuildContext context, String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      backgroundColor: color,
-      behavior: SnackBarBehavior.floating,
-    ));
-  }
-
+  // ── tax dialog ─────────────────────────────────────────────
   void _editTax(BuildContext context) {
     final form = context.read<PurchaseFormProvider>();
-    final ctrl = TextEditingController(text: form.taxPercent.toStringAsFixed(0));
+    final ctrl =
+        TextEditingController(text: form.taxPercent.toStringAsFixed(0));
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -119,7 +115,8 @@ class PurchaseScreen extends StatelessWidget {
         content: TextField(
           controller: ctrl,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: 'e.g. 7', suffixText: '%'),
+          decoration: const InputDecoration(
+              hintText: 'e.g. 7', suffixText: '%'),
         ),
         actions: [
           TextButton(
@@ -127,18 +124,21 @@ class PurchaseScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.goldDark),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.goldDark),
             onPressed: () {
               form.setTax(double.tryParse(ctrl.text) ?? 0);
               Navigator.pop(context);
             },
-            child: const Text('Apply', style: TextStyle(color: AppColors.white)),
+            child: const Text('Apply',
+                style: TextStyle(color: AppColors.white)),
           ),
         ],
       ),
     );
   }
 
+  // ── build ──────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -151,7 +151,8 @@ class PurchaseScreen extends StatelessWidget {
           form.addItem(PurchaseLineItem(
             productName: r.productName,
             imagePath: r.imagePath,
-            costPrice: r.totalAmount / (r.quantityPurchased == 0 ? 1 : r.quantityPurchased),
+            costPrice: r.totalAmount /
+                (r.quantityPurchased == 0 ? 1 : r.quantityPurchased),
             quantity: r.quantityPurchased,
             unit: 'units',
           ));
@@ -174,9 +175,10 @@ class PurchaseScreen extends StatelessWidget {
             body: SafeArea(
               child: Column(
                 children: [
-                  // ── HEADER
+                  // HEADER
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    padding:
+                        const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -198,11 +200,15 @@ class PurchaseScreen extends StatelessWidget {
                                 color: AppColors.black, size: 20),
                           ),
                         ),
-                        Text(existingRecord != null ? 'Edit Purchase' : 'New Purchase',
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.goldDark)),
+                        Text(
+                          existingRecord != null
+                              ? 'Edit Purchase'
+                              : 'New Purchase',
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.goldDark),
+                        ),
                         GestureDetector(
                           onTap: () => _savePurchase(context),
                           child: const Text('Save',
@@ -219,38 +225,31 @@ class PurchaseScreen extends StatelessWidget {
 
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      padding:
+                          const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── ACQUISITION DETAILS
+                          // ACQUISITION DETAILS
                           Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.black.withOpacity(0.04),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                )
-                              ],
-                            ),
+                            decoration: appCardDecoration(),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
-                                _sectionLabel('ACQUISITION DETAILS'),
+                                appSectionLabel('ACQUISITION DETAILS'),
                                 const SizedBox(height: 14),
-                                _sectionLabel('SUPPLIER NAME'),
+                                appSectionLabel('SUPPLIER NAME'),
                                 const SizedBox(height: 6),
                                 TextFormField(
                                   initialValue: form.supplierName,
                                   onChanged: form.setSupplier,
-                                  decoration: _inputDeco('Enter supplier'),
+                                  decoration:
+                                      appInputDeco('Enter supplier'),
                                 ),
                                 const SizedBox(height: 14),
-                                _sectionLabel('PURCHASE DATE'),
+                                appSectionLabel('PURCHASE DATE'),
                                 const SizedBox(height: 6),
                                 GestureDetector(
                                   onTap: () => _pickDate(context),
@@ -258,25 +257,32 @@ class PurchaseScreen extends StatelessWidget {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 14, vertical: 14),
                                     decoration: BoxDecoration(
-                                      color: AppColors.lightGrey.withOpacity(0.3),
-                                      borderRadius: BorderRadius.circular(10),
+                                      color: AppColors.lightGrey
+                                          .withOpacity(0.3),
+                                      borderRadius:
+                                          BorderRadius.circular(10),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           form.purchaseDate != null
-                                              ? _formatDate(form.purchaseDate!)
+                                              ? formatDate(
+                                                  form.purchaseDate!)
                                               : 'Select date',
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: form.purchaseDate != null
+                                            color: form.purchaseDate !=
+                                                    null
                                                 ? AppColors.black
                                                 : AppColors.grey,
                                           ),
                                         ),
-                                        const Icon(Icons.calendar_today_rounded,
-                                            size: 18, color: AppColors.grey),
+                                        const Icon(
+                                            Icons.calendar_today_rounded,
+                                            size: 18,
+                                            color: AppColors.grey),
                                       ],
                                     ),
                                   ),
@@ -287,7 +293,7 @@ class PurchaseScreen extends StatelessWidget {
 
                           const SizedBox(height: 16),
 
-                          // ── ADD ITEM BUTTON
+                          // ADD ITEM BUTTON
                           if (form.items.isNotEmpty)
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -296,14 +302,18 @@ class PurchaseScreen extends StatelessWidget {
                                 color: AppColors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                    color: AppColors.goldDark.withOpacity(0.3)),
+                                    color: AppColors.goldDark
+                                        .withOpacity(0.3)),
                               ),
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: Text('Need to record more stock?',
-                                        style: TextStyle(
-                                            fontSize: 13, color: AppColors.grey)),
+                                    child: Text(
+                                      'Need to record more stock?',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.grey),
+                                    ),
                                   ),
                                   GestureDetector(
                                     onTap: () => _addItem(context),
@@ -312,17 +322,20 @@ class PurchaseScreen extends StatelessWidget {
                                           horizontal: 14, vertical: 8),
                                       decoration: BoxDecoration(
                                         color: AppColors.goldDark,
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius:
+                                            BorderRadius.circular(8),
                                       ),
                                       child: const Row(
                                         children: [
                                           Icon(Icons.add_rounded,
-                                              color: AppColors.white, size: 16),
+                                              color: AppColors.white,
+                                              size: 16),
                                           SizedBox(width: 4),
                                           Text('Add Item',
                                               style: TextStyle(
                                                   color: AppColors.white,
-                                                  fontWeight: FontWeight.bold,
+                                                  fontWeight:
+                                                      FontWeight.bold,
                                                   fontSize: 13)),
                                         ],
                                       ),
@@ -339,10 +352,12 @@ class PurchaseScreen extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.goldDark,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                      borderRadius:
+                                          BorderRadius.circular(12)),
                                 ),
                                 onPressed: () => _addItem(context),
-                                icon: const Icon(Icons.add_circle_outline_rounded,
+                                icon: const Icon(
+                                    Icons.add_circle_outline_rounded,
                                     color: AppColors.white),
                                 label: const Text('Add Item',
                                     style: TextStyle(
@@ -354,12 +369,13 @@ class PurchaseScreen extends StatelessWidget {
 
                           const SizedBox(height: 16),
 
-                          // ── ITEMS LIST
+                          // ITEMS LIST
                           if (form.items.isNotEmpty) ...[
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
                               children: [
-                                _sectionLabel('PURCHASED ITEMS'),
+                                appSectionLabel('PURCHASED ITEMS'),
                                 Text('${form.items.length} Items',
                                     style: const TextStyle(
                                         fontSize: 12,
@@ -369,7 +385,8 @@ class PurchaseScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 10),
                             ...form.items.asMap().entries.map(
-                                (e) => _itemTile(context, e.key, e.value, form)),
+                                (e) => _itemTile(
+                                    context, e.key, e.value, form)),
                           ] else
                             Container(
                               width: double.infinity,
@@ -378,21 +395,23 @@ class PurchaseScreen extends StatelessWidget {
                                 color: AppColors.white,
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: Column(
+                              child: const Column(
                                 children: [
-                                  const Icon(Icons.inventory_2_outlined,
-                                      size: 48, color: AppColors.lightGrey),
-                                  const SizedBox(height: 12),
-                                  const Text('No items added yet',
+                                  Icon(Icons.inventory_2_outlined,
+                                      size: 48,
+                                      color: AppColors.lightGrey),
+                                  SizedBox(height: 12),
+                                  Text('No items added yet',
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.black)),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     'Tap the button above to add\nproducts to this purchase.',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                        fontSize: 12, color: AppColors.grey),
+                                        fontSize: 12,
+                                        color: AppColors.grey),
                                   ),
                                 ],
                               ),
@@ -400,67 +419,67 @@ class PurchaseScreen extends StatelessWidget {
 
                           const SizedBox(height: 16),
 
-                          // ── TOTALS
+                          // TOTALS
                           Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.black.withOpacity(0.04),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                )
-                              ],
-                            ),
+                            decoration: appCardDecoration(),
                             child: Column(
                               children: [
-                                _totalRow('Subtotal',
+                                appTotalRow('Subtotal',
                                     '₹${form.subtotal.toStringAsFixed(2)}'),
                                 const SizedBox(height: 10),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
-                                        Text('Tax',
+                                        const Text('Tax',
                                             style: TextStyle(
                                                 color: AppColors.grey,
                                                 fontSize: 13)),
                                         const SizedBox(width: 8),
                                         GestureDetector(
-                                          onTap: () => _editTax(context),
+                                          onTap: () =>
+                                              _editTax(context),
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8, vertical: 3),
+                                            padding: const EdgeInsets
+                                                .symmetric(
+                                                horizontal: 8,
+                                                vertical: 3),
                                             decoration: BoxDecoration(
                                               color: AppColors.goldDark
                                                   .withOpacity(0.1),
                                               borderRadius:
-                                                  BorderRadius.circular(6),
+                                                  BorderRadius.circular(
+                                                      6),
                                             ),
                                             child: Text(
                                               '${form.taxPercent.toStringAsFixed(0)}%',
                                               style: const TextStyle(
                                                   fontSize: 11,
-                                                  color: AppColors.goldDark,
-                                                  fontWeight: FontWeight.bold),
+                                                  color:
+                                                      AppColors.goldDark,
+                                                  fontWeight:
+                                                      FontWeight.bold),
                                             ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    Text('₹${form.taxAmount.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                            fontSize: 13, color: AppColors.grey)),
+                                    Text(
+                                        '₹${form.taxAmount.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.grey)),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
                                 Divider(color: AppColors.lightGrey),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text('TOTAL AMOUNT',
                                         style: TextStyle(
@@ -483,7 +502,7 @@ class PurchaseScreen extends StatelessWidget {
 
                           const SizedBox(height: 20),
 
-                          // ── SAVE BUTTON
+                          // SAVE BUTTON
                           SizedBox(
                             width: double.infinity,
                             height: 52,
@@ -491,7 +510,8 @@ class PurchaseScreen extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.goldDark,
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14)),
+                                    borderRadius:
+                                        BorderRadius.circular(14)),
                                 elevation: 0,
                               ),
                               onPressed: () => _savePurchase(context),
@@ -563,7 +583,8 @@ class PurchaseScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 2),
                 Text('+${item.quantity} ${item.unit}',
-                    style: TextStyle(fontSize: 12, color: AppColors.grey)),
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.grey)),
               ],
             ),
           ),
@@ -571,7 +592,8 @@ class PurchaseScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('₹${item.costPrice.toStringAsFixed(2)}/${item.unit}',
-                  style: TextStyle(fontSize: 10, color: AppColors.grey)),
+                  style: TextStyle(
+                      fontSize: 10, color: AppColors.grey)),
               Text('₹${item.total.toStringAsFixed(2)}',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
@@ -582,7 +604,7 @@ class PurchaseScreen extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () => _editItem(context, index),
-                    child: Icon(Icons.edit_rounded,
+                    child: const Icon(Icons.edit_rounded,
                         size: 16, color: AppColors.grey),
                   ),
                   const SizedBox(width: 10),
@@ -599,38 +621,527 @@ class PurchaseScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _totalRow(String label, String value) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(fontSize: 13, color: AppColors.grey)),
-          Text(value, style: TextStyle(fontSize: 13, color: AppColors.grey)),
-        ],
-      );
-
-  Widget _sectionLabel(String label) => Text(label,
-      style: TextStyle(
-          fontSize: 10,
-          letterSpacing: 1.2,
-          color: AppColors.grey,
-          fontWeight: FontWeight.w600));
-
-  InputDecoration _inputDeco(String hint) => InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: AppColors.lightGrey.withOpacity(0.3),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: AppColors.goldDark, width: 1.5)),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      );
 }
 
-// ── ADD / EDIT ITEM SHEET
+// ── PURCHASE LIST SECTION ─────────────────────────────────────
+// Drop-in widget for screens that list purchase history with
+// sort/filter controls (e.g. home_screen purchase tab).
+
+class PurchaseListSection extends StatelessWidget {
+  const PurchaseListSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => PurchaseFilterProvider(),
+      child: const _PurchaseListBody(),
+    );
+  }
+}
+
+class _PurchaseListBody extends StatelessWidget {
+  const _PurchaseListBody();
+
+  void _showFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: context.read<PurchaseFilterProvider>(),
+        child: const _PurchaseFilterSheet(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filterProv = context.watch<PurchaseFilterProvider>();
+    final purchaseProv = context.watch<PurchaseProvider>();
+    final records =
+        filterProv.apply(purchaseProv.allPurchases.toList());
+
+    return Column(
+      children: [
+        // ── search + filter bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.black.withOpacity(0.04),
+                        blurRadius: 6,
+                      )
+                    ],
+                  ),
+                  child: TextField(
+                    onChanged:
+                        context.read<PurchaseFilterProvider>().setSupplierQuery,
+                    decoration: InputDecoration(
+                      hintText: 'Search supplier…',
+                      hintStyle: TextStyle(
+                          fontSize: 13, color: AppColors.grey),
+                      prefixIcon: const Icon(Icons.search_rounded,
+                          size: 18, color: AppColors.grey),
+                      border: InputBorder.none,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: () => _showFilterSheet(context),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: filterProv.isActive
+                            ? AppColors.goldDark
+                            : AppColors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.black.withOpacity(0.04),
+                            blurRadius: 6,
+                          )
+                        ],
+                      ),
+                      child: Icon(Icons.tune_rounded,
+                          size: 20,
+                          color: filterProv.isActive
+                              ? AppColors.white
+                              : AppColors.grey),
+                    ),
+                    if (filterProv.activeFilterCount > 0)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: AppColors.darkRed,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${filterProv.activeFilterCount}',
+                              style: const TextStyle(
+                                  color: AppColors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ── active sort chip
+        if (filterProv.sortBy != PurchaseSortOption.newest)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.goldDark.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.sort_rounded,
+                          size: 14, color: AppColors.goldDark),
+                      const SizedBox(width: 4),
+                      Text(filterProv.sortBy.label,
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.goldDark,
+                              fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () => context
+                            .read<PurchaseFilterProvider>()
+                            .setSortBy(PurchaseSortOption.newest),
+                        child: const Icon(Icons.close_rounded,
+                            size: 14, color: AppColors.goldDark),
+                      ),
+                    ],
+                  ),
+                ),
+                if (filterProv.dateRange != null) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.goldDark.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.date_range_rounded,
+                            size: 14, color: AppColors.goldDark),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${formatDate(filterProv.dateRange!.start)} – ${formatDate(filterProv.dateRange!.end)}',
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.goldDark,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () => context
+                              .read<PurchaseFilterProvider>()
+                              .setDateRange(null),
+                          child: const Icon(Icons.close_rounded,
+                              size: 14, color: AppColors.goldDark),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+        // ── results count
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${records.length} purchases',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.grey,
+                      fontWeight: FontWeight.w500)),
+              if (filterProv.isActive)
+                GestureDetector(
+                  onTap: () =>
+                      context.read<PurchaseFilterProvider>().reset(),
+                  child: const Text('Clear all',
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.goldDark,
+                          fontWeight: FontWeight.w600)),
+                ),
+            ],
+          ),
+        ),
+
+        // ── list
+        Expanded(
+          child: records.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.filter_list_off_rounded,
+                          size: 48, color: AppColors.lightGrey),
+                      const SizedBox(height: 12),
+                      Text(
+                        filterProv.isActive
+                            ? 'No purchases match your filters'
+                            : 'No purchases yet',
+                        style: const TextStyle(
+                            color: AppColors.grey, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding:
+                      const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  itemCount: records.length,
+                  itemBuilder: (_, i) =>
+                      _PurchaseRecordTile(record: records[i]),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── PURCHASE RECORD TILE ──────────────────────────────────────
+
+class _PurchaseRecordTile extends StatelessWidget {
+  final PurchaseRecord record;
+  const _PurchaseRecordTile({required this.record});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          // image / icon
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.lightGrey.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: record.imagePath != null
+                ? Image.file(File(record.imagePath!),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(
+                        Icons.shopping_bag_outlined,
+                        color: AppColors.grey,
+                        size: 22))
+                : const Icon(Icons.shopping_bag_outlined,
+                    color: AppColors.grey, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(record.productName,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(height: 2),
+                Text(record.supplierName,
+                    style: TextStyle(
+                        fontSize: 11, color: AppColors.grey)),
+                const SizedBox(height: 2),
+                Text(formatDate(record.purchaseDate),
+                    style: TextStyle(
+                        fontSize: 11, color: AppColors.grey)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('₹${record.totalAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.goldDark)),
+              const SizedBox(height: 4),
+              Text('${record.quantityPurchased} units',
+                  style: TextStyle(
+                      fontSize: 11, color: AppColors.grey)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── FILTER BOTTOM SHEET ───────────────────────────────────────
+
+class _PurchaseFilterSheet extends StatelessWidget {
+  const _PurchaseFilterSheet();
+
+  Future<void> _pickDateRange(BuildContext context) async {
+    final prov = context.read<PurchaseFilterProvider>();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange: prov.dateRange,
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme:
+              ColorScheme.light(primary: AppColors.goldDark),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) prov.setDateRange(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final prov = context.watch<PurchaseFilterProvider>();
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+          20, 20, 20, MediaQuery.of(context).padding.bottom + 20),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // drag handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: AppColors.lightGrey,
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Sort & Filter',
+                    style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
+                TextButton(
+                  onPressed: () =>
+                      context.read<PurchaseFilterProvider>().reset(),
+                  child: const Text('Reset',
+                      style: TextStyle(color: AppColors.goldDark)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // ── SORT BY
+            appSectionLabel('SORT BY'),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: PurchaseSortOption.values.map((opt) {
+                final selected = prov.sortBy == opt;
+                return GestureDetector(
+                  onTap: () => context
+                      .read<PurchaseFilterProvider>()
+                      .setSortBy(opt),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.goldDark
+                          : AppColors.lightGrey.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(opt.label,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: selected
+                                ? AppColors.white
+                                : AppColors.black)),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+
+            // ── DATE RANGE
+            appSectionLabel('DATE RANGE'),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => _pickDateRange(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.lightGrey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10),
+                  border: prov.dateRange != null
+                      ? Border.all(
+                          color: AppColors.goldDark, width: 1.5)
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.date_range_rounded,
+                        size: 18,
+                        color: prov.dateRange != null
+                            ? AppColors.goldDark
+                            : AppColors.grey),
+                    const SizedBox(width: 10),
+                    Text(
+                      prov.dateRange != null
+                          ? '${formatDate(prov.dateRange!.start)}  →  ${formatDate(prov.dateRange!.end)}'
+                          : 'Select date range',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: prov.dateRange != null
+                              ? AppColors.black
+                              : AppColors.grey),
+                    ),
+                    const Spacer(),
+                    if (prov.dateRange != null)
+                      GestureDetector(
+                        onTap: () => context
+                            .read<PurchaseFilterProvider>()
+                            .setDateRange(null),
+                        child: const Icon(Icons.close_rounded,
+                            size: 16, color: AppColors.grey),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // APPLY BUTTON
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.goldDark,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Apply Filters',
+                    style: TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── ADD / EDIT ITEM SHEET ─────────────────────────────────────
+
 class _AddItemSheet extends StatefulWidget {
   final PurchaseLineItem? existing;
   final ValueChanged<PurchaseLineItem> onAdd;
@@ -646,16 +1157,15 @@ class _AddItemSheetState extends State<_AddItemSheet> {
   late final TextEditingController _qtyCtrl;
   final _formKey = GlobalKey<FormState>();
 
-  static const List<String> _units = [
-    'units', 'kg', 'g', 'L', 'ml', 'pcs', 'boxes', 'bags'
-  ];
-
   @override
   void initState() {
     super.initState();
-    _nameCtrl  = TextEditingController(text: widget.existing?.productName ?? '');
-    _priceCtrl = TextEditingController(text: widget.existing?.costPrice.toString() ?? '');
-    _qtyCtrl   = TextEditingController(text: widget.existing?.quantity.toString() ?? '');
+    _nameCtrl =
+        TextEditingController(text: widget.existing?.productName ?? '');
+    _priceCtrl = TextEditingController(
+        text: widget.existing?.costPrice.toString() ?? '');
+    _qtyCtrl = TextEditingController(
+        text: widget.existing?.quantity.toString() ?? '');
   }
 
   @override
@@ -674,19 +1184,21 @@ class _AddItemSheetState extends State<_AddItemSheet> {
       body: Container(
         decoration: const BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
             padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom + 20),
+                bottom:
+                    MediaQuery.of(context).padding.bottom + 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                //  DRAG HANDLE
+                // drag handle
                 Center(
                   child: Container(
                     width: 40,
@@ -705,7 +1217,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                 ),
                 const SizedBox(height: 16),
 
-                // IMAGE PICKER
+                // image picker
                 Consumer<PurchaseFormProvider>(
                   builder: (ctx, form, _) => ProductImagePicker(
                     imagePath: form.tempImagePath,
@@ -715,32 +1227,29 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                 ),
                 const SizedBox(height: 16),
 
-                // TEXT FIELDS 
-                _sheetField('Product Name', 'e.g. Fresh Milk', _nameCtrl),
+                _sheetField(
+                    'Product Name', 'e.g. Fresh Milk', _nameCtrl),
                 Row(
                   children: [
                     Expanded(
-                        child: _sheetField(
-                            'Cost Price (₹)', '0.00', _priceCtrl,
+                        child: _sheetField('Cost Price (₹)', '0.00',
+                            _priceCtrl,
                             isNumber: true)),
                     const SizedBox(width: 10),
                     Expanded(
-                        child: _sheetField('Quantity', '0', _qtyCtrl,
+                        child: _sheetField(
+                            'Quantity', '0', _qtyCtrl,
                             isNumber: true)),
                   ],
                 ),
 
-                // UNIT DROPDOWN
-                const Text('UNIT',
-                    style: TextStyle(
-                        fontSize: 10,
-                        letterSpacing: 1,
-                        color: AppColors.grey,
-                        fontWeight: FontWeight.w600)),
+                // unit dropdown — uses shared kPurchaseUnits
+                appSectionLabel('UNIT'),
                 const SizedBox(height: 6),
                 Consumer<PurchaseFormProvider>(
                   builder: (ctx, form, _) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
                         color: AppColors.lightGrey.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(10)),
@@ -748,9 +1257,9 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                       child: DropdownButton<String>(
                         value: form.tempUnit,
                         isExpanded: true,
-                        items: _units
-                            .map((u) =>
-                                DropdownMenuItem(value: u, child: Text(u)))
+                        items: kPurchaseUnits
+                            .map((u) => DropdownMenuItem(
+                                value: u, child: Text(u)))
                             .toList(),
                         onChanged: (v) {
                           if (v != null) form.setTempUnit(v);
@@ -762,7 +1271,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
 
                 const SizedBox(height: 16),
 
-                // ── SUBMIT
+                // submit
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -774,19 +1283,24 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        final form = context.read<PurchaseFormProvider>();
+                        final form =
+                            context.read<PurchaseFormProvider>();
                         widget.onAdd(PurchaseLineItem(
                           productName: _nameCtrl.text.trim(),
                           imagePath: form.tempImagePath,
-                          costPrice: double.tryParse(_priceCtrl.text) ?? 0,
-                          quantity: int.tryParse(_qtyCtrl.text) ?? 0,
+                          costPrice:
+                              double.tryParse(_priceCtrl.text) ?? 0,
+                          quantity:
+                              int.tryParse(_qtyCtrl.text) ?? 0,
                           unit: form.tempUnit,
                         ));
                         Navigator.pop(context);
                       }
                     },
                     child: Text(
-                      widget.existing != null ? 'Update Item' : 'Add to Purchase',
+                      widget.existing != null
+                          ? 'Update Item'
+                          : 'Add to Purchase',
                       style: const TextStyle(
                           color: AppColors.white,
                           fontWeight: FontWeight.bold,
@@ -803,19 +1317,15 @@ class _AddItemSheetState extends State<_AddItemSheet> {
     );
   }
 
-  Widget _sheetField(String label, String hint, TextEditingController ctrl,
+  Widget _sheetField(
+      String label, String hint, TextEditingController ctrl,
       {bool isNumber = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label.toUpperCase(),
-              style: const TextStyle(
-                  fontSize: 10,
-                  letterSpacing: 1,
-                  color: AppColors.grey,
-                  fontWeight: FontWeight.w600)),
+          appSectionLabel(label.toUpperCase()),
           const SizedBox(height: 6),
           TextFormField(
             controller: ctrl,
@@ -824,20 +1334,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                 : TextInputType.text,
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Required' : null,
-            decoration: InputDecoration(
-              hintText: hint,
-              filled: true,
-              fillColor: AppColors.lightGrey.withOpacity(0.3),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none),
-              focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      const BorderSide(color: AppColors.goldDark, width: 1.5)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            ),
+            decoration: appInputDeco(hint),
           ),
         ],
       ),

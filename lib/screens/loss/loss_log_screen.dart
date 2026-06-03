@@ -8,7 +8,6 @@ import '../../providers/loss_provider.dart';
 import '../../providers/product_provider.dart';
 import 'log_loss_screen.dart';
 import '../../widgets/app_card.dart';
-import '../../widgets/app_decorations.dart';
 
 class LossLogScreen extends StatelessWidget {
   const LossLogScreen({super.key});
@@ -109,7 +108,11 @@ class LossLogScreen extends StatelessWidget {
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: appDarkCard(),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

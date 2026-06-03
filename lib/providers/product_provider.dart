@@ -11,7 +11,7 @@ class ProductProvider extends ChangeNotifier {
   String _selectedCategory = 'All';
   InventoryFilter _filter = const InventoryFilter();
 
-  // GETTERS 
+  // GETTERS
   List<Product> get allProducts => _repo.getAll();
 
   List<Product> get filteredProducts => _repo.getAll().where((p) {
@@ -25,6 +25,7 @@ class ProductProvider extends ChangeNotifier {
   List<Product> get filteredAndSorted {
     var list = List<Product>.from(filteredProducts);
 
+    // STATUS
     if (_filter.statuses.isNotEmpty) {
       list = list.where((p) {
         if (_filter.statuses.contains('outOfStock') && p.quantity == 0)
@@ -32,29 +33,42 @@ class ProductProvider extends ChangeNotifier {
         if (_filter.statuses.contains('lowStock') &&
             p.quantity > 0 &&
             p.quantity <= p.lowStockThreshold) return true;
-        if (_filter.statuses.contains('nearExpiry') && p.expiryDate != null) {
+        if (p.expiryDate != null) {
           final exp = DateTime.tryParse(p.expiryDate!);
           if (exp != null) {
             final days = exp.difference(DateTime.now()).inDays;
-            if (days >= 0 && days <= 7) return true;
+            if (_filter.statuses.contains('expired') && days < 0) return true;
+            if (_filter.statuses.contains('nearExpiry') &&
+                days >= 0 &&
+                days <= 3) return true;
           }
         }
         return false;
       }).toList();
     }
 
+    // CATEGORY
     if (_filter.categories.isNotEmpty) {
       list = list
           .where((p) => _filter.categories.contains(p.category))
           .toList();
     }
 
+    // BRAND
+    if (_filter.brands.isNotEmpty) {
+      list = list
+          .where((p) => _filter.brands.contains(p.brand))
+          .toList();
+    }
+
+    // PRICE
     list = list
         .where((p) =>
             p.sellingPrice >= _filter.minPrice &&
             p.sellingPrice <= _filter.maxPrice)
         .toList();
 
+    // SORT
     switch (_filter.sortBy) {
       case SortOption.newlyAdded:
         list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -107,7 +121,7 @@ class ProductProvider extends ChangeNotifier {
   String get selectedCategory => _selectedCategory;
   InventoryFilter get filter => _filter;
 
-  // ACTIONS 
+  // ACTIONS
   Future<void> addProduct({
     required String name,
     required String category,
@@ -119,7 +133,7 @@ class ProductProvider extends ChangeNotifier {
     String? barcode,
     String? unit,
     String? imagePath,
-    String? brand, // ← ADDED
+    String? brand,
   }) async {
     await _repo.add(
       name: name,
@@ -132,7 +146,7 @@ class ProductProvider extends ChangeNotifier {
       barcode: barcode,
       unit: unit,
       imagePath: imagePath,
-      brand: brand, // ← ADDED
+      brand: brand,
     );
     notifyListeners();
   }

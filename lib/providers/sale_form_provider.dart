@@ -11,14 +11,16 @@ class CartItem {
 }
 
 class SaleFormProvider extends ChangeNotifier {
-  // SaleScreen state 
+  // SaleScreen state
   DateTime _saleDate = DateTime.now();
   final List<CartItem> _cart = [];
   double _taxPercent = 0;
+  String _customerName = '';
 
   DateTime get saleDate => _saleDate;
   List<CartItem> get cart => List.unmodifiable(_cart);
   double get taxPercent => _taxPercent;
+  String get customerName => _customerName;
 
   double get subtotal    => _cart.fold(0, (s, i) => s + i.subtotal);
   double get taxAmount   => subtotal * _taxPercent / 100;
@@ -26,6 +28,7 @@ class SaleFormProvider extends ChangeNotifier {
 
   void setSaleDate(DateTime d) { _saleDate = d; notifyListeners(); }
   void setTaxPercent(double v) { _taxPercent = v.clamp(0, 100); notifyListeners(); }
+  void setCustomerName(String v) { _customerName = v; }
 
   void addOrIncrementProduct(Product product) {
     final i = _cart.indexWhere((c) => c.product.id == product.id);
@@ -46,15 +49,23 @@ class SaleFormProvider extends ChangeNotifier {
     if (_cart.isEmpty) { _cart.add(CartItem(product: product)); notifyListeners(); }
   }
 
-  void reset() { _saleDate = DateTime.now(); _cart.clear(); _taxPercent = 0; notifyListeners(); }
+  void reset() {
+    _saleDate = DateTime.now();
+    _cart.clear();
+    _taxPercent = 0;
+    _customerName = '';
+    notifyListeners();
+  }
 
-  //  ProductPickerSheet state 
+  // ProductPickerSheet state
   Product? _selectedProduct;
   int _pickerQuantity = 1;
+  String _searchQuery = '';
 
   Product? get selectedProduct => _selectedProduct;
   int      get pickerQuantity  => _pickerQuantity;
   double   get calculatedTotal => (_selectedProduct?.sellingPrice ?? 0) * _pickerQuantity;
+  String   get searchQuery     => _searchQuery;
 
   void selectProduct(Product p) { _selectedProduct = p; _pickerQuantity = 1; notifyListeners(); }
   void clearSelection() { _selectedProduct = null; notifyListeners(); }
@@ -68,5 +79,27 @@ class SaleFormProvider extends ChangeNotifier {
     if (_pickerQuantity > 1) { _pickerQuantity--; notifyListeners(); }
   }
 
-  void resetPicker() { _selectedProduct = null; _pickerQuantity = 1; notifyListeners(); }
+  void setSearchQuery(String q) {
+    _searchQuery = q;
+    _selectedProduct = null;
+    notifyListeners();
+  }
+
+  /// Updates search query text WITHOUT clearing the selected product.
+  void setSearchQueryOnly(String q) {
+    _searchQuery = q;
+    notifyListeners();
+  }
+
+  void clearSearchQuery() {
+    _searchQuery = '';
+    notifyListeners();
+  }
+
+  void resetPicker() {
+    _selectedProduct = null;
+    _pickerQuantity = 1;
+    _searchQuery = '';
+    notifyListeners();
+  }
 }

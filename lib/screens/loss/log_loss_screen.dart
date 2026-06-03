@@ -5,6 +5,7 @@ import '../../core/colors.dart';
 import '../../providers/log_loss_form_provider.dart';
 import '../../providers/loss_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../widgets/app_snack_bar.dart';
 
 class LogLossScreen extends StatefulWidget {
   const LogLossScreen({super.key});
@@ -77,17 +78,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
     Navigator.pop(context);
   }
 
-  void _snack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
+  void _snack(String msg) => AppSnackBar.error(context, msg);
 
   @override
   Widget build(BuildContext context) {

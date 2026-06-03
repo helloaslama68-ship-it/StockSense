@@ -26,8 +26,6 @@ class Suggestion {
 
 
 // STOCK RECOMMENDATION PROVIDER
-// Owns:
-// - suggestions list (built from sales + product data)
 
 class StockRecommendationProvider extends ChangeNotifier {
   final ProductProvider _productProvider;
@@ -42,7 +40,6 @@ class StockRecommendationProvider extends ChangeNotifier {
     build();
   }
 
-  
   void build() {
     final products = _productProvider.allProducts;
     final allSales = _saleProvider.allSales;
@@ -52,16 +49,21 @@ class StockRecommendationProvider extends ChangeNotifier {
     for (final p in products) {
       final cutoff = now.subtract(const Duration(days: 30));
       final recent = allSales
-          .where((s) => s.productId == p.id && s.saleDate.isAfter(cutoff))
+          .where((s) =>
+              s.items.any((item) => item.productId == p.id) &&
+              s.saleDate.isAfter(cutoff))
           .toList();
 
-      double dailyAvg    = 0;
+      double dailyAvg      = 0;
       int    daysRemaining = 999;
 
       if (recent.isNotEmpty) {
-        final totalSold  = recent.fold<int>(0, (sum, s) => sum + s.quantitySold);
-        dailyAvg         = totalSold / 30;
-        daysRemaining    = dailyAvg > 0 ? (p.quantity / dailyAvg).floor() : 999;
+        final totalSold = recent.fold<int>(0, (sum, s) =>
+          sum + s.items
+            .where((item) => item.productId == p.id)
+            .fold<int>(0, (itemSum, item) => itemSum + item.quantity));
+        dailyAvg      = totalSold / 30;
+        daysRemaining = dailyAvg > 0 ? (p.quantity / dailyAvg).floor() : 999;
       } else {
         if (p.quantity <= p.lowStockThreshold) daysRemaining = 0;
       }
@@ -84,10 +86,10 @@ class StockRecommendationProvider extends ChangeNotifier {
         }
 
         suggestions.add(Suggestion(
-          product:      p,
-          suggestedQty: suggestedQty,
-          reason:       reason,
-          dailyAvg:     dailyAvg,
+          product:       p,
+          suggestedQty:  suggestedQty,
+          reason:        reason,
+          dailyAvg:      dailyAvg,
           daysRemaining: daysRemaining,
         ));
       }
@@ -98,8 +100,6 @@ class StockRecommendationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  
-  
   void ignore(Suggestion s) {
     s.ignored = true;
     notifyListeners();

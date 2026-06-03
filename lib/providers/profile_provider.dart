@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/profile_repository.dart';
+import '../widgets/app_snack_bar.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final AuthRepository   _auth;
@@ -197,12 +198,7 @@ class ProfileProvider extends ChangeNotifier {
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not pick image'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppSnackBar.error(context, 'Could not pick image');
       }
     }
   }

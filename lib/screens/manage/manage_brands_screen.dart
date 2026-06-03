@@ -2,147 +2,169 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colors.dart';
+import '../../providers/brand_search_provider.dart';
 import '../../providers/inventory_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../widgets/app_snack_bar.dart';
+import '../../widgets/manage_add_card.dart';
+import '../../widgets/manage_count_label.dart';
+import '../../widgets/manage_empty_state.dart';
+import '../../widgets/manage_search_bar.dart';
 import '../../widgets/manage_widgets.dart';
 
 class ManageBrandsScreen extends StatelessWidget {
   const ManageBrandsScreen({super.key});
 
-  Future<void> _showAddDialog(BuildContext context) async {
-    final ctrl = TextEditingController();
-    await showDialog(
-      context: context,
-      builder: (_) => ManageInputDialog(
-        title: 'Add Brand',
-        hint: 'Brand name',
-        ctrl: ctrl,
-        onConfirm: () {
-          final val = ctrl.text.trim();
-          if (val.isNotEmpty) {
-            context.read<InventoryProvider>().addBrand(val);
-          }
-        },
-      ),
-    );
+  void _add(BuildContext context, BrandSearchProvider search) {
+    final val = search.addController.text.trim();
+    if (val.isEmpty) return;
+    final inventory = context.read<InventoryProvider>();
+    if (inventory.brands.contains(val)) {
+      AppSnackBar.error(context, 'Brand "$val" already exists');
+      return;
+    }
+    inventory.addBrand(val);
+    search.addController.clear();
+    AppSnackBar.success(context, 'Brand "$val" added');
   }
 
-  Future<void> _showRenameDialog(
-      BuildContext context, String current) async {
-    final ctrl = TextEditingController(text: current);
-    await showDialog(
+  void _rename(BuildContext context, String old) {
+    final ctrl = TextEditingController(text: old);
+    showDialog(
       context: context,
       builder: (_) => ManageInputDialog(
         title: 'Rename Brand',
-        hint: 'New name',
+        hint: 'Brand name',
         ctrl: ctrl,
         confirmLabel: 'Save',
         onConfirm: () {
           final val = ctrl.text.trim();
-          if (val.isNotEmpty && val != current) {
-            context.read<InventoryProvider>().renameBrand(current, val);
+          if (val.isNotEmpty && val != old) {
+            context.read<InventoryProvider>().renameBrand(old, val);
+            AppSnackBar.success(context, 'Renamed to "$val"');
           }
         },
       ),
     );
   }
 
-  Future<void> _confirmDelete(
-      BuildContext context, String name) async {
+  void _delete(BuildContext context, String brand) {
     final products = context.read<ProductProvider>().allProducts;
-    final inUse = products.where((p) => p.brand == name).toList();
+    final inUse = products.where((p) => p.brand == brand).toList();
 
     if (inUse.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Cannot delete "$name" — ${inUse.length} product${inUse.length > 1 ? "s" : ""} still use this brand. Delete those products first.',
-          ),
-          backgroundColor: Colors.red.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          margin: const EdgeInsets.all(16),
-        ),
+      AppSnackBar.error(
+        context,
+        'Cannot delete "$brand" — ${inUse.length} product${inUse.length > 1 ? "s" : ""} still use it.',
       );
       return;
     }
 
-    await showDialog(
+    showDialog(
       context: context,
-      builder: (_) => ManageConfirmDialog(
+      builder: (dialogContext) => ManageConfirmDialog(
         title: 'Delete Brand?',
-        message: 'Remove "$name" from your brands list?',
-        onConfirm: () =>
-            context.read<InventoryProvider>().removeBrand(name),
+        message: 'Remove "$brand" from your brands list?',
+        onConfirm: () {
+          Navigator.pop(dialogContext);
+          context.read<InventoryProvider>().removeBrand(brand);
+          AppSnackBar.success(context, 'Brand "$brand" deleted');
+        },
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final brands = context.watch<InventoryProvider>().brands;
-
-    return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
-      appBar: AppBar(
+    return ChangeNotifierProvider(
+      create: (_) => BrandSearchProvider(),
+      child: Scaffold(
         backgroundColor: AppColors.backgroundTop,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Brands',
-          style: TextStyle(
-              color: AppColors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 18),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_rounded,
-                color: AppColors.goldDark),
-            onPressed: () => _showAddDialog(context),
-            tooltip: 'Add Brand',
+        appBar: AppBar(
+          backgroundColor: AppColors.backgroundTop,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.goldDark),
+            onPressed: () => Navigator.pop(context),
           ),
-        ],
+          title: const Text(
+            'Manage Brands',
+            style: TextStyle(
+                color: AppColors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 18),
+          ),
+        ),
+        body: Consumer<BrandSearchProvider>(
+          builder: (context, search, _) {
+            final allBrands = context.watch<InventoryProvider>().brands;
+            final filtered = search.filter(allBrands);
+
+            return Column(
+              children: [
+                ManageAddCard(
+                  controller: search.addController,
+                  sectionLabel: 'ADD NEW BRAND',
+                  hintText: 'e.g. Amul, Nestlé, Britannia',
+                  onAdd: () => _add(context, search),
+                ),
+                ManageSearchBar(
+                  controller: search.controller,
+                  hintText: 'Search brands…',
+                  query: search.query,
+                  onChanged: search.onChanged,
+                  onClear: search.clear,
+                ),
+                ManageCountLabel(
+                  total: allBrands.length,
+                  filtered: filtered.length,
+                  label: 'BRANDS',
+                  isFiltering: search.query.isNotEmpty,
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: _buildList(context, search, allBrands, filtered),
+                ),
+              ],
+            );
+          },
+        ),
       ),
-      body: brands.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.branding_watermark_outlined,
-                      size: 56, color: AppColors.lightGrey),
-                  const SizedBox(height: 12),
-                  Text('No brands yet.',
-                      style:
-                          TextStyle(color: AppColors.grey, fontSize: 14)),
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: () => _showAddDialog(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add your first brand'),
-                    style: TextButton.styleFrom(
-                        foregroundColor: AppColors.goldDark),
-                  ),
-                ],
-              ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: brands.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (_, i) {
-                final item = brands[i];
-                return ManageItemTile(
-                  name: item,
-                  color: AppColors.blue,
-                  onEdit: () => _showRenameDialog(context, item),
-                  onDelete: () => _confirmDelete(context, item),
-                );
-              },
-            ),
+    );
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    BrandSearchProvider search,
+    List<String> all,
+    List<String> filtered,
+  ) {
+    if (all.isEmpty) {
+      return const ManageEmptyState(
+        icon: Icons.label_off_rounded,
+        title: 'No brands yet',
+        subtitle: 'Add your first brand above',
+      );
+    }
+    if (filtered.isEmpty) {
+      return ManageEmptyState(
+        icon: Icons.search_off_rounded,
+        title: 'No results for "${search.query}"',
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: filtered.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (_, i) {
+        final brand = filtered[i];
+        return ManageItemTile(
+          name: brand,
+          color: AppColors.goldDark,
+          onEdit: () => _rename(context, brand),
+          onDelete: () => _delete(context, brand),
+        );
+      },
     );
   }
 }

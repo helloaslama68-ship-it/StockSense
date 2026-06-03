@@ -30,7 +30,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
   void _calcDemand() {
     final saleProvider = context.read<SaleProvider>();
     final allSales = saleProvider.allSales
-        .where((s) => s.productId == widget.product.id)
+        .where((s) => s.items.any((item) => item.productId == widget.product.id))
         .toList();
 
     final now = DateTime.now();
@@ -43,7 +43,10 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
       final sold = allSales
           .where((s) =>
               s.saleDate.isAfter(day) && s.saleDate.isBefore(nextDay))
-          .fold<int>(0, (sum, s) => sum + s.quantitySold);
+          .fold<int>(0, (sum, s) =>
+              sum + s.items
+                .where((item) => item.productId == widget.product.id)
+                .fold<int>(0, (itemSum, item) => itemSum + item.quantity));
       daily.add(sold.toDouble());
     }
 
@@ -171,7 +174,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color:  AppColors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
@@ -461,7 +464,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
   }
 }
 
-// Line Chart Painter 
+// Line Chart Painter
 
 class _ChartPainter extends CustomPainter {
   final List<double> data;

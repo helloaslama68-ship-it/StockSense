@@ -61,8 +61,10 @@ class PurchaseFormProvider with ChangeNotifier {
     supplierName: supplierName,
     quantityPurchased: items.fold(0, (s, i) => s + i.quantity),
     totalAmount: finalTotal,
+    taxPercent: taxPercent,
     purchaseDate: purchaseDate ?? DateTime.now(),
     imagePath: items.isNotEmpty ? items.first.imagePath : null,
+    lineItems: List.from(items),
   );
 
   void reset() {

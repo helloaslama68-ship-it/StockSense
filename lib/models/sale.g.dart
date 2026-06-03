@@ -18,32 +18,44 @@ class SaleAdapter extends TypeAdapter<Sale> {
     };
     return Sale()
       ..id = fields[0] as String
-      ..productId = fields[1] as String
-      ..productName = fields[2] as String
-      ..quantitySold = fields[3] as int
-      ..salePrice = fields[4] as double
-      ..totalAmount = fields[5] as double
-      ..saleDate = fields[6] as DateTime;
+      ..customerName = fields[1] as String?
+      ..items = (fields[2] as List).cast<SaleItem>()
+      ..subtotal = fields[3] as double
+      ..taxPercent = fields[4] as double
+      ..taxAmount = fields[5] as double
+      ..totalAmount = fields[6] as double
+      ..saleDate = fields[7] as DateTime
+      ..receiptNumber = fields[8] as int
+      ..status = fields[9] as String
+      ..channel = fields[10] as String;
   }
 
   @override
   void write(BinaryWriter writer, Sale obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.productId)
+      ..write(obj.customerName)
       ..writeByte(2)
-      ..write(obj.productName)
+      ..write(obj.items)
       ..writeByte(3)
-      ..write(obj.quantitySold)
+      ..write(obj.subtotal)
       ..writeByte(4)
-      ..write(obj.salePrice)
+      ..write(obj.taxPercent)
       ..writeByte(5)
-      ..write(obj.totalAmount)
+      ..write(obj.taxAmount)
       ..writeByte(6)
-      ..write(obj.saleDate);
+      ..write(obj.totalAmount)
+      ..writeByte(7)
+      ..write(obj.saleDate)
+      ..writeByte(8)
+      ..write(obj.receiptNumber)
+      ..writeByte(9)
+      ..write(obj.status)
+      ..writeByte(10)
+      ..write(obj.channel);
   }
 
   @override

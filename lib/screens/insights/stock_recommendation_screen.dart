@@ -5,6 +5,7 @@ import '../../core/colors.dart';
 import '../../models/product.dart';
 import '../../providers/stock_recommendation_provider.dart';
 import '../purchase/purchase_screen.dart';
+import '../../widgets/empty_state.dart';
 
 
 // STOCK RECOMMENDATION SCREEN 
@@ -58,7 +59,12 @@ class StockRecommendationScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Expanded(
             child: visible.isEmpty
-                ? const _EmptyState()
+                ? const EmptyState(
+                    icon: Icons.check_circle_rounded,
+                    title: 'All stocked up!',
+                    subtitle: 'No restock suggestions right now',
+                    iconColor: AppColors.darkGreen,
+                  )
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     itemCount: visible.length,
@@ -246,35 +252,4 @@ class _SuggestionCard extends StatelessWidget {
       ]),
     );
   }
-}
-
-
-//  EMPTY STATE
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.darkGreen.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.check_circle_rounded,
-                  size: 48, color: AppColors.darkGreen),
-            ),
-            const SizedBox(height: 16),
-            const Text('All stocked up!',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            Text('No restock suggestions right now',
-                style: TextStyle(fontSize: 13, color: AppColors.grey)),
-          ],
-        ),
-      );
 }

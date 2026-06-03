@@ -2,31 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/sale.dart';
-
-
-// SALE PROVIDER
-// Handles all sale-related operations using Hive
-// and updates UI with ChangeNotifier.
+import '../models/sale_item.dart';
+import '../providers/sale_form_provider.dart';
 
 class SaleProvider extends ChangeNotifier {
-
-  // Hive box used to store sales locally
   final Box<Sale> _box = Hive.box<Sale>('sales');
-
-  // UUID generator for unique sale IDs
   final _uuid = const Uuid();
 
-  
-  // GET ALL SALES
-  // Returns all sales sorted by latest first
-  
+  // ── MIGRATION: wipe box if old schema detected (no items field)
+  SaleProvider() {
+    _migrateIfNeeded();
+  }
+
+  void _migrateIfNeeded() {
+    try {
+      // Try reading first sale — if it fails, old schema present
+      if (_box.isNotEmpty) {
+        _box.values.first.items; // will throw if old schema
+      }
+    } catch (_) {
+      _box.clear(); // wipe old data, start fresh
+    }
+  }
+
+  // ── QUERIES
+
   List<Sale> get allSales => _box.values.toList()
     ..sort((a, b) => b.saleDate.compareTo(a.saleDate));
 
-  
-  // TODAY SALES TOTAL
-  // Calculates total sales amount for today
-  
   double get todaySalesTotal {
     final today = DateTime.now();
     return _box.values
@@ -37,10 +40,6 @@ class SaleProvider extends ChangeNotifier {
         .fold(0.0, (sum, s) => sum + s.totalAmount);
   }
 
-  
-  // YESTERDAY SALES TOTAL
-  // Calculates total sales amount for yesterday
-  
   double get yesterdaySalesTotal {
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
     return _box.values
@@ -51,11 +50,6 @@ class SaleProvider extends ChangeNotifier {
         .fold(0.0, (sum, s) => sum + s.totalAmount);
   }
 
-  
-  // SALES CHANGE LABEL
-  // Returns % change vs yesterday as display string
-  // e.g. "+12% vs yesterday" or "-5% vs yesterday"
-  
   String get salesChangeLabel {
     final yesterday = yesterdaySalesTotal;
     if (yesterday == 0) return '+0% vs yesterday';
@@ -64,36 +58,63 @@ class SaleProvider extends ChangeNotifier {
     return '$sign${change.toStringAsFixed(0)}% vs yesterday';
   }
 
-  
-  // PENDING CREDIT TOTAL
-  
-  double get pendingCreditTotal => 1450.0;
+  double get pendingCreditTotal => 0.0;
 
-  
-  // RECORD SALE
-  // Creates and saves a new sale record
-  Future<void> recordSale({
-    required String productId,
-    required String productName,
-    required int quantity,
-    required double salePrice,
+  // ── next receipt number (auto-increment)
+  int get _nextReceiptNumber {
+    if (_box.isEmpty) return 1001;
+    return _box.values
+            .map((s) => s.receiptNumber)
+            .reduce((a, b) => a > b ? a : b) +
+        1;
+  }
+
+  // ── RECORD CART SALE
+  // Called from SaleScreen when user taps Complete Sale
+  Future<Sale> recordCartSale({
+    required List<CartItem> cart,
+    required double taxPercent,
+    required String? customerName,
+    String status = 'completed',
+    String channel = 'in-store',
   }) async {
+    final items = cart.map((c) {
+      final item = SaleItem()
+        ..productId = c.product.id
+        ..productName = c.product.name
+        ..sku = c.product.barcode
+        ..quantity = c.quantity
+        ..unitPrice = c.product.sellingPrice
+        ..subtotal = c.subtotal;
+      return item;
+    }).toList();
+
+    final sub = items.fold(0.0, (s, i) => s + i.subtotal);
+    final taxAmt = sub * taxPercent / 100;
+
     final sale = Sale()
       ..id = _uuid.v4()
-      ..productId = productId
-      ..productName = productName
-      ..quantitySold = quantity
-      ..salePrice = salePrice
-      ..totalAmount = quantity * salePrice
-      ..saleDate = DateTime.now();
+      ..customerName = customerName?.trim().isEmpty == true ? null : customerName?.trim()
+      ..items = items
+      ..subtotal = sub
+      ..taxPercent = taxPercent
+      ..taxAmount = taxAmt
+      ..totalAmount = sub + taxAmt
+      ..saleDate = DateTime.now()
+      ..receiptNumber = _nextReceiptNumber
+      ..status = status
+      ..channel = channel;
 
     await _box.put(sale.id, sale);
     notifyListeners();
+    return sale;
   }
 
-  
-  // REFRESH PROVIDER
-  // Forces UI rebuild manually
-  
+  // ── DELETE SALE
+  Future<void> deleteSale(String id) async {
+    await _box.delete(id);
+    notifyListeners();
+  }
+
   void refresh() => notifyListeners();
 }

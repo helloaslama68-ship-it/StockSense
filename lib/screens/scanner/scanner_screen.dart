@@ -41,11 +41,18 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   @override
+  void deactivate() {
+    final scannerProvider = context.read<ScannerProvider>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scannerProvider.reset();
+    });
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
     _cameraCtrl.dispose();
     _cardCtrl.dispose();
-    // Reset scanner state when leaving screen
-    context.read<ScannerProvider>().reset();
     super.dispose();
   }
 

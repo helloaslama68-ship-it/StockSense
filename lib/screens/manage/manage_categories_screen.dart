@@ -2,129 +2,168 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colors.dart';
+import '../../providers/category_search_provider.dart';
 import '../../providers/inventory_provider.dart';
+import '../../widgets/app_snack_bar.dart';
+import '../../widgets/manage_add_card.dart';
+import '../../widgets/manage_count_label.dart';
+import '../../widgets/manage_empty_state.dart';
+import '../../widgets/manage_search_bar.dart';
 import '../../widgets/manage_widgets.dart';
 
 class ManageCategoriesScreen extends StatelessWidget {
   const ManageCategoriesScreen({super.key});
 
-  Future<void> _showAddDialog(BuildContext context) async {
-    final ctrl = TextEditingController();
-    await showDialog(
-      context: context,
-      builder: (_) => ManageInputDialog(
-        title: 'Add Category',
-        hint: 'Category name',
-        ctrl: ctrl,
-        onConfirm: () {
-          final val = ctrl.text.trim();
-          if (val.isNotEmpty) {
-            context.read<InventoryProvider>().addCategory(val);
-          }
-        },
-      ),
-    );
+  void _add(BuildContext context, CategorySearchProvider search) {
+    final val = search.addController.text.trim();
+    if (val.isEmpty) return;
+    final inventory = context.read<InventoryProvider>();
+    if (inventory.categories.contains(val)) {
+      AppSnackBar.error(context, 'Category "$val" already exists');
+      return;
+    }
+    inventory.addCategory(val);
+    search.addController.clear();
+    AppSnackBar.success(context, 'Category "$val" added');
   }
 
-  Future<void> _showRenameDialog(
-      BuildContext context, String current) async {
-    final ctrl = TextEditingController(text: current);
-    await showDialog(
+  void _rename(BuildContext context, String old) {
+    final ctrl = TextEditingController(text: old);
+    showDialog(
       context: context,
       builder: (_) => ManageInputDialog(
         title: 'Rename Category',
-        hint: 'New name',
+        hint: 'Category name',
         ctrl: ctrl,
         confirmLabel: 'Save',
         onConfirm: () {
           final val = ctrl.text.trim();
-          if (val.isNotEmpty && val != current) {
-            context.read<InventoryProvider>().renameCategory(current, val);
+          if (val.isNotEmpty && val != old) {
+            context.read<InventoryProvider>().renameCategory(old, val);
+            AppSnackBar.success(context, 'Renamed to "$val"');
           }
         },
       ),
     );
   }
 
-  Future<void> _confirmDelete(
-      BuildContext context, String name) async {
-    await showDialog(
+  void _delete(BuildContext context, String category) {
+    showDialog(
       context: context,
-      builder: (_) => ManageConfirmDialog(
+      builder: (dialogContext) => ManageConfirmDialog(
         title: 'Delete Category?',
-        message:
-            '"$name" will be removed. Products using it won\'t be deleted.',
-        onConfirm: () =>
-            context.read<InventoryProvider>().removeCategory(name),
+        message: 'Remove "$category" from your categories?',
+        onConfirm: () {
+          Navigator.pop(dialogContext);
+          context.read<InventoryProvider>().removeCategory(category);
+          AppSnackBar.success(context, 'Category "$category" deleted');
+        },
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final categories = context.watch<InventoryProvider>().categories;
-
-    return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
-      appBar: AppBar(
+    return ChangeNotifierProvider(
+      create: (_) => CategorySearchProvider(),
+      child: Scaffold(
         backgroundColor: AppColors.backgroundTop,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Categories',
-          style: TextStyle(
+        appBar: AppBar(
+          backgroundColor: AppColors.backgroundTop,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.goldDark),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            'Manage Categories',
+            style: TextStyle(
               color: AppColors.black,
               fontWeight: FontWeight.bold,
-              fontSize: 18),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_rounded,
-                color: AppColors.goldDark),
-            onPressed: () => _showAddDialog(context),
-            tooltip: 'Add Category',
-          ),
-        ],
-      ),
-      body: categories.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.category_outlined,
-                      size: 56, color: AppColors.lightGrey),
-                  const SizedBox(height: 12),
-                  Text('No categories yet.',
-                      style:
-                          TextStyle(color: AppColors.grey, fontSize: 14)),
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: () => _showAddDialog(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add your first category'),
-                    style: TextButton.styleFrom(
-                        foregroundColor: AppColors.goldDark),
-                  ),
-                ],
-              ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: categories.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (_, i) {
-                final item = categories[i];
-                return ManageItemTile(
-                  name: item,
-                  color: AppColors.goldDark,
-                  onEdit: () => _showRenameDialog(context, item),
-                  onDelete: () => _confirmDelete(context, item),
-                );
-              },
+              fontSize: 18,
             ),
+          ),
+        ),
+        body: Consumer<CategorySearchProvider>(
+          builder: (context, search, _) {
+            final allCategories = context.watch<InventoryProvider>().categories;
+            final filtered = search.filter(allCategories);
+
+            return Column(
+              children: [
+                ManageAddCard(
+                  controller: search.addController,
+                  sectionLabel: 'ADD NEW CATEGORY',
+                  hintText: 'e.g. Spices, Baby Products',
+                  onAdd: () => _add(context, search),
+                ),
+                ManageSearchBar(
+                  controller: search.controller,
+                  hintText: 'Search categories…',
+                  query: search.query,
+                  onChanged: search.onChanged,
+                  onClear: search.clear,
+                ),
+                ManageCountLabel(
+                  total: allCategories.length,
+                  filtered: filtered.length,
+                  label: 'CATEGORIES',
+                  isFiltering: search.query.isNotEmpty,
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: _buildList(context, search, allCategories, filtered),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    CategorySearchProvider search,
+    List<String> all,
+    List<String> filtered,
+  ) {
+    if (all.isEmpty) {
+      return const ManageEmptyState(
+        icon: Icons.category_outlined,
+        title: 'No categories yet',
+        subtitle: 'Add your first category above',
+      );
+    }
+    if (filtered.isEmpty) {
+      return ManageEmptyState(
+        icon: Icons.search_off_rounded,
+        title: 'No results for "${search.query}"',
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: filtered.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (_, i) {
+        final cat = filtered[i];
+        final icon = search.iconFor(cat);
+        return ManageItemTile(
+          name: cat,
+          color: AppColors.goldDark,
+          leadingWidget: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.goldDark.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppColors.goldDark, size: 18),
+          ),
+          onEdit: () => _rename(context, cat),
+          onDelete: () => _delete(context, cat),
+        );
+      },
     );
   }
 }

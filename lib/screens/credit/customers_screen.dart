@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/colors.dart';
+import '../../widgets/app_snack_bar.dart';
 
 enum CreditStatus { highDue, noDue, pending }
 
@@ -277,13 +278,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.goldDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   onPressed: () {
-                    // TODO: wire to CreditProvider
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Customer added!'),
-                      backgroundColor: AppColors.darkGreen,
-                      behavior: SnackBarBehavior.floating,
-                    ));
+                    AppSnackBar.success(context, 'Customer added!');
                   },
                   child: const Text('Add Customer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
                 ),

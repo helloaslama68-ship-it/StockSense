@@ -9,7 +9,6 @@ import '../../providers/profile_provider.dart';
 import '../../providers/sale_provider.dart';
 import '../../widgets/activity_row.dart';
 import '../../widgets/app_card.dart';
-import '../../widgets/app_decorations.dart';
 import '../../widgets/app_section_label.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/gold_button.dart';
@@ -165,7 +164,11 @@ class _DashboardBody extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const ManageScreen())),
                     child: Container(
                       width: 38, height: 38,
-                      decoration: appCard(radius: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                      ),
                       child: const Icon(Icons.menu_rounded,
                           size: 20, color: Color(0xFF1A1A1A)),
                     ),
@@ -178,7 +181,11 @@ class _DashboardBody extends StatelessWidget {
                             builder: (_) => const NotificationsScreen())),
                     child: Container(
                       width: 38, height: 38,
-                      decoration: appDarkCard(radius: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                      ),
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
@@ -274,7 +281,11 @@ class _DashboardBody extends StatelessWidget {
               builder: (_, s, __) => Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
-                decoration: appDarkCard(),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A1A),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -744,7 +755,11 @@ class _DashboardBody extends StatelessWidget {
             // SMART DEMAND PREDICTION
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: appColorCard(color: AppColors.goldDark),
+              decoration: BoxDecoration(
+                color: AppColors.goldDark,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [BoxShadow(color: AppColors.goldDark.withOpacity(0.28), blurRadius: 14, offset: const Offset(0, 6))],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -866,7 +881,11 @@ class _DashboardBody extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: appDarkCard(radius: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A1A),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                ),
                 child: const Column(children: [
                   Text(
                     'SEE DETAILS OF',

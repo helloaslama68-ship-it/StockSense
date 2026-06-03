@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'purchase.g.dart';
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 4)
 class Purchase extends HiveObject {
   @HiveField(0) late String id;
   @HiveField(1) late String productId;

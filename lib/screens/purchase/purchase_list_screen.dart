@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../providers/purchase_provider.dart';
 import '../../models/purchase_record.dart';
+import '../../widgets/app_snack_bar.dart';
 import 'purchase_screen.dart';
+import 'purchase_detail_screen.dart';
 
 class PurchaseListScreen extends StatelessWidget {
   const PurchaseListScreen({super.key});
@@ -36,6 +38,7 @@ class PurchaseListScreen extends StatelessWidget {
             onPressed: () {
               context.read<PurchaseProvider>().deletePurchase(p.id);
               Navigator.pop(context);
+              AppSnackBar.error(context, '${p.productName} deleted');
             },
             child: const Text('Delete', style: TextStyle(color: AppColors.white)),
           ),
@@ -223,7 +226,14 @@ class PurchaseListScreen extends StatelessWidget {
   }
 
   Widget _purchaseTile(BuildContext context, PurchaseRecord p) {
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PurchaseDetailScreen(record: p),
+        ),
+      ),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -340,6 +350,7 @@ class PurchaseListScreen extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }
