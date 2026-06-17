@@ -162,9 +162,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
     final brands     = inv.brands;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_rounded,
@@ -184,7 +184,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
           children: [
 
-            // ── IMAGE CARD
+            // IMAGE CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,7 +201,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── BASIC INFO CARD
+            // BASIC INFO CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +277,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── PRICING CARD
+            // PRICING CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,7 +339,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── STOCK CARD
+            // STOCK CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,7 +413,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── DETAILS CARD
+            //  DETAILS CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,7 +434,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ),
             const SizedBox(height: 24),
 
-            // ── SAVE BUTTON
+            // SAVE BUTTON
             GoldButton(
               label: 'Save Changes',
               onPressed: _submit,
@@ -442,7 +442,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── DELETE BUTTON
+            //  DELETE BUTTON
             SizedBox(
               width: double.infinity,
               height: 50,

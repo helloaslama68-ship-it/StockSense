@@ -1,63 +1,43 @@
-
-
-
-// Flutter material package
 import 'package:flutter/material.dart';
-
-// App color constants
 import '../../core/colors.dart';
-
-
-// REPORTS SCREEN
-// Main analytics dashboard screen
+import 'package:provider/provider.dart';
+import '../../providers/sale_filter_provider.dart';
+import '../../providers/sale_provider.dart';
+import 'sales_report_screen.dart';
+import 'purchase_report_screen.dart';
+import 'loss_report_screen.dart';
+import 'stock_report_screen.dart';
+import 'credit_report_screen.dart';
+import '../../providers/customer_provider.dart';
 
 class ReportsScreen extends StatelessWidget {
-
   const ReportsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-
-      // Screen background color
-      backgroundColor: AppColors.backgroundTop,
-
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-
         child: SingleChildScrollView(
-
-          // Screen padding
           padding: const EdgeInsets.all(16),
-
           child: Column(
-
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-               
-              // APP BAR TITLE
-              
               Text(
                 'Reports',
-
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.black,
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              
-              // ANALYTICS HUB LABEL
-              
               Text(
                 'ANALYTICS HUB',
-
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -68,23 +48,18 @@ class ReportsScreen extends StatelessWidget {
 
               const SizedBox(height: 4),
 
-              // Main heading
               Text(
                 'Reports',
-
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.black,
                 ),
               ),
 
               const SizedBox(height: 4),
 
-              // Description text
               Text(
                 'Curated insights for your inventory performance.',
-
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.grey,
@@ -93,140 +68,100 @@ class ReportsScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              
               // FEATURED SALES REPORT CARD
-              
               _FeaturedReportCard(
-
-                // Card icon
                 icon: Icons.point_of_sale_rounded,
-
-                // Card title
                 title: 'Sales Report',
-
-                // Last updated time
                 lastUpdated: '2h ago',
-
-                // Tap callback
-                onTap: () {},
+                isDark: isDark,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MultiProvider(
+                      providers: [
+                        ChangeNotifierProvider.value(value: context.read<SaleProvider>()),
+                        ChangeNotifierProvider(create: (_) => SaleFilterProvider()),
+                      ],
+                      child: const SalesReportScreen(),
+                    ),
+                  ),
+                ),
               ),
 
               const SizedBox(height: 16),
 
-              
-              // REPORT GRID SECTION
-              
+              // REPORT GRID
               GridView.count(
-
-                // 2 columns
                 crossAxisCount: 2,
-
-                // Prevent internal scrolling
                 shrinkWrap: true,
-
-                // Disable grid scrolling
-                physics:
-                    const NeverScrollableScrollPhysics(),
-
-                // Horizontal spacing
+                physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 12,
-
-                // Vertical spacing
                 mainAxisSpacing: 12,
-
-                // Card aspect ratio
                 childAspectRatio: 1.15,
-
                 children: [
 
-                  
-                  // PURCHASE REPORT CARD
-                  
                   _GridReportCard(
-
-                    icon:
-                        Icons.shopping_bag_rounded,
-
-                    iconColor:
-                        AppColors.goldDark,
-
-                    bgColor:
-                        AppColors.goldDark
-                            .withOpacity(0.08),
-
+                    icon: Icons.shopping_bag_rounded,
+                    iconColor: AppColors.goldDark,
+                    bgColor: AppColors.goldDark.withOpacity(0.08),
                     title: 'Purchase Report',
-
-                    subtitle:
-                        'Vendor transactions and incoming stock cycles.',
-
-                    onTap: () {},
+                    subtitle: 'Vendor transactions and incoming stock cycles.',
+                    isDark: isDark,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PurchaseReportScreen(),
+                      ),
+                    ),
                   ),
 
-                  
-                  // STOCK REPORT CARD
-                  
                   _GridReportCard(
-
-                    icon:
-                        Icons.inventory_2_rounded,
-
+                    icon: Icons.inventory_2_rounded,
                     iconColor: Colors.blue,
-
-                    bgColor:
-                        Colors.blue.withOpacity(0.08),
-
+                    bgColor: Colors.blue.withOpacity(0.08),
                     title: 'Stock Report',
-
-                    subtitle:
-                        'Real-time availability and warehouse mapping.',
-
-                    onTap: () {},
+                    subtitle: 'Real-time availability and warehouse mapping.',
+                    isDark: isDark,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const StockReportScreen(),
+                      ),
+                    ),
                   ),
 
-                  
-                  // CREDIT REPORT CARD
-                  
                   _GridReportCard(
-
-                    icon:
-                        Icons.credit_card_rounded,
-
+                    icon: Icons.credit_card_rounded,
                     iconColor: Colors.purple,
-
-                    bgColor:
-                        Colors.purple
-                            .withOpacity(0.08),
-
+                    bgColor: Colors.purple.withOpacity(0.08),
                     title: 'Credit Report',
-
-                    subtitle:
-                        'Outstanding balances and payment aging.',
-
-                    onTap: () {},
+                    subtitle: 'Outstanding balances and payment aging.',
+                    isDark: isDark,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChangeNotifierProvider.value(
+                          value: context.read<CustomerProvider>(),
+                          child: const CreditReportScreen(),
+                        ),
+                      ),
+                    ),
                   ),
 
-                  
-                  // LOSS REPORT CARD
-            
                   _GridReportCard(
-
-                    icon:
-                        Icons.trending_down_rounded,
-
+                    icon: Icons.trending_down_rounded,
                     iconColor: AppColors.darkRed,
-
-                    bgColor:
-                        AppColors.darkRed.withOpacity(0.08),
-
+                    bgColor: AppColors.darkRed.withOpacity(0.08),
                     title: 'Loss Report',
-
-                    subtitle:
-                        'Shrinkage, spoilage, and operational waste.',
-
-                    onTap: () {},
-
-                    // Highlighted card
+                    subtitle: 'Shrinkage, spoilage, and operational waste.',
+                    isDark: isDark,
                     highlight: true,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const LossReportScreen(),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -240,105 +175,58 @@ class ReportsScreen extends StatelessWidget {
   }
 }
 
-
-// FEATURED REPORT CARD
-// Large top card for sales analytics
-
 class _FeaturedReportCard extends StatelessWidget {
-
-  // Card icon
   final IconData icon;
-
-  // Report title
   final String title;
-
-  // Last updated time
   final String lastUpdated;
-
-  // Tap callback
   final VoidCallback onTap;
+  final bool isDark;
 
   const _FeaturedReportCard({
     required this.icon,
     required this.title,
     required this.lastUpdated,
     required this.onTap,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
 
     return GestureDetector(
-
-      // Card tap action
       onTap: onTap,
-
       child: Container(
-
         width: double.infinity,
-
         padding: const EdgeInsets.all(20),
-
         decoration: BoxDecoration(
-
-          color: AppColors.white,
-
-          borderRadius:
-              BorderRadius.circular(20),
-
+          color: cardColor,
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
-
             BoxShadow(
-              color:
-                  AppColors.black.withOpacity(0.05),
-
+              color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
               blurRadius: 15,
-
               offset: const Offset(0, 4),
             ),
           ],
         ),
-
         child: Column(
-
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            
-            // ICON CONTAINER
-            
             Container(
-
               width: 52,
               height: 52,
-
               decoration: BoxDecoration(
-
-                color:
-                    AppColors.goldDark
-                        .withOpacity(0.12),
-
-                borderRadius:
-                    BorderRadius.circular(14),
+                color: AppColors.goldDark.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
               ),
-
-              child: Icon(
-                icon,
-                color: AppColors.goldDark,
-                size: 26,
-              ),
+              child: Icon(icon, color: AppColors.goldDark, size: 26),
             ),
 
             const SizedBox(height: 16),
 
-            
-            // REPORT TITLE
-            
             Text(
               title,
-
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -347,35 +235,21 @@ class _FeaturedReportCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            
-            // FOOTER SECTION
-            
             Row(
-
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
-
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
-                // Last updated label
                 Text(
                   'LAST UPDATED: $lastUpdated',
-
                   style: TextStyle(
                     fontSize: 10,
                     color: AppColors.grey,
                     letterSpacing: 0.5,
                   ),
                 ),
-
-                // View details button
                 GestureDetector(
-
                   onTap: onTap,
-
                   child: Text(
                     'View Details →',
-
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.goldDark,
@@ -392,32 +266,15 @@ class _FeaturedReportCard extends StatelessWidget {
   }
 }
 
-
-// GRID REPORT CARD
-// Small analytics cards shown in grid
-
 class _GridReportCard extends StatelessWidget {
-
-  // Card icon
   final IconData icon;
-
-  // Icon color
   final Color iconColor;
-
-  // Background color for icon
   final Color bgColor;
-
-  // Card title
   final String title;
-
-  // Card subtitle
   final String subtitle;
-
-  // Tap callback
   final VoidCallback onTap;
-
-  // Highlight style
   final bool highlight;
+  final bool isDark;
 
   const _GridReportCard({
     required this.icon,
@@ -426,90 +283,51 @@ class _GridReportCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    required this.isDark,
     this.highlight = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
 
     return GestureDetector(
-
-      // Card tap action
       onTap: onTap,
-
       child: Container(
-
         padding: const EdgeInsets.all(14),
-
         decoration: BoxDecoration(
-
-          // Highlighted background
           color: highlight
-              ? iconColor.withOpacity(0.06)
-              : AppColors.white,
-
-          borderRadius:
-              BorderRadius.circular(16),
-
-          // Border for highlighted cards
+              ? iconColor.withOpacity(isDark ? 0.12 : 0.06)
+              : cardColor,
+          borderRadius: BorderRadius.circular(16),
           border: highlight
-              ? Border.all(
-                  color:
-                      iconColor.withOpacity(0.3),
-
-                  width: 1.5,
-                )
+              ? Border.all(color: iconColor.withOpacity(0.3), width: 1.5)
               : null,
-
           boxShadow: [
-
             BoxShadow(
-              color:
-                  AppColors.black.withOpacity(0.04),
-
+              color: Colors.black.withOpacity(isDark ? 0.0 : 0.04),
               blurRadius: 10,
-
               offset: const Offset(0, 3),
             ),
           ],
         ),
-
         child: Column(
-
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            
-            // ICON CONTAINER
-            
             Container(
-
               width: 36,
               height: 36,
-
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius:
-                    BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(10),
               ),
-
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 18,
-              ),
+              child: Icon(icon, color: iconColor, size: 18),
             ),
 
             const SizedBox(height: 10),
 
-            
-            // TITLE
-            
             Text(
               title,
-
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -518,16 +336,10 @@ class _GridReportCard extends StatelessWidget {
 
             const SizedBox(height: 4),
 
-            
-            // SUBTITLE
-            
             Text(
               subtitle,
-
               maxLines: 2,
-
               overflow: TextOverflow.ellipsis,
-
               style: TextStyle(
                 fontSize: 10,
                 color: AppColors.grey,

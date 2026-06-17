@@ -1,6 +1,6 @@
 import '../services/storage_service.dart';
 
-// 
+
 // INVENTORY REPOSITORY
 // All brands + categories DB operations 
 class InventoryRepository {

@@ -6,6 +6,9 @@ import '../../core/app_styles.dart';
 import '../../models/purchase_record.dart';
 import '../../models/purchase_line_item.dart';
 import '../../providers/purchase_provider.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/app_section_label.dart';
+import '../../widgets/manage_widgets.dart';
 import '../../widgets/app_snack_bar.dart';
 import 'purchase_screen.dart';
 
@@ -16,27 +19,14 @@ class PurchaseDetailScreen extends StatelessWidget {
   void _confirmDelete(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Purchase?'),
-        content: Text('Remove "${record.productName}" from records?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.darkRed),
-            onPressed: () {
-              context.read<PurchaseProvider>().deletePurchase(record.id);
-              Navigator.pop(context); // close dialog
-              Navigator.pop(context); // back to list
-              AppSnackBar.error(context, '${record.productName} deleted');
-            },
-            child: const Text('Delete',
-                style: TextStyle(color: AppColors.white)),
-          ),
-        ],
+      builder: (_) => ManageConfirmDialog(
+        title: 'Delete Purchase?',
+        message: 'Remove "${record.productName}" from records?',
+        onConfirm: () {
+          context.read<PurchaseProvider>().deletePurchase(record.id);
+          Navigator.pop(context);
+          AppSnackBar.error(context, '${record.productName} deleted');
+        },
       ),
     );
   }
@@ -46,41 +36,22 @@ class PurchaseDetailScreen extends StatelessWidget {
     final hasItems = record.lineItems.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-            // ── HEADER
+            // HEADER
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.black.withOpacity(0.05),
-                            blurRadius: 8,
-                          )
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.black, size: 20),
-                    ),
-                  ),
+                  const AppBackButton(),
                   const SizedBox(width: 14),
-                  const Text(
-                    'Purchase Details',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.goldDark),
-                  ),
+                  const Text('Purchase Details',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.goldDark)),
                 ],
               ),
             ),
@@ -93,46 +64,39 @@ class PurchaseDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── SUMMARY CARD
+                    // SUMMARY CARD
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: appCardDecoration(),
                       child: Column(
                         children: [
-                          // supplier + total
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    appSectionLabel('SUPPLIER'),
+                                    const AppSectionLabel(label: 'SUPPLIER'),
                                     const SizedBox(height: 4),
-                                    Text(
-                                      record.supplierName,
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.black),
-                                    ),
+                                    Text(record.supplierName,
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.black)),
                                   ],
                                 ),
                               ),
                               Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.end,
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  appSectionLabel('TOTAL AMOUNT'),
+                                  const AppSectionLabel(label: 'TOTAL AMOUNT'),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    '₹${record.totalAmount.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.goldDark),
-                                  ),
+                                  Text('₹${record.totalAmount.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.goldDark)),
                                 ],
                               ),
                             ],
@@ -142,64 +106,50 @@ class PurchaseDetailScreen extends StatelessWidget {
                           Divider(color: AppColors.lightGrey),
                           const SizedBox(height: 14),
 
-                          // date + invoice row
                           Row(
                             children: [
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    appSectionLabel('PURCHASE DATE'),
+                                    const AppSectionLabel(label: 'PURCHASE DATE'),
                                     const SizedBox(height: 4),
-                                    Text(
-                                      formatDate(record.purchaseDate),
-                                      style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.black),
-                                    ),
+                                    Text(formatDate(record.purchaseDate),
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.black)),
                                     const SizedBox(height: 2),
-                                    Text(
-                                      _formatTime(record.purchaseDate),
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.grey),
-                                    ),
+                                    Text(formatTime(record.purchaseDate),
+                                        style: TextStyle(
+                                            fontSize: 11, color: AppColors.grey)),
                                   ],
                                 ),
                               ),
                               Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.end,
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  appSectionLabel('INVOICE ID'),
+                                  const AppSectionLabel(label: 'INVOICE ID'),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    record.invoiceId,
-                                    style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.black),
-                                  ),
+                                  Text(record.invoiceId,
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.black)),
                                   const SizedBox(height: 4),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
-                                      color: AppColors.darkGreen
-                                          .withOpacity(0.1),
-                                      borderRadius:
-                                          BorderRadius.circular(6),
+                                      color: AppColors.darkGreen.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Text(
-                                      '● PROCESSED',
-                                      style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.darkGreen,
-                                          letterSpacing: 0.5),
-                                    ),
+                                    child: const Text('● PROCESSED',
+                                        style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.darkGreen,
+                                            letterSpacing: 0.5)),
                                   ),
                                 ],
                               ),
@@ -211,16 +161,11 @@ class PurchaseDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    // ── PURCHASED ITEMS
+                    // PURCHASED ITEMS
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('PURCHASED ITEMS',
-                            style: TextStyle(
-                                fontSize: 10,
-                                letterSpacing: 1.2,
-                                color: AppColors.grey,
-                                fontWeight: FontWeight.w600)),
+                        const AppSectionLabel(label: 'PURCHASED ITEMS'),
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
@@ -249,16 +194,14 @@ class PurchaseDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    // ── TOTALS CARD
+                    // TOTALS CARD
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: appCardDecoration(),
                       child: Column(
                         children: [
-                          appTotalRow(
-                            'Subtotal',
-                            '₹${record.subtotal.toStringAsFixed(2)}',
-                          ),
+                          appTotalRow('Subtotal',
+                              '₹${record.subtotal.toStringAsFixed(2)}'),
                           const SizedBox(height: 10),
                           appTotalRow(
                             'Tax & Logistics (${record.taxPercent.toStringAsFixed(0)}%)',
@@ -268,8 +211,7 @@ class PurchaseDetailScreen extends StatelessWidget {
                           Divider(color: AppColors.lightGrey),
                           const SizedBox(height: 8),
                           Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text('FINAL TOTAL',
                                   style: TextStyle(
@@ -277,13 +219,11 @@ class PurchaseDetailScreen extends StatelessWidget {
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.black,
                                       letterSpacing: 0.5)),
-                              Text(
-                                '₹${record.totalAmount.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.black),
-                              ),
+                              Text('₹${record.totalAmount.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.black)),
                             ],
                           ),
                         ],
@@ -297,7 +237,7 @@ class PurchaseDetailScreen extends StatelessWidget {
         ),
       ),
 
-      // ── BOTTOM ACTIONS
+      // BOTTOM ACTIONS
       bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(
             16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
@@ -314,7 +254,6 @@ class PurchaseDetailScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Edit button
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -324,23 +263,17 @@ class PurchaseDetailScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        PurchaseScreen(existingRecord: record),
-                  ),
-                ),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(
+                        builder: (_) => PurchaseScreen(existingRecord: record))),
                 icon: const Icon(Icons.edit_rounded,
                     size: 16, color: AppColors.goldDark),
                 label: const Text('Edit Purchase',
                     style: TextStyle(
-                        color: AppColors.goldDark,
-                        fontWeight: FontWeight.bold)),
+                        color: AppColors.goldDark, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 8),
-            // Delete link
             GestureDetector(
               onTap: () => _confirmDelete(context),
               child: const Padding(
@@ -367,18 +300,15 @@ class PurchaseDetailScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          )
+              color: AppColors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
         ],
       ),
       child: Row(
         children: [
-          // image
           Container(
-            width: 48,
-            height: 48,
+            width: 48, height: 48,
             decoration: BoxDecoration(
               color: AppColors.lightGrey.withOpacity(0.5),
               borderRadius: BorderRadius.circular(10),
@@ -389,13 +319,11 @@ class PurchaseDetailScreen extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const Icon(
                         Icons.shopping_bag_outlined,
-                        color: AppColors.grey,
-                        size: 24))
+                        color: AppColors.grey, size: 24))
                 : const Icon(Icons.shopping_bag_outlined,
                     color: AppColors.grey, size: 24),
           ),
           const SizedBox(width: 12),
-          // name + price/unit
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,41 +332,32 @@ class PurchaseDetailScreen extends StatelessWidget {
                     style: const TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 2),
-                Text(
-                  '₹${item.costPrice.toStringAsFixed(2)} / ${item.unit}',
-                  style:
-                      TextStyle(fontSize: 11, color: AppColors.grey),
-                ),
+                Text('₹${item.costPrice.toStringAsFixed(2)} / ${item.unit}',
+                    style: TextStyle(fontSize: 11, color: AppColors.grey)),
               ],
             ),
           ),
-          // qty + total
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.goldDark.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(
-                  '+${item.quantity}',
-                  style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.goldDark,
-                      fontWeight: FontWeight.bold),
-                ),
+                child: Text('+${item.quantity}',
+                    style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.goldDark,
+                        fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 4),
-              Text(
-                '₹${item.total.toStringAsFixed(2)}',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: AppColors.black),
-              ),
+              Text('₹${item.total.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.black)),
             ],
           ),
         ],
@@ -446,7 +365,6 @@ class PurchaseDetailScreen extends StatelessWidget {
     );
   }
 
-  // fallback when no lineItems stored (old records)
   Widget _fallbackItemTile(PurchaseRecord r) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -458,8 +376,7 @@ class PurchaseDetailScreen extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 48, height: 48,
             decoration: BoxDecoration(
               color: AppColors.lightGrey.withOpacity(0.5),
               borderRadius: BorderRadius.circular(10),
@@ -470,8 +387,7 @@ class PurchaseDetailScreen extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const Icon(
                         Icons.shopping_bag_outlined,
-                        color: AppColors.grey,
-                        size: 24))
+                        color: AppColors.grey, size: 24))
                 : const Icon(Icons.shopping_bag_outlined,
                     color: AppColors.grey, size: 24),
           ),
@@ -486,14 +402,5 @@ class PurchaseDetailScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatTime(DateTime d) {
-    final h = d.hour > 12
-        ? d.hour - 12
-        : (d.hour == 0 ? 12 : d.hour);
-    final ampm = d.hour >= 12 ? 'PM' : 'AM';
-    final min = d.minute.toString().padLeft(2, '0');
-    return '$h:$min $ampm';
   }
 }

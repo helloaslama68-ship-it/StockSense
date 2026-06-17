@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../providers/sale_provider.dart';
 import '../../models/sale.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/empty_state.dart';
 import 'sale_screen.dart';
 import 'sale_details_screen.dart';
 import 'sale_history_screen.dart';
@@ -33,14 +36,6 @@ class _SalesListScreenState extends State<SalesListScreen> {
     }).toList();
   }
 
-  String _formatDate(DateTime d) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    final h = d.hour > 12 ? d.hour - 12 : (d.hour == 0 ? 12 : d.hour);
-    final ampm = d.hour >= 12 ? 'PM' : 'AM';
-    final min = d.minute.toString().padLeft(2, '0');
-    return '${months[d.month-1]} ${d.day}, ${d.year} · $h:$min $ampm';
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SaleProvider>();
@@ -48,42 +43,31 @@ class _SalesListScreenState extends State<SalesListScreen> {
     final filtered = _filtered(sales);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
 
-            // ── HEADER
+            // HEADER
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.05), blurRadius: 8)],
-                      ),
-                      child: Icon(Icons.arrow_back_rounded, color: AppColors.black, size: 20),
-                    ),
-                  ),
+                  const AppBackButton(),
                   const SizedBox(width: 14),
-                  Text('Sales', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.goldDark)),
+                  const Text('Sales',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.goldDark)),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.push(context,
                         MaterialPageRoute(builder: (_) => const SaleHistoryScreen())),
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.05), blurRadius: 8)],
-                      ),
-                      child: Icon(Icons.history_rounded, color: AppColors.goldDark, size: 20),
+                      decoration: appCardDecoration(radius: 10),
+                      child: const Icon(Icons.history_rounded, color: AppColors.goldDark, size: 20),
                     ),
                   ),
                 ],
@@ -99,20 +83,16 @@ class _SalesListScreenState extends State<SalesListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
-                    // ── SEARCH
+                    // SEARCH
                     Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
-                      ),
+                      decoration: appCardDecoration(radius: 12),
                       child: TextField(
                         controller: _searchCtrl,
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: 'Search by customer or receipt #...',
                           hintStyle: TextStyle(color: AppColors.grey, fontSize: 13),
-                          prefixIcon: Icon(Icons.search_rounded, color: AppColors.grey, size: 20),
+                          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.grey, size: 20),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(vertical: 14),
                         ),
@@ -121,7 +101,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
 
                     const SizedBox(height: 16),
 
-                    // ── STATS
+                    // STATS
                     Row(
                       children: [
                         Expanded(child: _statCard(
@@ -134,8 +114,8 @@ class _SalesListScreenState extends State<SalesListScreen> {
                         Expanded(child: _statCard(
                           'TOTAL SALES',
                           '${sales.length}',
-                          Colors.blue.withOpacity(0.08),
-                          Colors.blue,
+                          AppColors.blue.withOpacity(0.08),
+                          AppColors.blue,
                         )),
                       ],
                     ),
@@ -147,21 +127,15 @@ class _SalesListScreenState extends State<SalesListScreen> {
 
                     const SizedBox(height: 12),
 
-                    // ── EMPTY STATE
                     if (filtered.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(40),
-                        decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(16)),
-                        child: Column(
-                          children: [
-                            Icon(Icons.receipt_outlined, size: 48, color: AppColors.lightGrey),
-                            const SizedBox(height: 12),
-                            Text('No sales yet', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.black)),
-                            const SizedBox(height: 4),
-                            Text('Tap Add Sale to record your first sale.',
-                                style: TextStyle(fontSize: 12, color: AppColors.grey)),
-                          ],
+                      EmptyState(
+                        icon: Icons.receipt_outlined,
+                        title: 'No sales yet',
+                        subtitle: 'Tap Add Sale to record your first sale.',
+                        buttonLabel: 'Add Sale',
+                        onButton: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SaleScreen()),
                         ),
                       )
                     else
@@ -174,7 +148,6 @@ class _SalesListScreenState extends State<SalesListScreen> {
         ),
       ),
 
-      // ── FAB
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(
           context,
@@ -213,11 +186,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2))],
-        ),
+        decoration: appCardDecoration(radius: 14),
         child: Row(
           children: [
             Container(
@@ -230,9 +199,9 @@ class _SalesListScreenState extends State<SalesListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(customerLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.black)),
+                  Text(customerLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.black)),
                   const SizedBox(height: 3),
-                  Text(_formatDate(s.saleDate), style: TextStyle(fontSize: 10, color: AppColors.grey)),
+                  Text(formatDateTime(s.saleDate), style: TextStyle(fontSize: 10, color: AppColors.grey)),
                   const SizedBox(height: 2),
                   Text('${s.items.length} item${s.items.length > 1 ? 's' : ''} · #${s.receiptNumber}',
                       style: TextStyle(fontSize: 10, color: AppColors.grey)),
@@ -240,7 +209,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
               ),
             ),
             Text('₹${s.totalAmount.toStringAsFixed(2)}',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.black)),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.black)),
           ],
         ),
       ),

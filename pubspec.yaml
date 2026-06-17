@@ -17,6 +17,8 @@ dependencies:
   image_picker: ^1.2.2
   cupertino_icons: ^1.0.8
   mobile_scanner: ^5.0.0
+  pdf: ^3.11.0
+  printing: ^5.13.0
 
 dev_dependencies:
   flutter_test:
@@ -34,13 +36,5 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/logo.png
-    - assets/images/bg_overlay.png
-    - assets/images/onboarding1.png
-    - assets/images/onboarding3.png
-    - assets/icons/addicon.png
-    - assets/icons/barcodeicon .png
-    - assets/icons/crediticon.png
-    - assets/icons/purchaseicon.png
-    - assets/icons/saleicon.png
-    - assets/icons/alert.png
+    - assets/images/
+    - assets/icons/

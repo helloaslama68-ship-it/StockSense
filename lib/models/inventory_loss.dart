@@ -12,7 +12,7 @@ class InventoryLoss extends HiveObject {
   @HiveField(2) late String productName;
   @HiveField(3) late int quantity;
   @HiveField(4) late double valuationLoss; // costPrice * quantity
-  @HiveField(5) late String reason;        // 'damaged' | 'spoiled' | 'expired' | 'other'
+  @HiveField(5) late String reason;        // 'damaged'  'spoiled' 'expired'  'other'
   @HiveField(6) late DateTime loggedAt;
   @HiveField(7) String? unit;
 }

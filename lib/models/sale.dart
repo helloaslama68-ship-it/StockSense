@@ -14,6 +14,6 @@ class Sale extends HiveObject {
   @HiveField(6) late double totalAmount;
   @HiveField(7) late DateTime saleDate;
   @HiveField(8) late int receiptNumber;
-  @HiveField(9) late String status; // 'completed' | 'pending'
-  @HiveField(10) late String channel; // 'in-store' | 'online'
+  @HiveField(9) late String status; // 'completed'  'pending'
+  @HiveField(10) late String channel; // 'in-store' 'online'
 }

@@ -11,6 +11,8 @@ import 'models/sale.dart';
 import 'models/purchase.dart';
 import 'models/inventory_loss.dart';
 import 'models/sale_item.dart';
+import 'models/customer.dart';
+import 'models/credit_transaction.dart';
 
 // Services
 import 'services/storage_service.dart';
@@ -44,6 +46,10 @@ import 'providers/inventory_filter_provider.dart';
 import 'providers/product_unit_provider.dart';
 import 'providers/brand_search_provider.dart';
 import 'providers/category_search_provider.dart';
+import 'providers/purchase_filter_provider.dart';
+import 'providers/sale_filter_provider.dart';
+import 'providers/customer_provider.dart';
+import 'providers/stock_recommendation_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,18 +63,21 @@ void main() async {
   if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(SaleItemAdapter());
   if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(PurchaseAdapter());
   if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(InventoryLossAdapter());
-  
+  if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(CustomerAdapter());
+  if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(CreditTransactionAdapter());
 
   await Hive.openBox<Product>('products');
   await Hive.openBox<Sale>('sales');
   await Hive.openBox<Purchase>('purchases');
   await Hive.openBox<InventoryLoss>('losses');
+  await Hive.openBox<Customer>('customers');
+  await Hive.openBox<CreditTransaction>('credit_transactions');
 
   runApp(
     MultiProvider(
       providers: [
 
-        // SERVICES 
+        // SERVICES
         Provider<StorageService>(
           create: (_) => StorageService(),
         ),
@@ -90,7 +99,10 @@ void main() async {
           create: (_) => ProductRepository(),
         ),
 
-        // PROVIDERS 
+        // SETTINGS — must be before Alert/Notification so proxy can depend on it
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+
+        // PROVIDERS
         ChangeNotifierProxyProvider2<AuthRepository, ProfileRepository, ProfileProvider>(
           create: (ctx) => ProfileProvider(
             ctx.read<AuthRepository>(),
@@ -113,24 +125,29 @@ void main() async {
         ),
 
         ChangeNotifierProvider(create: (_) => SaleProvider()),
-        ChangeNotifierProvider(create: (_) => AlertProvider()),
+
+        // ALERT — wired to SettingsProvider
+        ChangeNotifierProxyProvider<SettingsProvider, AlertProvider>(
+          create: (_) => AlertProvider(),
+          update: (_, settings, prev) => (prev ?? AlertProvider())..update(settings),
+        ),
+
         ChangeNotifierProvider(create: (_) => PurchaseProvider()),
         ChangeNotifierProvider(create: (_) => PurchaseFormProvider()),
         ChangeNotifierProvider(create: (_) => ProductFormProvider()),
         ChangeNotifierProvider(create: (_) => LossProvider(LossRepository())),
 
-        // NOTIFICATION PROVIDER
-        ChangeNotifierProxyProvider3<NotificationRepository, ProductProvider, SaleProvider, NotificationProvider>(
+        // NOTIFICATION — wired to ProductProvider, SaleProvider, SettingsProvider
+        ChangeNotifierProxyProvider4<NotificationRepository, ProductProvider, SaleProvider, SettingsProvider, NotificationProvider>(
           create: (ctx) => NotificationProvider(
             ctx.read<NotificationRepository>(),
           ),
-          update: (_, repo, pp, sp, prev) =>
-              (prev ?? NotificationProvider(repo))..update(pp, sp),
+          update: (_, repo, pp, sp, settings, prev) =>
+              (prev ?? NotificationProvider(repo))
+                ..update(pp, sp)
+                ..updateSettings(settings),
         ),
 
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
-
-        
         ChangeNotifierProvider(create: (_) => SaleFormProvider()),
         ChangeNotifierProvider(create: (_) => ScannerProvider()),
         ChangeNotifierProvider(create: (_) => LogLossFormProvider()),
@@ -139,7 +156,16 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProductUnitProvider()),
         ChangeNotifierProvider(create: (_) => BrandSearchProvider()),
         ChangeNotifierProvider(create: (_) => CategorySearchProvider()),
-        
+        ChangeNotifierProvider(create: (_) => PurchaseFilterProvider()),
+        ChangeNotifierProvider(create: (_) => SaleFilterProvider()),
+        ChangeNotifierProvider(create: (_) => CustomerProvider()),
+        ChangeNotifierProxyProvider2<ProductProvider, SaleProvider, StockRecommendationProvider>(
+          create: (ctx) => StockRecommendationProvider(
+            ctx.read<ProductProvider>(),
+            ctx.read<SaleProvider>(),
+          ),
+          update: (_, pp, sp, prev) => prev ?? StockRecommendationProvider(pp, sp),
+        ),
 
       ],
       child: const StockSenseApp(),
@@ -152,12 +178,39 @@ class StockSenseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'StockSense',
+
+
+      // THEME
+      themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.white,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: AppColors.backgroundTop,
         primaryColor: AppColors.primary,
+        colorScheme: ColorScheme.light(
+          primary: AppColors.goldDark,
+          secondary: AppColors.goldLight,
+        ),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: AppColors.backgroundDark,
+        primaryColor: AppColors.primary,
+        colorScheme: ColorScheme.dark(
+          primary: AppColors.goldLight,
+          secondary: AppColors.goldDark,
+          surface: AppColors.surfaceDark,
+        ),
+        cardColor: AppColors.cardDark,
+        dividerColor: AppColors.dividerDark,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.backgroundDark,
+          foregroundColor: AppColors.white,
+        ),
       ),
       home: Splash(),
     );

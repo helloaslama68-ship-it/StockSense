@@ -3,11 +3,13 @@ import '../models/app_notification.dart';
 import '../repositories/notification_repository.dart';
 import '../providers/product_provider.dart';
 import '../providers/sale_provider.dart';
+import '../providers/settings_provider.dart';
 
 class NotificationProvider extends ChangeNotifier {
   final NotificationRepository _repo;
   ProductProvider? _productProvider;
   SaleProvider? _saleProvider;
+  SettingsProvider? _settings;
 
   List<AppNotification> _notifications = [];
   List<AppNotification> get notifications => _notifications;
@@ -21,42 +23,54 @@ class NotificationProvider extends ChangeNotifier {
     rebuild();
   }
 
+  void updateSettings(SettingsProvider settings) {
+    _settings = settings;
+    rebuild();
+  }
+
   void rebuild() {
     if (_productProvider == null || _saleProvider == null) return;
     final List<AppNotification> notifs = [];
 
-    for (final p in _productProvider!.lowStockProducts) {
-      notifs.add(AppNotification(
-        id: 'low_${p.id}',
-        type: NotifType.lowStock,
-        title: 'Low Stock Alert',
-        subtitle: '${p.name} is running low (${p.quantity} units left)',
-        time: DateTime.now().subtract(const Duration(minutes: 2)),
-      ));
+    final showLowStock = _settings?.lowStockAlerts ?? true;
+    final showExpiry   = _settings?.expiryAlerts   ?? true;
+
+    if (showLowStock) {
+      for (final p in _productProvider!.lowStockProducts) {
+        notifs.add(AppNotification(
+          id: 'low_${p.id}',
+          type: NotifType.lowStock,
+          title: 'Low Stock Alert',
+          subtitle: '${p.name} is running low (${p.quantity} units left)',
+          time: DateTime.now().subtract(const Duration(minutes: 2)),
+        ));
+      }
     }
 
-    final now = DateTime.now();
-    for (final p in _productProvider!.expiringProducts) {
-      if (p.expiryDate == null) continue;
-      final expiry = DateTime.tryParse(p.expiryDate!);
-      if (expiry == null) continue;
-      final daysLeft = expiry.difference(now).inDays;
-      if (daysLeft >= 0) {
-        notifs.add(AppNotification(
-          id: 'expiry_${p.id}',
-          type: NotifType.expiry,
-          title: 'Expiry Warning',
-          subtitle: '${p.name} expires in $daysLeft day${daysLeft == 1 ? '' : 's'}',
-          time: DateTime.now().subtract(const Duration(hours: 1)),
-        ));
-      } else {
-        notifs.add(AppNotification(
-          id: 'expired_${p.id}',
-          type: NotifType.expired,
-          title: 'Item Expired',
-          subtitle: '${p.name} expired ${(-daysLeft)} day${-daysLeft == 1 ? '' : 's'} ago',
-          time: DateTime.now().subtract(const Duration(days: 1)),
-        ));
+    if (showExpiry) {
+      final now = DateTime.now();
+      for (final p in _productProvider!.expiringProducts) {
+        if (p.expiryDate == null) continue;
+        final expiry = DateTime.tryParse(p.expiryDate!);
+        if (expiry == null) continue;
+        final daysLeft = expiry.difference(now).inDays;
+        if (daysLeft >= 0) {
+          notifs.add(AppNotification(
+            id: 'expiry_${p.id}',
+            type: NotifType.expiry,
+            title: 'Expiry Warning',
+            subtitle: '${p.name} expires in $daysLeft day${daysLeft == 1 ? '' : 's'}',
+            time: DateTime.now().subtract(const Duration(hours: 1)),
+          ));
+        } else {
+          notifs.add(AppNotification(
+            id: 'expired_${p.id}',
+            type: NotifType.expired,
+            title: 'Item Expired',
+            subtitle: '${p.name} expired ${(-daysLeft)} day${-daysLeft == 1 ? '' : 's'} ago',
+            time: DateTime.now().subtract(const Duration(days: 1)),
+          ));
+        }
       }
     }
 

@@ -8,7 +8,7 @@ class PurchaseFormProvider with ChangeNotifier {
   double taxPercent = 0;
   final List<PurchaseLineItem> items = [];
 
-  // ── TEMP STATE FOR ADD/EDIT SHEET ──
+  // TEMP STATE FOR ADD/EDIT SHEET
   String? _tempImagePath;
   String _tempUnit = 'units';
 
@@ -35,7 +35,7 @@ class PurchaseFormProvider with ChangeNotifier {
     _tempUnit = item.unit;
   }
 
-  // ── TOTALS ──
+  //  TOTALS 
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get taxAmount => subtotal * taxPercent / 100;
   double get finalTotal => subtotal + taxAmount;

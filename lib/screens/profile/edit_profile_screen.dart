@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../widgets/app_section_label.dart';
+import '../../widgets/app_back_button.dart';
 import '../../providers/profile_provider.dart';
 import '../../widgets/app_snack_bar.dart';
 
@@ -61,13 +63,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final saving = context.watch<ProfileProvider>().saving; 
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.goldDark),
-          onPressed: () => Navigator.pop(context),
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Center(child: AppBackButton()),
         ),
         title: Text(
           'Edit Profile',
@@ -100,7 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
 
               // SECTION: Personal
-              _sectionHeader('PERSONAL DETAILS'),
+              const AppSectionLabel(label: 'PERSONAL DETAILS', showBar: true),
               SizedBox(height: 12),
 
               _buildCard(children: [
@@ -129,7 +131,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               SizedBox(height: 16),
 
               // SECTION: Store 
-              _sectionHeader('STORE DETAILS'),
+              const AppSectionLabel(label: 'STORE DETAILS', showBar: true),
               SizedBox(height: 12),
 
               _buildCard(children: [
@@ -191,7 +193,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         )
                       : Icon(Icons.save_rounded,
-                          color: Colors.white, size: 18),
+                          color: AppColors.white, size: 18),
                   label: Text(
                     saving ? 'Saving...' : 'Save Changes',   
                     style: TextStyle(
@@ -212,36 +214,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _sectionHeader(String title) {
-    return Row(
-      children: [
-        Container(
-          width: 3,
-          height: 14,
-          decoration: BoxDecoration(
-            color: AppColors.goldDark,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 11,
-            letterSpacing: 1.5,
-            color: AppColors.grey,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-
+  
   Widget _buildCard({required List<Widget> children}) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -295,13 +273,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 hintText: hint,
                 labelStyle: TextStyle(
                   fontSize: 12,
-                  color: AppColors.grey,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   fontWeight: FontWeight.w500,
                 ),
-                hintStyle: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.lightGrey,
-                ),
+               hintStyle: TextStyle(
+  fontSize: 13,
+  color: Theme.of(context)
+      .colorScheme
+      .onSurface
+      .withOpacity(0.5),
+),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: UnderlineInputBorder(
@@ -330,6 +311,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         height: 1,
         indent: 70,
         endIndent: 16,
-        color: AppColors.lightGrey.withOpacity(0.5),
+        color: Theme.of(context).dividerColor,
       );
 }

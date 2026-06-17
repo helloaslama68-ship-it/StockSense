@@ -20,10 +20,17 @@ class ManageItemTile extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)
+BoxShadow(
+  color: AppColors.black.withOpacity(
+    Theme.of(context).brightness == Brightness.dark
+        ? 0.25
+        : 0.04,
+  ),
+  blurRadius: 6,
+),
           ],
         ),
         child: Row(children: [
@@ -38,9 +45,14 @@ class ManageItemTile extends StatelessWidget {
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Text(name,
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w500)),
+            child:Text(
+  name,
+  style: TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(context).colorScheme.onSurface,
+  ),
+),
           ),
           GestureDetector(
             onTap: onEdit,
@@ -86,40 +98,73 @@ class ManageInputDialog extends StatelessWidget {
     this.confirmLabel = 'Add',
   });
 
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            hintText: hint,
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10)),
+@override
+Widget build(BuildContext context) => AlertDialog(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkBlue
+          : AppColors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.white
+              : AppColors.darkGold,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: TextField(
+        controller: ctrl,
+        autofocus: true,
+        textCapitalization: TextCapitalization.words,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.white
+              : AppColors.black,
+        ),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.grey
+                : AppColors.black,
           ),
-          onSubmitted: (_) {
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        onSubmitted: (_) {
+          onConfirm();
+          Navigator.pop(context);
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.white70
+                  : AppColors.darkGold,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.goldDark,
+            foregroundColor: AppColors.white,
+          ),
+          onPressed: () {
             onConfirm();
             Navigator.pop(context);
           },
+          child: Text(confirmLabel),
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.goldDark,
-                foregroundColor: AppColors.white),
-            onPressed: () {
-              onConfirm();
-              Navigator.pop(context);
-            },
-            child: Text(confirmLabel),
-          ),
-        ],
-      );
+      ],
+    );
 }
 
 class ManageConfirmDialog extends StatelessWidget {
@@ -134,24 +179,53 @@ class ManageConfirmDialog extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.darkRed,
-                foregroundColor: AppColors.white),
-            onPressed: () {
-              onConfirm();
-              Navigator.pop(context);
-            },
-            child: const Text('Delete'),
+Widget build(BuildContext context) => AlertDialog(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ?AppColors.darkBlue
+          : AppColors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.white
+              : AppColors.darkGold,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: Text(
+        message,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.white70
+              : AppColors.darkGold,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.white70
+                  : AppColors.darkGold,
+            ),
           ),
-        ],
-      );
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.darkRed,
+            foregroundColor: AppColors.white,
+          ),
+          onPressed: () {
+            onConfirm();
+            Navigator.pop(context);
+          },
+          child: const Text('Delete'),
+        ),
+      ],
+    );
 }

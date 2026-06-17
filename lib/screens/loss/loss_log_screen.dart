@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_styles.dart';
 import '../../core/colors.dart';
 import '../../models/inventory_loss.dart';
 import '../../providers/loss_filter_provider.dart';
 import '../../providers/loss_provider.dart';
 import '../../providers/product_provider.dart';
-import 'log_loss_screen.dart';
+import '../../widgets/app_back_button.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/app_confirm_dialog.dart';
+import '../../widgets/app_filter_chip.dart';
+import 'log_loss_screen.dart';
 
 class LossLogScreen extends StatelessWidget {
   const LossLogScreen({super.key});
@@ -22,14 +26,11 @@ class LossLogScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppBackButton(),
         title: const Text(
           'Loss Log',
           style: TextStyle(
@@ -52,24 +53,16 @@ class LossLogScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
-                // HEADER 
-                const Text(
-                  'Inventory Loss',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1A1A),
-                    letterSpacing: -0.5,
-                  ),
-                ),
+                // HEADER
+                const Text('Inventory Loss', style: appPageTitleStyle),
                 const SizedBox(height: 2),
                 Text(
-                  'Monthly Audit Period: ${_auditPeriod()}',
+                  'Monthly Audit Period: ${formatMonthYear(DateTime.now())}',
                   style: const TextStyle(fontSize: 13, color: Color(0xFF888780)),
                 ),
                 const SizedBox(height: 16),
 
-                // STATS ROW 
+                // STATS ROW
                 Row(children: [
                   Expanded(
                     child: AppCard(
@@ -79,12 +72,7 @@ class LossLogScreen extends StatelessWidget {
                         children: [
                           const Text(
                             'TOTAL LOSS ITEMS',
-                            style: TextStyle(
-                              fontSize: 10,
-                              letterSpacing: 1.0,
-                              color: Color(0xFF888780),
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: appPageCategoryStyle,
                           ),
                           const SizedBox(height: 6),
                           Text(
@@ -118,12 +106,7 @@ class LossLogScreen extends StatelessWidget {
                         children: [
                           const Text(
                             'TOTAL LOSS AMOUNT',
-                            style: TextStyle(
-                              fontSize: 10,
-                              letterSpacing: 1.0,
-                              color: Color(0xFF888580),
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: appPageCategoryStyle,
                           ),
                           const SizedBox(height: 6),
                           Text(
@@ -160,56 +143,25 @@ class LossLogScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // FILTER TABS 
+                // FILTER TABS
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: LossFilterProvider.filters.map((f) {
-                      final active = filterP.filter == f;
-                      return GestureDetector(
-                        onTap: () => filterP.setFilter(f),
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: active ? AppColors.goldDark : AppColors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: active
-                                  ? AppColors.goldDark
-                                  : const Color(0xFFE0DDD8),
-                            ),
-                          ),
-                          child: Text(
-                            f,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: active ? Colors.white : const Color(0xFF1A1A1A),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                    children: LossFilterProvider.filters.map((f) => AppFilterChip(
+                      label: f,
+                      active: filterP.filter == f,
+                      onTap: () => filterP.setFilter(f),
+                    )).toList(),
                   ),
                 ),
 
                 const SizedBox(height: 16),
 
-                // ENTRIES LABEL 
-                const Text(
-                  'RECENT ENTRIES',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF888780),
-                    letterSpacing: 1.2,
-                  ),
-                ),
+                // ENTRIES LABEL
+                const Text('RECENT ENTRIES', style: appPageCategoryStyle),
                 const SizedBox(height: 12),
 
-                // LIST 
+                // LIST
                 filtered.isEmpty
                     ? _emptyState(filterP.filter)
                     : AppCard(
@@ -228,7 +180,7 @@ class LossLogScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // AUDIT COMPLETE FOOTER 
+                // AUDIT COMPLETE FOOTER
                 if (all.isEmpty)
                   Center(
                     child: Column(
@@ -257,7 +209,7 @@ class LossLogScreen extends StatelessWidget {
         },
       ),
 
-      //  FAB 
+      // FAB
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.goldDark,
         onPressed: () => Navigator.push(
@@ -284,18 +236,9 @@ class LossLogScreen extends StatelessWidget {
           ),
         ),
       );
-
-  String _auditPeriod() {
-    final now = DateTime.now();
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return '${months[now.month - 1]} ${now.year}';
-  }
 }
 
-//  LOSS TILE
+// ─── LOSS TILE ───────────────────────────────────────────────────────────────
 
 class _LossTile extends StatelessWidget {
   final InventoryLoss loss;
@@ -318,7 +261,7 @@ class _LossTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final m = _meta[loss.reason] ?? _meta['other']!;
-    final dateStr = _formatDate(loss.loggedAt);
+    final dateStr = formatDate(loss.loggedAt);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -419,39 +362,17 @@ class _LossTile extends StatelessWidget {
     }
   }
 
-  String _formatDate(DateTime dt) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun',
-                    'Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
-  }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Loss Entry?'),
-        content: Text('Remove "${loss.productName}" from loss log?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete();
-            },
-            child: const Text('Delete',
-                style: TextStyle(color: Color(0xFFA32D2D))),
-          ),
-        ],
-      ),
+  void _confirmDelete(BuildContext context) async {
+    final confirmed = await AppConfirmDialog.show(
+      context,
+      title: 'Delete Loss Entry?',
+      message: 'Remove "${loss.productName}" from loss log?',
     );
+    if (confirmed) onDelete();
   }
 }
 
-// LOG LOSS SHEET 
-// Uses LossFilterProvider for product/reason selection state
+// ─── LOG LOSS SHEET (bottom sheet variant) ───────────────────────────────────
 
 class _LogLossSheet extends StatefulWidget {
   const _LogLossSheet();
@@ -527,12 +448,12 @@ class _LogLossSheetState extends State<_LogLossSheet> {
               ),
               const SizedBox(height: 20),
 
-              const Text('PRODUCT', style: _labelStyle),
+              const Text('PRODUCT', style: appPageCategoryStyle),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: p.selectedProductId,
                 hint: const Text('Select product'),
-                decoration: _inputDecor(),
+                decoration: appInputDeco(''),
                 items: products.map((prod) => DropdownMenuItem(
                   value: prod.id,
                   child: Text(prod.name),
@@ -548,44 +469,25 @@ class _LogLossSheetState extends State<_LogLossSheet> {
 
               const SizedBox(height: 14),
 
-              const Text('QUANTITY LOST', style: _labelStyle),
+              const Text('QUANTITY LOST', style: appPageCategoryStyle),
               const SizedBox(height: 6),
               TextField(
                 controller: _qtyCtrl,
                 keyboardType: TextInputType.number,
-                decoration: _inputDecor(hint: 'e.g. 5'),
+                decoration: appInputDeco('e.g. 5'),
               ),
 
               const SizedBox(height: 14),
 
-              const Text('REASON', style: _labelStyle),
+              const Text('REASON', style: appPageCategoryStyle),
               const SizedBox(height: 6),
               Row(
-                children: _reasons.map((r) {
-                  final active = p.reason == r;
-                  return GestureDetector(
-                    onTap: () => p.setReason(r),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: active
-                            ? AppColors.goldDark
-                            : const Color(0xFFF1EFE8),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        r[0].toUpperCase() + r.substring(1),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: active ? Colors.white : const Color(0xFF1A1A1A),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                children: _reasons.map((r) => AppFilterChip(
+                  label: r[0].toUpperCase() + r.substring(1),
+                  active: p.reason == r,
+                  onTap: () => p.setReason(r),
+                  margin: const EdgeInsets.only(right: 8),
+                )).toList(),
               ),
 
               const SizedBox(height: 24),
@@ -616,26 +518,3 @@ class _LogLossSheetState extends State<_LogLossSheet> {
     );
   }
 }
-
-const _labelStyle = TextStyle(
-  fontSize: 10,
-  fontWeight: FontWeight.w700,
-  color: Color(0xFF888780),
-  letterSpacing: 1.0,
-);
-
-InputDecoration _inputDecor({String? hint}) => InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF888780), fontSize: 14),
-      filled: true,
-      fillColor: const Color(0xFFF7F3EC),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.goldDark, width: 1.5),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-    );

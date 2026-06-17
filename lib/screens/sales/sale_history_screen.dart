@@ -1,66 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../providers/sale_provider.dart';
+import '../../providers/sale_filter_provider.dart';
 import '../../models/sale.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/empty_state.dart';
 import 'sale_details_screen.dart';
+import 'sale_filter_sheet.dart';
 
-class SaleHistoryScreen extends StatefulWidget {
+class SaleHistoryScreen extends StatelessWidget {
   const SaleHistoryScreen({super.key});
 
-  @override
-  State<SaleHistoryScreen> createState() => _SaleHistoryScreenState();
-}
-
-class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
-  final _searchCtrl = TextEditingController();
-  DateTime? _filterDate;
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
+  void _openFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.transparent,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: context.read<SaleFilterProvider>(),
+        child: const SaleFilterSheet(),
+      ),
+    );
   }
 
-  List<Sale> _filtered(List<Sale> sales) {
-    var list = sales;
-
-    if (_filterDate != null) {
-      list = list.where((s) =>
-        s.saleDate.year == _filterDate!.year &&
-        s.saleDate.month == _filterDate!.month &&
-        s.saleDate.day == _filterDate!.day,
-      ).toList();
-    }
-
-    final q = _searchCtrl.text.toLowerCase();
-    if (q.isNotEmpty) {
-      list = list.where((s) {
-        final name = (s.customerName ?? '').toLowerCase();
-        final receipt = s.receiptNumber.toString();
-        return name.contains(q) || receipt.contains(q);
-      }).toList();
-    }
-
-    return list;
-  }
-
-  String _formatDate(DateTime d) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun',
-                    'Jul','Aug','Sep','Oct','Nov','Dec'];
-    final h = d.hour > 12 ? d.hour - 12 : (d.hour == 0 ? 12 : d.hour);
-    final ampm = d.hour >= 12 ? 'PM' : 'AM';
-    final min = d.minute.toString().padLeft(2, '0');
-    return '${months[d.month-1]} ${d.day}, ${d.year} · $h:$min $ampm';
-  }
-
-  String _formatShortDate(DateTime d) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun',
-                    'Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${months[d.month-1]} ${d.day}';
-  }
-
-  // Returns last 7 days revenue for bar chart
   List<_DayBar> _last7Days(List<Sale> sales) {
     final today = DateTime.now();
     return List.generate(7, (i) {
@@ -75,34 +39,19 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
     });
   }
 
-  Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _filterDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.light(primary: AppColors.goldDark),
-        ),
-        child: child!,
-      ),
-    );
-    if (picked != null) {
-      setState(() => _filterDate = picked);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<SaleProvider>();
-    final allSales = provider.allSales;
-    final filtered = _filtered(allSales);
+    final saleProvider = context.watch<SaleProvider>();
+    final filterProvider = context.watch<SaleFilterProvider>();
+
+    final allSales = saleProvider.allSales;
+    final filtered = filterProvider.apply(List.from(allSales));
+    final filterCount = filterProvider.activeFilterCount;
     final bars = _last7Days(allSales);
     final maxBar = bars.map((b) => b.total).fold(0.0, (a, b) => a > b ? a : b);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -111,28 +60,56 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
                 children: [
+                  const AppBackButton(),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Text('Sales History',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.goldDark)),
+                  ),
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => _openFilterSheet(context),
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(10),
+                        color: filterCount > 0 ? AppColors.goldDark : AppColors.white,
+                        borderRadius: BorderRadius.circular(12),
                         boxShadow: [BoxShadow(
-                          color: AppColors.black.withOpacity(0.05),
-                          blurRadius: 8,
+                          color: AppColors.black.withOpacity(0.06),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
                         )],
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.black, size: 20),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Icon(Icons.tune_rounded,
+                              size: 20,
+                              color: filterCount > 0 ? AppColors.white : AppColors.goldDark),
+                          if (filterCount > 0)
+                            Positioned(
+                              top: -5, right: -5,
+                              child: Container(
+                                width: 14, height: 14,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.goldLight,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text('$filterCount',
+                                      style: const TextStyle(
+                                          fontSize: 9,
+                                          color: AppColors.white,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 14),
-                  const Text('Sales History',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.goldDark)),
                 ],
               ),
             ),
@@ -145,91 +122,11 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
-                    // ── SEARCH + DATE FILTER
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 8,
-                              )],
-                            ),
-                            child: TextField(
-                              controller: _searchCtrl,
-                              onChanged: (_) => setState(() {}),
-                              decoration: InputDecoration(
-                                hintText: 'Search customer or receipt...',
-                                hintStyle: TextStyle(
-                                    color: AppColors.grey, fontSize: 13),
-                                prefixIcon: Icon(Icons.search_rounded,
-                                    color: AppColors.grey, size: 20),
-                                border: InputBorder.none,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 14),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
-                          onTap: () => _pickDate(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: _filterDate != null
-                                  ? AppColors.goldDark
-                                  : AppColors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 8,
-                              )],
-                            ),
-                            child: Icon(Icons.calendar_month_rounded,
-                                color: _filterDate != null
-                                    ? AppColors.white
-                                    : AppColors.grey,
-                                size: 20),
-                          ),
-                        ),
-                        if (_filterDate != null) ...[
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () => setState(() => _filterDate = null),
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(Icons.close_rounded,
-                                  color: AppColors.grey, size: 20),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
                     // ── PERFORMANCE CARD
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 12,
-                          offset: const Offset(0, 2),
-                        )],
-                      ),
+                      decoration: appCardDecoration(),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -245,7 +142,7 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                                         color: AppColors.grey)),
                                 const SizedBox(height: 6),
                                 Text(
-                                  '₹${provider.todaySalesTotal.toStringAsFixed(2)}',
+                                  '₹${saleProvider.todaySalesTotal.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                       fontSize: 26,
                                       fontWeight: FontWeight.bold,
@@ -253,14 +150,13 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: AppColors.darkGreen.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    provider.salesChangeLabel,
+                                    saleProvider.salesChangeLabel,
                                     style: const TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -269,8 +165,7 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text('Transactions',
-                                    style: TextStyle(
-                                        fontSize: 11, color: AppColors.grey)),
+                                    style: TextStyle(fontSize: 11, color: AppColors.grey)),
                                 Text(
                                   '${allSales.where((s) {
                                     final t = DateTime.now();
@@ -295,26 +190,23 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                                 final frac = maxBar == 0
                                     ? 0.0
                                     : (b.total / maxBar).clamp(0.05, 1.0);
-                                final isToday = b.day.day == DateTime.now().day &&
+                                final isToday =
+                                    b.day.day == DateTime.now().day &&
                                     b.day.month == DateTime.now().month;
                                 return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 2),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 400),
+                                        duration: const Duration(milliseconds: 400),
                                         width: 14,
                                         height: 80 * frac,
                                         decoration: BoxDecoration(
                                           color: isToday
                                               ? AppColors.goldDark
-                                              : AppColors.goldLight
-                                                  .withOpacity(0.35),
-                                          borderRadius:
-                                              BorderRadius.circular(4),
+                                              : AppColors.goldLight.withOpacity(0.35),
+                                          borderRadius: BorderRadius.circular(4),
                                         ),
                                       ),
                                     ],
@@ -333,53 +225,42 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('RECENT RECORDS',
-                            style: TextStyle(
-                                fontSize: 10,
-                                letterSpacing: 1.5,
-                                color: AppColors.grey,
-                                fontWeight: FontWeight.w600)),
-                        if (_filterDate != null)
-                          Text(
-                            _formatShortDate(_filterDate!),
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.goldDark,
-                                fontWeight: FontWeight.w600),
+                        Text(
+                          filterCount > 0
+                              ? 'FILTERED RESULTS (${filtered.length})'
+                              : 'RECENT RECORDS',
+                          style: TextStyle(
+                              fontSize: 10,
+                              letterSpacing: 1.5,
+                              color: AppColors.grey,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        if (filterCount > 0)
+                          GestureDetector(
+                            onTap: () => filterProvider.reset(),
+                            child: const Text('Clear',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.goldDark,
+                                    fontWeight: FontWeight.w600)),
                           ),
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
-                    // ── EMPTY STATE
+                    if (filterCount > 0) ...[
+                      _ActiveFilterChips(provider: filterProvider),
+                      const SizedBox(height: 12),
+                    ],
+
                     if (filtered.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(40),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.receipt_outlined,
-                                size: 48, color: AppColors.lightGrey),
-                            const SizedBox(height: 12),
-                            Text('No records found',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.black)),
-                            const SizedBox(height: 4),
-                            Text(
-                              _filterDate != null
-                                  ? 'No sales on this date.'
-                                  : 'No sales match your search.',
-                              style: TextStyle(
-                                  fontSize: 12, color: AppColors.grey),
-                            ),
-                          ],
-                        ),
+                      EmptyState(
+                        icon: Icons.receipt_outlined,
+                        title: 'No records found',
+                        subtitle: filterCount > 0
+                            ? 'Try adjusting your filters.'
+                            : 'No sales match your search.',
                       )
                     else
                       ...filtered.map((s) => _saleTile(context, s)),
@@ -394,9 +275,6 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
   }
 
   Widget _saleTile(BuildContext context, Sale s) {
-    final customerLabel = (s.customerName?.isNotEmpty == true)
-        ? s.customerName!
-        : '+91 ${s.receiptNumber}-${s.receiptNumber.toString().padLeft(5, '0')}';
     final displayName = (s.customerName?.isNotEmpty == true)
         ? s.customerName!
         : 'Walk-in · #${s.receiptNumber}';
@@ -426,8 +304,32 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                           fontWeight: FontWeight.w600,
                           color: AppColors.black)),
                   const SizedBox(height: 2),
-                  Text(_formatDate(s.saleDate),
-                      style: TextStyle(fontSize: 11, color: AppColors.grey)),
+                  Row(
+                    children: [
+                      Text(formatDateTime(s.saleDate),
+                          style: TextStyle(fontSize: 11, color: AppColors.grey)),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: s.channel == 'online'
+                              ? AppColors.blue.withOpacity(0.1)
+                              : AppColors.goldDark.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          s.channel == 'online' ? 'Online' : 'In-Store',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: s.channel == 'online'
+                                ? AppColors.blue
+                                : AppColors.goldDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -436,12 +338,75 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: s.totalAmount >= 100
-                      ? AppColors.goldDark
-                      : AppColors.black),
+                  color: s.totalAmount >= 100 ? AppColors.goldDark : AppColors.black),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ActiveFilterChips extends StatelessWidget {
+  final SaleFilterProvider provider;
+  const _ActiveFilterChips({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    final chips = <Widget>[];
+
+    if (provider.sortBy != SaleSortOption.newest) {
+      chips.add(_chip(provider.sortBy.label,
+          () => provider.setSortBy(SaleSortOption.newest)));
+    }
+    if (provider.customerQuery.isNotEmpty) {
+      chips.add(_chip('Customer: ${provider.customerQuery}',
+          () => provider.setCustomerQuery('')));
+    }
+    if (provider.channel.isNotEmpty) {
+      chips.add(_chip(
+          provider.channel == 'online' ? 'Online' : 'In-Store',
+          () => provider.setChannel('')));
+    }
+    if (provider.dateRange != null) {
+      final r = provider.dateRange!;
+      chips.add(_chip(
+          '${r.start.day}/${r.start.month} – ${r.end.day}/${r.end.month}',
+          () => provider.setDateRange(null)));
+    }
+    if (provider.minAmount != 0 || provider.maxAmount != SaleFilterProvider.kMaxAmount) {
+      final label = provider.maxAmount >= SaleFilterProvider.kMaxAmount
+          ? '₹${provider.minAmount.toStringAsFixed(0)}+'
+          : '₹${provider.minAmount.toStringAsFixed(0)}–₹${provider.maxAmount.toStringAsFixed(0)}';
+      chips.add(_chip(label,
+          () => provider.setAmountRange(0, SaleFilterProvider.kMaxAmount)));
+    }
+
+    return Wrap(spacing: 8, runSpacing: 8, children: chips);
+  }
+
+  Widget _chip(String label, VoidCallback onRemove) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.goldDark.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.goldDark.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.goldDark,
+                  fontWeight: FontWeight.w600)),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(Icons.close_rounded, size: 13, color: AppColors.goldDark),
+          ),
+        ],
       ),
     );
   }

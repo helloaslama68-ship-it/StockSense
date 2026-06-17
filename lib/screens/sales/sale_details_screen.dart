@@ -1,44 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../models/sale.dart';
 import '../../providers/sale_provider.dart';
+import '../../services/invoice_pdf_service.dart';
+import '../../widgets/app_back_button.dart';
 import '../../widgets/app_snack_bar.dart';
+import '../../widgets/manage_widgets.dart';
 
 class SaleDetailsScreen extends StatelessWidget {
   final Sale sale;
   const SaleDetailsScreen({super.key, required this.sale});
 
-  String _formatDateTime(DateTime d) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    final h = d.hour > 12 ? d.hour - 12 : (d.hour == 0 ? 12 : d.hour);
-    final ampm = d.hour >= 12 ? 'PM' : 'AM';
-    final min = d.minute.toString().padLeft(2, '0');
-    return '${months[d.month-1]} ${d.day}, ${d.year} · $h:$min $ampm';
-  }
-
   void _confirmDelete(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Sale?'),
-        content: const Text('This cannot be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkRed),
-            onPressed: () async {
-              Navigator.pop(context); // close dialog
-              await context.read<SaleProvider>().deleteSale(sale.id);
-              if (!context.mounted) return;
-              Navigator.pop(context); // back to list
-              AppSnackBar.success(context, 'Sale deleted');
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+      builder: (_) => ManageConfirmDialog(
+        title: 'Delete Sale?',
+        message: 'This cannot be undone.',
+        onConfirm: () async {
+          Navigator.pop(context);
+          await context.read<SaleProvider>().deleteSale(sale.id);
+          if (!context.mounted) return;
+          Navigator.pop(context);
+          AppSnackBar.success(context, 'Sale deleted');
+        },
       ),
     );
+  }
+
+  Future<void> _downloadInvoice(BuildContext context) async {
+    try {
+      await InvoicePdfService.downloadInvoice(sale);
+    } catch (e) {
+      if (context.mounted) {
+        AppSnackBar.error(context, 'Failed to generate invoice');
+      }
+    }
   }
 
   @override
@@ -48,7 +47,7 @@ class SaleDetailsScreen extends StatelessWidget {
         : 'Walk-in Customer';
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -57,20 +56,44 @@ class SaleDetailsScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
                 children: [
+                  const AppBackButton(),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Text('Sale Details',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.goldDark)),
+                  ),
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => _downloadInvoice(context),
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: AppColors.goldDark,
                         borderRadius: BorderRadius.circular(10),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.05), blurRadius: 8)],
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.goldDark.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                      child: Icon(Icons.arrow_back_rounded, color: AppColors.black, size: 20),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.download_rounded, size: 16, color: AppColors.white),
+                          SizedBox(width: 6),
+                          Text('Invoice',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.w600)),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 14),
-                  Text('Sale Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.goldDark)),
                 ],
               ),
             ),
@@ -84,14 +107,10 @@ class SaleDetailsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
-                    // ── CUSTOMER + TOTAL CARD
+                    // ── CUSTOMER & TOTAL CARD
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
-                      ),
+                      decoration: appCardDecoration(),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -99,24 +118,48 @@ class SaleDetailsScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text('CUSTOMER', style: TextStyle(fontSize: 9, letterSpacing: 1, color: AppColors.grey, fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 4),
-                                Text(customerLabel, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.black)),
-                              ]),
-                              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                                Text('TOTAL PAID', style: TextStyle(fontSize: 9, letterSpacing: 1, color: AppColors.grey, fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 4),
-                                Text('₹${sale.totalAmount.toStringAsFixed(2)}',
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.goldDark)),
-                              ]),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('CUSTOMER',
+                                      style: TextStyle(
+                                          fontSize: 9,
+                                          letterSpacing: 1,
+                                          color: AppColors.grey,
+                                          fontWeight: FontWeight.w600)),
+                                  const SizedBox(height: 4),
+                                  Text(customerLabel,
+                                      style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.black)),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text('TOTAL PAID',
+                                      style: TextStyle(
+                                          fontSize: 9,
+                                          letterSpacing: 1,
+                                          color: AppColors.grey,
+                                          fontWeight: FontWeight.w600)),
+                                  const SizedBox(height: 4),
+                                  Text('₹${sale.totalAmount.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.goldDark)),
+                                ],
+                              ),
                             ],
                           ),
                           const SizedBox(height: 10),
                           Row(children: [
-                            Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.grey),
+                            const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.grey),
                             const SizedBox(width: 6),
-                            Text(_formatDateTime(sale.saleDate), style: TextStyle(fontSize: 11, color: AppColors.grey)),
+                            Text(formatDateTime(sale.saleDate),
+                                style: TextStyle(fontSize: 11, color: AppColors.grey)),
                           ]),
                           const SizedBox(height: 10),
                           Row(children: [
@@ -135,71 +178,76 @@ class SaleDetailsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Order Items (${sale.items.length})',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.black)),
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.black)),
                         Text('Receipt #${sale.receiptNumber}',
-                            style: TextStyle(fontSize: 12, color: AppColors.goldDark, fontWeight: FontWeight.w600)),
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.goldDark,
+                                fontWeight: FontWeight.w600)),
                       ],
                     ),
                     const SizedBox(height: 10),
 
                     ...sale.items.map((item) => Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2))],
-                      ),
-                      child: Row(
-                        children: [
-                          // Product icon placeholder
-                          Container(
-                            width: 44, height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.lightGrey.withOpacity(0.4),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(Icons.inventory_2_outlined, size: 20, color: AppColors.grey),
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(14),
+                          decoration: appCardDecoration(radius: 14),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44, height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.lightGrey.withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.inventory_2_outlined,
+                                    size: 20, color: AppColors.grey),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(item.productName,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold, fontSize: 13)),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                        '${item.quantity} unit${item.quantity > 1 ? 's' : ''} × ₹${item.unitPrice.toStringAsFixed(2)}',
+                                        style: TextStyle(fontSize: 11, color: AppColors.grey)),
+                                    if (item.sku != null) ...[
+                                      const SizedBox(height: 2),
+                                      Text('SKU: ${item.sku}',
+                                          style: TextStyle(fontSize: 10, color: AppColors.grey)),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              Text('₹${item.subtotal.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: AppColors.black)),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                const SizedBox(height: 2),
-                                Text('${item.quantity} unit${item.quantity > 1 ? 's' : ''} × ₹${item.unitPrice.toStringAsFixed(2)}',
-                                    style: TextStyle(fontSize: 11, color: AppColors.grey)),
-                                if (item.sku != null) ...[
-                                  const SizedBox(height: 2),
-                                  Text('SKU: ${item.sku}', style: TextStyle(fontSize: 10, color: AppColors.grey)),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Text('₹${item.subtotal.toStringAsFixed(2)}',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.black)),
-                        ],
-                      ),
-                    )),
+                        )),
 
                     const SizedBox(height: 8),
 
                     // ── TOTALS SUMMARY
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
-                      ),
+                      decoration: appCardDecoration(),
                       child: Column(
                         children: [
-                          _SummaryRow(label: 'Subtotal', value: '₹${sale.subtotal.toStringAsFixed(2)}'),
+                          appTotalRow('Subtotal', '₹${sale.subtotal.toStringAsFixed(2)}'),
                           const SizedBox(height: 8),
-                          _SummaryRow(
-                            label: 'Tax (${sale.taxPercent.toStringAsFixed(1)}%)',
-                            value: '₹${sale.taxAmount.toStringAsFixed(2)}',
+                          appTotalRow(
+                            'Tax (${sale.taxPercent.toStringAsFixed(1)}%)',
+                            '₹${sale.taxAmount.toStringAsFixed(2)}',
                           ),
                           const SizedBox(height: 12),
                           Divider(color: AppColors.lightGrey),
@@ -207,9 +255,16 @@ class SaleDetailsScreen extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Grand Total', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.black)),
+                              const Text('Grand Total',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.black)),
                               Text('₹${sale.totalAmount.toStringAsFixed(2)}',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.goldDark)),
+                                  style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.goldDark)),
                             ],
                           ),
                         ],
@@ -218,12 +273,44 @@ class SaleDetailsScreen extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // ── DELETE BUTTON
+                    // ── DOWNLOAD INVOICE
+                    GestureDetector(
+                      onTap: () => _downloadInvoice(context),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: AppColors.goldDark.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.goldDark.withOpacity(0.3)),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.picture_as_pdf_rounded, size: 18, color: AppColors.goldDark),
+                            SizedBox(width: 8),
+                            Text('Download Invoice PDF',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.goldDark,
+                                    fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ── DELETE
                     Center(
                       child: TextButton.icon(
                         onPressed: () => _confirmDelete(context),
-                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.darkRed, size: 18),
-                        label: const Text('Delete Sale', style: TextStyle(color: AppColors.darkRed, fontWeight: FontWeight.w600)),
+                        icon: const Icon(Icons.delete_outline_rounded,
+                            color: AppColors.darkRed, size: 18),
+                        label: const Text('Delete Sale',
+                            style: TextStyle(
+                                color: AppColors.darkRed,
+                                fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],
@@ -244,25 +331,16 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(
-      color: color.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(6),
-    ),
-    child: Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-  );
-}
-
-class _SummaryRow extends StatelessWidget {
-  final String label, value;
-  const _SummaryRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(label, style: TextStyle(fontSize: 13, color: AppColors.grey)),
-      Text(value, style: TextStyle(fontSize: 13, color: AppColors.grey)),
-    ],
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 10,
+                color: color,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5)),
+      );
 }

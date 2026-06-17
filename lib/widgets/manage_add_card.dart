@@ -16,78 +16,83 @@ class ManageAddCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                sectionLabel,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.grey,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    textCapitalization: TextCapitalization.words,
-                    onSubmitted: (_) => onAdd(),
-                    decoration: InputDecoration(
-                      hintText: hintText,
-                      hintStyle:
-                          const TextStyle(color: AppColors.grey, fontSize: 14),
-                      filled: true,
-                      fillColor: AppColors.backgroundTop,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            const BorderSide(color: AppColors.goldDark, width: 1.5),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                GestureDetector(
-                  onTap: onAdd,
-                  child: Container(
-                    padding: const EdgeInsets.all(13),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.goldDark, AppColors.goldLight],
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.add_rounded,
-                        color: Colors.white, size: 22),
-                  ),
-                ),
-              ]),
-            ],
-          ),
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-      );
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              sectionLabel,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white54 : AppColors.grey,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  textCapitalization: TextCapitalization.words,
+                  onSubmitted: (_) => onAdd(),
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: TextStyle(
+                        color: isDark ? Colors.white38 : AppColors.grey,
+                        fontSize: 14),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF2C2C2C) : AppColors.backgroundTop,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide:
+                          const BorderSide(color: AppColors.goldDark, width: 1.5),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: onAdd,
+                child: Container(
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.goldDark, AppColors.goldLight],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.add_rounded,
+                      color: Colors.white, size: 22),
+                ),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
 }

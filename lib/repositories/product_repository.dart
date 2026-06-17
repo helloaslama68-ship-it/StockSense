@@ -31,7 +31,7 @@ class ProductRepository {
     String? barcode,
     String? unit,
     String? imagePath,
-    String? brand, // ← ADDED
+    String? brand, 
   }) async {
     final p = Product()
       ..id = _uuid.v4()
@@ -45,7 +45,7 @@ class ProductRepository {
       ..barcode = barcode
       ..unit = unit
       ..imagePath = imagePath
-      ..brand = brand // ← ADDED
+      ..brand = brand 
       ..createdAt = DateTime.now();
     await _box.put(p.id, p);
   }

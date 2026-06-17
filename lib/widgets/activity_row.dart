@@ -26,13 +26,17 @@ class ActivityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : const Border(
-                bottom: BorderSide(color: Color(0xFFF1EFE8), width: 1),
+            : Border(
+                bottom: BorderSide(
+                  color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1EFE8),
+                  width: 1,
+                ),
               ),
       ),
       child: Row(children: [
@@ -48,11 +52,15 @@ class ActivityRow extends StatelessWidget {
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF1A1A1A))),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.white : const Color(0xFF1A1A1A))),
             const SizedBox(height: 2),
             Text(subtitle,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF888780))),
+                style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? const Color(0xFFAAAAAA) : const Color(0xFF888780))),
           ]),
         ),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [

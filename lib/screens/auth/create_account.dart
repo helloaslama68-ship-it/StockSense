@@ -26,7 +26,7 @@ class CreateAccount extends StatelessWidget {
     final profile = context.watch<ProfileProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -124,7 +124,7 @@ class CreateAccount extends StatelessWidget {
                                         style: const TextStyle(fontSize: 13)),
                                   );
                                 }).toList(),
-                                // Write to provider — no setState
+                                
                                 onChanged: (val) {
                                   if (val != null) {
                                     context.read<ProfileProvider>().selectCountryCode(val);

@@ -104,13 +104,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final form       = context.watch<ProductFormProvider>();
     final inv        = context.watch<InventoryProvider>();
     final categories = inv.categories;
     final brands     = inv.brands;
+    final isDark     = Theme.of(context).brightness == Brightness.dark;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductFormProvider>()
@@ -118,20 +118,24 @@ class _AddProductScreenState extends State<AddProductScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.goldDark, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Add Product',
-            style: TextStyle(
-                color: AppColors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 18)),
+        title: Text(
+          'Add Product',
+          style: TextStyle(
+            // theme-aware: white in dark, black in light
+            color: isDark ? AppColors.white : AppColors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
         centerTitle: true,
       ),
       body: Form(
@@ -140,7 +144,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
           children: [
 
-            // ── IMAGE CARD
+            // IMAGE CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,7 +161,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── BASIC INFO CARD
+            // BASIC INFO CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,7 +245,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── PRICING CARD
+            // PRICING CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +307,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── STOCK CARD
+            // STOCK CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +381,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── DETAILS CARD
+            // DETAILS CARD
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,7 +402,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             const SizedBox(height: 24),
 
-            // ── SAVE BUTTON
+            // SAVE BUTTON
             GoldButton(
               label: 'Save Product',
               onPressed: _submit,

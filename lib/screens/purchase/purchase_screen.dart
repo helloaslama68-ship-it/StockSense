@@ -11,6 +11,10 @@ import '../../providers/purchase_form_provider.dart';
 import '../../providers/purchase_filter_provider.dart';
 import '../../widgets/product_image_picker.dart';
 import '../../widgets/app_snack_bar.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/app_section_label.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/manage_empty_state.dart';
 
 class PurchaseScreen extends StatelessWidget {
   final Product? preselectedProduct;
@@ -18,25 +22,12 @@ class PurchaseScreen extends StatelessWidget {
   const PurchaseScreen(
       {super.key, this.preselectedProduct, this.existingRecord});
 
-  // ── date picker ────────────────────────────────────────────
   Future<void> _pickDate(BuildContext context) async {
     final form = context.read<PurchaseFormProvider>();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.light(primary: AppColors.goldDark),
-        ),
-        child: child!,
-      ),
-    );
+    final picked = await appShowDatePicker(context);
     if (picked != null) form.setDate(picked);
   }
 
-  // ── item sheet helpers ──────────────────────────────────────
   void _addItem(BuildContext context) {
     context.read<PurchaseFormProvider>().initTempForNew();
     showModalBottomSheet(
@@ -46,8 +37,7 @@ class PurchaseScreen extends StatelessWidget {
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<PurchaseFormProvider>(),
         child: _AddItemSheet(
-          onAdd: (item) =>
-              context.read<PurchaseFormProvider>().addItem(item),
+          onAdd: (item) => context.read<PurchaseFormProvider>().addItem(item),
         ),
       ),
     );
@@ -59,7 +49,7 @@ class PurchaseScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
         value: form,
         child: _AddItemSheet(
@@ -70,7 +60,6 @@ class PurchaseScreen extends StatelessWidget {
     );
   }
 
-  // ── save ───────────────────────────────────────────────────
   void _savePurchase(BuildContext context) {
     final form = context.read<PurchaseFormProvider>();
     if (form.supplierName.trim().isEmpty) {
@@ -103,11 +92,9 @@ class PurchaseScreen extends StatelessWidget {
     Navigator.pop(context);
   }
 
-  // ── tax dialog ─────────────────────────────────────────────
   void _editTax(BuildContext context) {
     final form = context.read<PurchaseFormProvider>();
-    final ctrl =
-        TextEditingController(text: form.taxPercent.toStringAsFixed(0));
+    final ctrl = TextEditingController(text: form.taxPercent.toStringAsFixed(0));
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -115,8 +102,7 @@ class PurchaseScreen extends StatelessWidget {
         content: TextField(
           controller: ctrl,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-              hintText: 'e.g. 7', suffixText: '%'),
+          decoration: const InputDecoration(hintText: 'e.g. 7', suffixText: '%'),
         ),
         actions: [
           TextButton(
@@ -124,21 +110,18 @@ class PurchaseScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.goldDark),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.goldDark),
             onPressed: () {
               form.setTax(double.tryParse(ctrl.text) ?? 0);
               Navigator.pop(context);
             },
-            child: const Text('Apply',
-                style: TextStyle(color: AppColors.white)),
+            child: const Text('Apply', style: TextStyle(color: AppColors.white)),
           ),
         ],
       ),
     );
   }
 
-  // ── build ──────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -151,8 +134,7 @@ class PurchaseScreen extends StatelessWidget {
           form.addItem(PurchaseLineItem(
             productName: r.productName,
             imagePath: r.imagePath,
-            costPrice: r.totalAmount /
-                (r.quantityPurchased == 0 ? 1 : r.quantityPurchased),
+            costPrice: r.totalAmount / (r.quantityPurchased == 0 ? 1 : r.quantityPurchased),
             quantity: r.quantityPurchased,
             unit: 'units',
           ));
@@ -171,39 +153,19 @@ class PurchaseScreen extends StatelessWidget {
       child: Consumer<PurchaseFormProvider>(
         builder: (context, form, _) {
           return Scaffold(
-            backgroundColor: AppColors.backgroundTop,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: SafeArea(
               child: Column(
                 children: [
                   // HEADER
                   Padding(
-                    padding:
-                        const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                )
-                              ],
-                            ),
-                            child: const Icon(Icons.arrow_back_rounded,
-                                color: AppColors.black, size: 20),
-                          ),
-                        ),
+                        const AppBackButton(),
                         Text(
-                          existingRecord != null
-                              ? 'Edit Purchase'
-                              : 'New Purchase',
+                          existingRecord != null ? 'Edit Purchase' : 'New Purchase',
                           style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -225,8 +187,7 @@ class PurchaseScreen extends StatelessWidget {
 
                   Expanded(
                     child: SingleChildScrollView(
-                      padding:
-                          const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -235,21 +196,19 @@ class PurchaseScreen extends StatelessWidget {
                             padding: const EdgeInsets.all(16),
                             decoration: appCardDecoration(),
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                appSectionLabel('ACQUISITION DETAILS'),
+                                const AppSectionLabel(label: 'ACQUISITION DETAILS'),
                                 const SizedBox(height: 14),
-                                appSectionLabel('SUPPLIER NAME'),
+                                const AppSectionLabel(label: 'SUPPLIER NAME'),
                                 const SizedBox(height: 6),
                                 TextFormField(
                                   initialValue: form.supplierName,
                                   onChanged: form.setSupplier,
-                                  decoration:
-                                      appInputDeco('Enter supplier'),
+                                  decoration: appInputDeco('Enter supplier'),
                                 ),
                                 const SizedBox(height: 14),
-                                appSectionLabel('PURCHASE DATE'),
+                                const AppSectionLabel(label: 'PURCHASE DATE'),
                                 const SizedBox(height: 6),
                                 GestureDetector(
                                   onTap: () => _pickDate(context),
@@ -257,32 +216,25 @@ class PurchaseScreen extends StatelessWidget {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 14, vertical: 14),
                                     decoration: BoxDecoration(
-                                      color: AppColors.lightGrey
-                                          .withOpacity(0.3),
-                                      borderRadius:
-                                          BorderRadius.circular(10),
+                                      color: AppColors.lightGrey.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           form.purchaseDate != null
-                                              ? formatDate(
-                                                  form.purchaseDate!)
+                                              ? formatDate(form.purchaseDate!)
                                               : 'Select date',
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: form.purchaseDate !=
-                                                    null
+                                            color: form.purchaseDate != null
                                                 ? AppColors.black
                                                 : AppColors.grey,
                                           ),
                                         ),
-                                        const Icon(
-                                            Icons.calendar_today_rounded,
-                                            size: 18,
-                                            color: AppColors.grey),
+                                        const Icon(Icons.calendar_today_rounded,
+                                            size: 18, color: AppColors.grey),
                                       ],
                                     ),
                                   ),
@@ -302,18 +254,14 @@ class PurchaseScreen extends StatelessWidget {
                                 color: AppColors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                    color: AppColors.goldDark
-                                        .withOpacity(0.3)),
+                                    color: AppColors.goldDark.withOpacity(0.3)),
                               ),
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: Text(
-                                      'Need to record more stock?',
-                                      style: TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.grey),
-                                    ),
+                                    child: Text('Need to record more stock?',
+                                        style: TextStyle(
+                                            fontSize: 13, color: AppColors.grey)),
                                   ),
                                   GestureDetector(
                                     onTap: () => _addItem(context),
@@ -322,20 +270,17 @@ class PurchaseScreen extends StatelessWidget {
                                           horizontal: 14, vertical: 8),
                                       decoration: BoxDecoration(
                                         color: AppColors.goldDark,
-                                        borderRadius:
-                                            BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: const Row(
                                         children: [
                                           Icon(Icons.add_rounded,
-                                              color: AppColors.white,
-                                              size: 16),
+                                              color: AppColors.white, size: 16),
                                           SizedBox(width: 4),
                                           Text('Add Item',
                                               style: TextStyle(
                                                   color: AppColors.white,
-                                                  fontWeight:
-                                                      FontWeight.bold,
+                                                  fontWeight: FontWeight.bold,
                                                   fontSize: 13)),
                                         ],
                                       ),
@@ -352,12 +297,10 @@ class PurchaseScreen extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.goldDark,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(12)),
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
                                 onPressed: () => _addItem(context),
-                                icon: const Icon(
-                                    Icons.add_circle_outline_rounded,
+                                icon: const Icon(Icons.add_circle_outline_rounded,
                                     color: AppColors.white),
                                 label: const Text('Add Item',
                                     style: TextStyle(
@@ -372,10 +315,9 @@ class PurchaseScreen extends StatelessWidget {
                           // ITEMS LIST
                           if (form.items.isNotEmpty) ...[
                             Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                appSectionLabel('PURCHASED ITEMS'),
+                                const AppSectionLabel(label: 'PURCHASED ITEMS'),
                                 Text('${form.items.length} Items',
                                     style: const TextStyle(
                                         fontSize: 12,
@@ -385,36 +327,12 @@ class PurchaseScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 10),
                             ...form.items.asMap().entries.map(
-                                (e) => _itemTile(
-                                    context, e.key, e.value, form)),
+                                (e) => _itemTile(context, e.key, e.value, form)),
                           ] else
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Column(
-                                children: [
-                                  Icon(Icons.inventory_2_outlined,
-                                      size: 48,
-                                      color: AppColors.lightGrey),
-                                  SizedBox(height: 12),
-                                  Text('No items added yet',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.black)),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Tap the button above to add\nproducts to this purchase.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.grey),
-                                  ),
-                                ],
-                              ),
+                            EmptyState(
+                              icon: Icons.inventory_2_outlined,
+                              title: 'No items added yet',
+                              subtitle: 'Tap the button above to add\nproducts to this purchase.',
                             ),
 
                           const SizedBox(height: 16),
@@ -429,57 +347,44 @@ class PurchaseScreen extends StatelessWidget {
                                     '₹${form.subtotal.toStringAsFixed(2)}'),
                                 const SizedBox(height: 10),
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
                                         const Text('Tax',
                                             style: TextStyle(
-                                                color: AppColors.grey,
-                                                fontSize: 13)),
+                                                color: AppColors.grey, fontSize: 13)),
                                         const SizedBox(width: 8),
                                         GestureDetector(
-                                          onTap: () =>
-                                              _editTax(context),
+                                          onTap: () => _editTax(context),
                                           child: Container(
-                                            padding: const EdgeInsets
-                                                .symmetric(
-                                                horizontal: 8,
-                                                vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 3),
                                             decoration: BoxDecoration(
-                                              color: AppColors.goldDark
-                                                  .withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      6),
+                                              color: AppColors.goldDark.withOpacity(0.1),
+                                              borderRadius: BorderRadius.circular(6),
                                             ),
                                             child: Text(
                                               '${form.taxPercent.toStringAsFixed(0)}%',
                                               style: const TextStyle(
                                                   fontSize: 11,
-                                                  color:
-                                                      AppColors.goldDark,
-                                                  fontWeight:
-                                                      FontWeight.bold),
+                                                  color: AppColors.goldDark,
+                                                  fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    Text(
-                                        '₹${form.taxAmount.toStringAsFixed(2)}',
+                                    Text('₹${form.taxAmount.toStringAsFixed(2)}',
                                         style: const TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.grey)),
+                                            fontSize: 13, color: AppColors.grey)),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
                                 Divider(color: AppColors.lightGrey),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text('TOTAL AMOUNT',
                                         style: TextStyle(
@@ -510,8 +415,7 @@ class PurchaseScreen extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.goldDark,
                                 shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(14)),
+                                    borderRadius: BorderRadius.circular(14)),
                                 elevation: 0,
                               ),
                               onPressed: () => _savePurchase(context),
@@ -545,31 +449,26 @@ class PurchaseScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          )
+              color: AppColors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
         ],
       ),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 48, height: 48,
             decoration: BoxDecoration(
               color: AppColors.lightGrey.withOpacity(0.5),
               borderRadius: BorderRadius.circular(10),
             ),
             clipBehavior: Clip.antiAlias,
             child: item.imagePath != null
-                ? Image.file(
-                    File(item.imagePath!),
+                ? Image.file(File(item.imagePath!),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const Icon(
                         Icons.shopping_bag_outlined,
-                        color: AppColors.grey,
-                        size: 24),
-                  )
+                        color: AppColors.grey, size: 24))
                 : const Icon(Icons.shopping_bag_outlined,
                     color: AppColors.grey, size: 24),
           ),
@@ -583,8 +482,7 @@ class PurchaseScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 2),
                 Text('+${item.quantity} ${item.unit}',
-                    style: TextStyle(
-                        fontSize: 12, color: AppColors.grey)),
+                    style: TextStyle(fontSize: 12, color: AppColors.grey)),
               ],
             ),
           ),
@@ -592,8 +490,7 @@ class PurchaseScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('₹${item.costPrice.toStringAsFixed(2)}/${item.unit}',
-                  style: TextStyle(
-                      fontSize: 10, color: AppColors.grey)),
+                  style: TextStyle(fontSize: 10, color: AppColors.grey)),
               Text('₹${item.total.toStringAsFixed(2)}',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
@@ -622,10 +519,6 @@ class PurchaseScreen extends StatelessWidget {
     );
   }
 }
-
-// ── PURCHASE LIST SECTION ─────────────────────────────────────
-// Drop-in widget for screens that list purchase history with
-// sort/filter controls (e.g. home_screen purchase tab).
 
 class PurchaseListSection extends StatelessWidget {
   const PurchaseListSection({super.key});
@@ -658,12 +551,11 @@ class _PurchaseListBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final filterProv = context.watch<PurchaseFilterProvider>();
     final purchaseProv = context.watch<PurchaseProvider>();
-    final records =
-        filterProv.apply(purchaseProv.allPurchases.toList());
+    final records = filterProv.apply(purchaseProv.allPurchases.toList());
 
     return Column(
       children: [
-        // ── search + filter bar
+        // SEARCH + FILTER BAR
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
@@ -676,23 +568,19 @@ class _PurchaseListBody extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.black.withOpacity(0.04),
-                        blurRadius: 6,
-                      )
+                          color: AppColors.black.withOpacity(0.04),
+                          blurRadius: 6)
                     ],
                   ),
                   child: TextField(
-                    onChanged:
-                        context.read<PurchaseFilterProvider>().setSupplierQuery,
+                    onChanged: context.read<PurchaseFilterProvider>().setSupplierQuery,
                     decoration: InputDecoration(
                       hintText: 'Search supplier…',
-                      hintStyle: TextStyle(
-                          fontSize: 13, color: AppColors.grey),
+                      hintStyle: TextStyle(fontSize: 13, color: AppColors.grey),
                       prefixIcon: const Icon(Icons.search_rounded,
                           size: 18, color: AppColors.grey),
                       border: InputBorder.none,
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
@@ -704,8 +592,7 @@ class _PurchaseListBody extends StatelessWidget {
                   clipBehavior: Clip.none,
                   children: [
                     Container(
-                      width: 42,
-                      height: 42,
+                      width: 42, height: 42,
                       decoration: BoxDecoration(
                         color: filterProv.isActive
                             ? AppColors.goldDark
@@ -713,9 +600,8 @@ class _PurchaseListBody extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.black.withOpacity(0.04),
-                            blurRadius: 6,
-                          )
+                              color: AppColors.black.withOpacity(0.04),
+                              blurRadius: 6)
                         ],
                       ),
                       child: Icon(Icons.tune_rounded,
@@ -726,23 +612,18 @@ class _PurchaseListBody extends StatelessWidget {
                     ),
                     if (filterProv.activeFilterCount > 0)
                       Positioned(
-                        top: -4,
-                        right: -4,
+                        top: -4, right: -4,
                         child: Container(
-                          width: 16,
-                          height: 16,
+                          width: 16, height: 16,
                           decoration: const BoxDecoration(
-                            color: AppColors.darkRed,
-                            shape: BoxShape.circle,
-                          ),
+                              color: AppColors.darkRed,
+                              shape: BoxShape.circle),
                           child: Center(
-                            child: Text(
-                              '${filterProv.activeFilterCount}',
-                              style: const TextStyle(
-                                  color: AppColors.white,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                            child: Text('${filterProv.activeFilterCount}',
+                                style: const TextStyle(
+                                    color: AppColors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ),
@@ -753,15 +634,14 @@ class _PurchaseListBody extends StatelessWidget {
           ),
         ),
 
-        // ── active sort chip
+        // ACTIVE SORT CHIP
         if (filterProv.sortBy != PurchaseSortOption.newest)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: AppColors.goldDark.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -790,8 +670,7 @@ class _PurchaseListBody extends StatelessWidget {
                 if (filterProv.dateRange != null) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: AppColors.goldDark.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -824,7 +703,7 @@ class _PurchaseListBody extends StatelessWidget {
             ),
           ),
 
-        // ── results count
+        // RESULTS COUNT
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Row(
@@ -837,8 +716,7 @@ class _PurchaseListBody extends StatelessWidget {
                       fontWeight: FontWeight.w500)),
               if (filterProv.isActive)
                 GestureDetector(
-                  onTap: () =>
-                      context.read<PurchaseFilterProvider>().reset(),
+                  onTap: () => context.read<PurchaseFilterProvider>().reset(),
                   child: const Text('Clear all',
                       style: TextStyle(
                           fontSize: 12,
@@ -849,40 +727,25 @@ class _PurchaseListBody extends StatelessWidget {
           ),
         ),
 
-        // ── list
+        // LIST
         Expanded(
           child: records.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.filter_list_off_rounded,
-                          size: 48, color: AppColors.lightGrey),
-                      const SizedBox(height: 12),
-                      Text(
-                        filterProv.isActive
-                            ? 'No purchases match your filters'
-                            : 'No purchases yet',
-                        style: const TextStyle(
-                            color: AppColors.grey, fontSize: 14),
-                      ),
-                    ],
-                  ),
+              ? ManageEmptyState(
+                  icon: Icons.filter_list_off_rounded,
+                  title: filterProv.isActive
+                      ? 'No purchases match your filters'
+                      : 'No purchases yet',
                 )
               : ListView.builder(
-                  padding:
-                      const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                   itemCount: records.length,
-                  itemBuilder: (_, i) =>
-                      _PurchaseRecordTile(record: records[i]),
+                  itemBuilder: (_, i) => _PurchaseRecordTile(record: records[i]),
                 ),
         ),
       ],
     );
   }
 }
-
-// ── PURCHASE RECORD TILE ──────────────────────────────────────
 
 class _PurchaseRecordTile extends StatelessWidget {
   final PurchaseRecord record;
@@ -898,18 +761,15 @@ class _PurchaseRecordTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          )
+              color: AppColors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
         ],
       ),
       child: Row(
         children: [
-          // image / icon
           Container(
-            width: 44,
-            height: 44,
+            width: 44, height: 44,
             decoration: BoxDecoration(
               color: AppColors.lightGrey.withOpacity(0.5),
               borderRadius: BorderRadius.circular(10),
@@ -920,8 +780,7 @@ class _PurchaseRecordTile extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const Icon(
                         Icons.shopping_bag_outlined,
-                        color: AppColors.grey,
-                        size: 22))
+                        color: AppColors.grey, size: 22))
                 : const Icon(Icons.shopping_bag_outlined,
                     color: AppColors.grey, size: 22),
           ),
@@ -935,12 +794,10 @@ class _PurchaseRecordTile extends StatelessWidget {
                         fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 2),
                 Text(record.supplierName,
-                    style: TextStyle(
-                        fontSize: 11, color: AppColors.grey)),
+                    style: TextStyle(fontSize: 11, color: AppColors.grey)),
                 const SizedBox(height: 2),
                 Text(formatDate(record.purchaseDate),
-                    style: TextStyle(
-                        fontSize: 11, color: AppColors.grey)),
+                    style: TextStyle(fontSize: 11, color: AppColors.grey)),
               ],
             ),
           ),
@@ -954,8 +811,7 @@ class _PurchaseRecordTile extends StatelessWidget {
                       color: AppColors.goldDark)),
               const SizedBox(height: 4),
               Text('${record.quantityPurchased} units',
-                  style: TextStyle(
-                      fontSize: 11, color: AppColors.grey)),
+                  style: TextStyle(fontSize: 11, color: AppColors.grey)),
             ],
           ),
         ],
@@ -963,8 +819,6 @@ class _PurchaseRecordTile extends StatelessWidget {
     );
   }
 }
-
-// ── FILTER BOTTOM SHEET ───────────────────────────────────────
 
 class _PurchaseFilterSheet extends StatelessWidget {
   const _PurchaseFilterSheet();
@@ -978,8 +832,7 @@ class _PurchaseFilterSheet extends StatelessWidget {
       initialDateRange: prov.dateRange,
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme:
-              ColorScheme.light(primary: AppColors.goldDark),
+          colorScheme: ColorScheme.light(primary: AppColors.goldDark),
         ),
         child: child!,
       ),
@@ -1003,11 +856,10 @@ class _PurchaseFilterSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // drag handle
+            // DRAG HANDLE
             Center(
               child: Container(
-                width: 40,
-                height: 4,
+                width: 40, height: 4,
                 decoration: BoxDecoration(
                     color: AppColors.lightGrey,
                     borderRadius: BorderRadius.circular(10)),
@@ -1015,16 +867,13 @@ class _PurchaseFilterSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Sort & Filter',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 TextButton(
-                  onPressed: () =>
-                      context.read<PurchaseFilterProvider>().reset(),
+                  onPressed: () => context.read<PurchaseFilterProvider>().reset(),
                   child: const Text('Reset',
                       style: TextStyle(color: AppColors.goldDark)),
                 ),
@@ -1032,8 +881,7 @@ class _PurchaseFilterSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // ── SORT BY
-            appSectionLabel('SORT BY'),
+            const AppSectionLabel(label: 'SORT BY'),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -1057,29 +905,24 @@ class _PurchaseFilterSheet extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: selected
-                                ? AppColors.white
-                                : AppColors.black)),
+                            color: selected ? AppColors.white : AppColors.black)),
                   ),
                 );
               }).toList(),
             ),
             const SizedBox(height: 20),
 
-            // ── DATE RANGE
-            appSectionLabel('DATE RANGE'),
+            const AppSectionLabel(label: 'DATE RANGE'),
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () => _pickDateRange(context),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 decoration: BoxDecoration(
                   color: AppColors.lightGrey.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(10),
                   border: prov.dateRange != null
-                      ? Border.all(
-                          color: AppColors.goldDark, width: 1.5)
+                      ? Border.all(color: AppColors.goldDark, width: 1.5)
                       : null,
                 ),
                 child: Row(
@@ -1115,7 +958,6 @@ class _PurchaseFilterSheet extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // APPLY BUTTON
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -1140,8 +982,6 @@ class _PurchaseFilterSheet extends StatelessWidget {
   }
 }
 
-// ── ADD / EDIT ITEM SHEET ─────────────────────────────────────
-
 class _AddItemSheet extends StatefulWidget {
   final PurchaseLineItem? existing;
   final ValueChanged<PurchaseLineItem> onAdd;
@@ -1160,8 +1000,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
   @override
   void initState() {
     super.initState();
-    _nameCtrl =
-        TextEditingController(text: widget.existing?.productName ?? '');
+    _nameCtrl = TextEditingController(text: widget.existing?.productName ?? '');
     _priceCtrl = TextEditingController(
         text: widget.existing?.costPrice.toString() ?? '');
     _qtyCtrl = TextEditingController(
@@ -1184,25 +1023,21 @@ class _AddItemSheetState extends State<_AddItemSheet> {
       body: Container(
         decoration: const BoxDecoration(
           color: AppColors.white,
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
             padding: EdgeInsets.only(
-                bottom:
-                    MediaQuery.of(context).padding.bottom + 20),
+                bottom: MediaQuery.of(context).padding.bottom + 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // drag handle
                 Center(
                   child: Container(
-                    width: 40,
-                    height: 4,
+                    width: 40, height: 4,
                     decoration: BoxDecoration(
                         color: AppColors.lightGrey,
                         borderRadius: BorderRadius.circular(10)),
@@ -1212,12 +1047,10 @@ class _AddItemSheetState extends State<_AddItemSheet> {
 
                 Text(
                   widget.existing != null ? 'Edit Item' : 'Add Item',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
 
-                // image picker
                 Consumer<PurchaseFormProvider>(
                   builder: (ctx, form, _) => ProductImagePicker(
                     imagePath: form.tempImagePath,
@@ -1227,29 +1060,24 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                 ),
                 const SizedBox(height: 16),
 
-                _sheetField(
-                    'Product Name', 'e.g. Fresh Milk', _nameCtrl),
+                _sheetField('Product Name', 'e.g. Fresh Milk', _nameCtrl),
                 Row(
                   children: [
                     Expanded(
-                        child: _sheetField('Cost Price (₹)', '0.00',
-                            _priceCtrl,
+                        child: _sheetField('Cost Price (₹)', '0.00', _priceCtrl,
                             isNumber: true)),
                     const SizedBox(width: 10),
                     Expanded(
-                        child: _sheetField(
-                            'Quantity', '0', _qtyCtrl,
+                        child: _sheetField('Quantity', '0', _qtyCtrl,
                             isNumber: true)),
                   ],
                 ),
 
-                // unit dropdown — uses shared kPurchaseUnits
-                appSectionLabel('UNIT'),
+                const AppSectionLabel(label: 'UNIT'),
                 const SizedBox(height: 6),
                 Consumer<PurchaseFormProvider>(
                   builder: (ctx, form, _) => Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
                         color: AppColors.lightGrey.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(10)),
@@ -1258,8 +1086,8 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                         value: form.tempUnit,
                         isExpanded: true,
                         items: kPurchaseUnits
-                            .map((u) => DropdownMenuItem(
-                                value: u, child: Text(u)))
+                            .map((u) =>
+                                DropdownMenuItem(value: u, child: Text(u)))
                             .toList(),
                         onChanged: (v) {
                           if (v != null) form.setTempUnit(v);
@@ -1271,7 +1099,6 @@ class _AddItemSheetState extends State<_AddItemSheet> {
 
                 const SizedBox(height: 16),
 
-                // submit
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -1283,24 +1110,19 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        final form =
-                            context.read<PurchaseFormProvider>();
+                        final form = context.read<PurchaseFormProvider>();
                         widget.onAdd(PurchaseLineItem(
                           productName: _nameCtrl.text.trim(),
                           imagePath: form.tempImagePath,
-                          costPrice:
-                              double.tryParse(_priceCtrl.text) ?? 0,
-                          quantity:
-                              int.tryParse(_qtyCtrl.text) ?? 0,
+                          costPrice: double.tryParse(_priceCtrl.text) ?? 0,
+                          quantity: int.tryParse(_qtyCtrl.text) ?? 0,
                           unit: form.tempUnit,
                         ));
                         Navigator.pop(context);
                       }
                     },
                     child: Text(
-                      widget.existing != null
-                          ? 'Update Item'
-                          : 'Add to Purchase',
+                      widget.existing != null ? 'Update Item' : 'Add to Purchase',
                       style: const TextStyle(
                           color: AppColors.white,
                           fontWeight: FontWeight.bold,
@@ -1317,15 +1139,14 @@ class _AddItemSheetState extends State<_AddItemSheet> {
     );
   }
 
-  Widget _sheetField(
-      String label, String hint, TextEditingController ctrl,
+  Widget _sheetField(String label, String hint, TextEditingController ctrl,
       {bool isNumber = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          appSectionLabel(label.toUpperCase()),
+          AppSectionLabel(label: label.toUpperCase()),
           const SizedBox(height: 6),
           TextFormField(
             controller: ctrl,

@@ -83,7 +83,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  // ── SECTION CARD
+  // SECTION CARD
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +98,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     final isLowStock = product.quantity <= product.lowStockThreshold;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -365,7 +365,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     const SizedBox(height: 12),
 
-                    // ── DETAILS CARD
+                    // DETAILS CARD
                     AppCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,7 +398,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── EDIT BUTTON
+                    //  EDIT BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -424,7 +424,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     const SizedBox(height: 10),
 
-                    // ── DELETE BUTTON
+                    // DELETE BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 48,

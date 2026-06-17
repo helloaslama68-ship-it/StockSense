@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final profile = context.watch<ProfileProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),

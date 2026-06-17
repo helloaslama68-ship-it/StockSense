@@ -9,7 +9,7 @@ class SaleProvider extends ChangeNotifier {
   final Box<Sale> _box = Hive.box<Sale>('sales');
   final _uuid = const Uuid();
 
-  // ── MIGRATION: wipe box if old schema detected (no items field)
+  // MIGRATION: wipe box if old schema detected (no items field)
   SaleProvider() {
     _migrateIfNeeded();
   }
@@ -25,7 +25,7 @@ class SaleProvider extends ChangeNotifier {
     }
   }
 
-  // ── QUERIES
+  // QUERIES
 
   List<Sale> get allSales => _box.values.toList()
     ..sort((a, b) => b.saleDate.compareTo(a.saleDate));
@@ -60,7 +60,7 @@ class SaleProvider extends ChangeNotifier {
 
   double get pendingCreditTotal => 0.0;
 
-  // ── next receipt number (auto-increment)
+  // next receipt number (auto-increment)
   int get _nextReceiptNumber {
     if (_box.isEmpty) return 1001;
     return _box.values
@@ -69,7 +69,7 @@ class SaleProvider extends ChangeNotifier {
         1;
   }
 
-  // ── RECORD CART SALE
+  // RECORD CART SALE
   // Called from SaleScreen when user taps Complete Sale
   Future<Sale> recordCartSale({
     required List<CartItem> cart,
@@ -110,7 +110,7 @@ class SaleProvider extends ChangeNotifier {
     return sale;
   }
 
-  // ── DELETE SALE
+  //  DELETE SALE
   Future<void> deleteSale(String id) async {
     await _box.delete(id);
     notifyListeners();

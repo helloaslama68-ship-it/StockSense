@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../widgets/app_sheet_handle.dart';
 import '../../providers/inventory_filter_provider.dart';
 import '../../providers/inventory_provider.dart';
 import '../../widgets/app_section_label.dart';
@@ -74,13 +75,7 @@ class InventoryFilterSheet extends StatelessWidget {
             children: [
               // Handle 
               const SizedBox(height: 12),
-              Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.lightGrey,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
+              const AppSheetHandle(),
               const SizedBox(height: 4),
 
               // Header 

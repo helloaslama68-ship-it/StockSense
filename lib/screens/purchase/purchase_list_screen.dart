@@ -2,58 +2,59 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../providers/purchase_provider.dart';
+import '../../providers/purchase_filter_provider.dart';
 import '../../models/purchase_record.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/manage_widgets.dart';
 import '../../widgets/app_snack_bar.dart';
 import 'purchase_screen.dart';
 import 'purchase_detail_screen.dart';
+import 'purchase_filter_sheet.dart';
 
 class PurchaseListScreen extends StatelessWidget {
   const PurchaseListScreen({super.key});
 
-  String _formatDate(DateTime d) {
-    final months = [
-      'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'
-    ];
-    final h = d.hour > 12 ? d.hour - 12 : (d.hour == 0 ? 12 : d.hour);
-    final ampm = d.hour >= 12 ? 'PM' : 'AM';
-    final min = d.minute.toString().padLeft(2, '0');
-    return '${months[d.month - 1]} ${d.day}, ${d.year} · $h:$min $ampm';
-  }
-
   void _confirmDelete(BuildContext context, PurchaseRecord p) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Purchase?'),
-        content: Text('Remove "${p.productName}" from records?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkRed),
-            onPressed: () {
-              context.read<PurchaseProvider>().deletePurchase(p.id);
-              Navigator.pop(context);
-              AppSnackBar.error(context, '${p.productName} deleted');
-            },
-            child: const Text('Delete', style: TextStyle(color: AppColors.white)),
-          ),
-        ],
+      builder: (_) => ManageConfirmDialog(
+        title: 'Delete Purchase?',
+        message: 'Remove "${p.productName}" from records?',
+        onConfirm: () {
+          context.read<PurchaseProvider>().deletePurchase(p.id);
+          AppSnackBar.error(context, '${p.productName} deleted');
+        },
+      ),
+    );
+  }
+
+  void _openFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: context.read<PurchaseFilterProvider>(),
+        child: const PurchaseFilterSheet(),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<PurchaseProvider>();
-    final purchases = provider.allPurchases;
+    final purchaseProvider = context.watch<PurchaseProvider>();
+    final filterProvider = context.watch<PurchaseFilterProvider>();
+
+    final allPurchases = purchaseProvider.allPurchases;
+    final purchases = filterProvider.apply(List.from(allPurchases));
+    final filterCount = filterProvider.activeFilterCount;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -62,30 +63,68 @@ class PurchaseListScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
                 children: [
+                  const AppBackButton(),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Text('Purchases',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.goldDark,
+                        )),
+                  ),
+                  // Filter button
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => _openFilterSheet(context),
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(10),
+                        color: filterCount > 0
+                            ? AppColors.goldDark
+                            : AppColors.white,
+                        borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 8)
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
                         ],
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.black, size: 20),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Icon(
+                            Icons.tune_rounded,
+                            size: 20,
+                            color: filterCount > 0
+                                ? Colors.white
+                                : AppColors.goldDark,
+                          ),
+                          if (filterCount > 0)
+                            Positioned(
+                              top: -5,
+                              right: -5,
+                              child: Container(
+                                width: 14,
+                                height: 14,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.goldLight,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text('$filterCount',
+                                      style: const TextStyle(
+                                          fontSize: 9,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 14),
-                  Text('Purchases',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.goldDark,
-                      )),
                 ],
               ),
             ),
@@ -98,25 +137,13 @@ class PurchaseListScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    //  MONTHLY TOTAL CARD
-                    Container(
-                      width: double.infinity,
+                    // ── MONTHLY TOTAL CARD
+                    AppCard(
                       padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('MONTHLY PROCUREMENT',
+                          const Text('MONTHLY PROCUREMENT',
                               style: TextStyle(
                                 fontSize: 10,
                                 letterSpacing: 1.5,
@@ -125,7 +152,7 @@ class PurchaseListScreen extends StatelessWidget {
                               )),
                           const SizedBox(height: 8),
                           Text(
-                            '₹${provider.monthlyTotal.toStringAsFixed(2)}',
+                            '₹${purchaseProvider.monthlyTotal.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -137,14 +164,14 @@ class PurchaseListScreen extends StatelessWidget {
                             children: [
                               _statChip(
                                 Icons.receipt_long_rounded,
-                                '${purchases.length} Orders',
+                                '${allPurchases.length} Orders',
                                 AppColors.goldDark.withOpacity(0.1),
                                 AppColors.goldDark,
                               ),
                               const SizedBox(width: 8),
                               _statChip(
                                 Icons.local_shipping_rounded,
-                                '${provider.supplierCount} Suppliers',
+                                '${purchaseProvider.supplierCount} Suppliers',
                                 AppColors.blue.withOpacity(0.08),
                                 AppColors.blue,
                               ),
@@ -156,51 +183,58 @@ class PurchaseListScreen extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    // SECTION HEADER
+                    // ── SECTION HEADER
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Recent Purchases',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.black,
-                            )),
-                        Text('This Month',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.goldDark,
-                              fontWeight: FontWeight.w500,
-                            )),
+                        Text(
+                          filterCount > 0
+                              ? 'Filtered Results (${purchases.length})'
+                              : 'Recent Purchases',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.black,
+                          ),
+                        ),
+                        if (filterCount > 0)
+                          GestureDetector(
+                            onTap: () =>
+                                context.read<PurchaseFilterProvider>().reset(),
+                            child: const Text('Clear',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.goldDark,
+                                    fontWeight: FontWeight.w600)),
+                          )
+                        else
+                          const Text('This Month',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.goldDark,
+                                fontWeight: FontWeight.w500,
+                              )),
                       ],
                     ),
 
                     const SizedBox(height: 12),
 
-                    //  PURCHASE TILES
+                    // ── ACTIVE FILTER CHIPS
+                    if (filterCount > 0) ...[
+                      _ActiveFilterChips(provider: filterProvider),
+                      const SizedBox(height: 12),
+                    ],
+
+                    // ── PURCHASE TILES
                     if (purchases.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(40),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.receipt_long_outlined,
-                                size: 48, color: AppColors.lightGrey),
-                            const SizedBox(height: 12),
-                            const Text('No purchases yet',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.black)),
-                            const SizedBox(height: 4),
-                            Text('Tap + to record your first purchase.',
-                                style: TextStyle(
-                                    fontSize: 12, color: AppColors.grey)),
-                          ],
-                        ),
+                      EmptyState(
+                        icon: Icons.receipt_long_outlined,
+                        title: filterCount > 0
+                            ? 'No matches'
+                            : 'No purchases yet',
+                        subtitle: filterCount > 0
+                            ? 'Try adjusting your filters.'
+                            : 'Tap + to record your first purchase.',
                       )
                     else
                       ...purchases.map((p) => _purchaseTile(context, p)),
@@ -212,7 +246,6 @@ class PurchaseListScreen extends StatelessWidget {
         ),
       ),
 
-      //  FAB
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,
@@ -229,137 +262,126 @@ class PurchaseListScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => PurchaseDetailScreen(record: p),
-        ),
+        MaterialPageRoute(builder: (_) => PurchaseDetailScreen(record: p)),
       ),
       child: Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // IMAGE or icon
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.goldDark.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: p.imagePath != null
-                ? Image.file(
-                    File(p.imagePath!),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                        Icons.shopping_bag_rounded,
-                        color: AppColors.goldDark,
-                        size: 22),
-                  )
-                : Icon(Icons.shopping_bag_rounded,
-                    color: AppColors.goldDark, size: 22),
-          ),
-          const SizedBox(width: 12),
-
-          // INFO
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.goldDark.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: p.imagePath != null
+                  ? Image.file(File(p.imagePath!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(
+                          Icons.shopping_bag_rounded,
+                          color: AppColors.goldDark, size: 22))
+                  : Icon(Icons.shopping_bag_rounded,
+                      color: AppColors.goldDark, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(p.productName,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.black)),
+                  const SizedBox(height: 2),
+                  Text(p.supplierName,
+                      style:
+                          TextStyle(fontSize: 11, color: AppColors.grey)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.access_time_rounded,
+                          size: 11, color: AppColors.grey),
+                      const SizedBox(width: 3),
+                      Text(formatDateTime(p.purchaseDate),
+                          style: TextStyle(
+                              fontSize: 10, color: AppColors.grey)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(p.productName,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.darkGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text('+${p.quantityPurchased} units',
+                      style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.darkGreen,
+                          fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(height: 4),
+                Text('₹${p.totalAmount.toStringAsFixed(2)}',
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        fontSize: 14,
                         color: AppColors.black)),
-                const SizedBox(height: 2),
-                Text(p.supplierName,
-                    style: TextStyle(fontSize: 11, color: AppColors.grey)),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.access_time_rounded,
-                        size: 11, color: AppColors.grey),
-                    const SizedBox(width: 3),
-                    Text(_formatDate(p.purchaseDate),
-                        style: TextStyle(fontSize: 10, color: AppColors.grey)),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  PurchaseScreen(existingRecord: p))),
+                      child: Icon(Icons.edit_rounded,
+                          size: 16, color: AppColors.grey),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () => _confirmDelete(context, p),
+                      child: const Icon(Icons.delete_rounded,
+                          size: 16, color: AppColors.darkRed),
+                    ),
                   ],
                 ),
               ],
             ),
-          ),
-
-          // AMOUNT + ACTIONS
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.darkGreen.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '+${p.quantityPurchased} units',
-                  style: const TextStyle(
-                      fontSize: 10,
-                      color: AppColors.darkGreen,
-                      fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '₹${p.totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: AppColors.black),
-              ),
-              const SizedBox(height: 6),
-              // EDIT / DELETE
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PurchaseScreen(existingRecord: p),
-                      ),
-                    ),
-                    child: Icon(Icons.edit_rounded,
-                        size: 16, color: AppColors.grey),
-                  ),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: () => _confirmDelete(context, p),
-                    child: const Icon(Icons.delete_rounded,
-                        size: 16, color: AppColors.darkRed),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _statChip(IconData icon, String label, Color bg, Color fg) {
+  Widget _statChip(
+      IconData icon, String label, Color bg, Color fg) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration:
-          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+          color: bg, borderRadius: BorderRadius.circular(8)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -367,7 +389,68 @@ class PurchaseListScreen extends StatelessWidget {
           const SizedBox(width: 5),
           Text(label,
               style: TextStyle(
-                  fontSize: 11, color: fg, fontWeight: FontWeight.w600)),
+                  fontSize: 11,
+                  color: fg,
+                  fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Active filter pills shown below section header
+class _ActiveFilterChips extends StatelessWidget {
+  final PurchaseFilterProvider provider;
+  const _ActiveFilterChips({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    final chips = <Widget>[];
+
+    if (provider.sortBy != PurchaseSortOption.newest) {
+      chips.add(_chip(provider.sortBy.label, () => provider.setSortBy(PurchaseSortOption.newest)));
+    }
+    if (provider.supplierQuery.isNotEmpty) {
+      chips.add(_chip('Supplier: ${provider.supplierQuery}', () => provider.setSupplierQuery('')));
+    }
+    if (provider.dateRange != null) {
+      final r = provider.dateRange!;
+      final label =
+          '${r.start.day}/${r.start.month} – ${r.end.day}/${r.end.month}';
+      chips.add(_chip(label, () => provider.setDateRange(null)));
+    }
+    if (provider.minAmount != 0 || provider.maxAmount != 99999) {
+      final label = provider.maxAmount >= 99999
+          ? '₹${provider.minAmount.toStringAsFixed(0)}+'
+          : '₹${provider.minAmount.toStringAsFixed(0)}–₹${provider.maxAmount.toStringAsFixed(0)}';
+      chips.add(_chip(label, () => provider.setAmountRange(0, 99999)));
+    }
+
+    return Wrap(spacing: 8, runSpacing: 8, children: chips);
+  }
+
+  Widget _chip(String label, VoidCallback onRemove) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.goldDark.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.goldDark.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.goldDark,
+                  fontWeight: FontWeight.w600)),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(Icons.close_rounded,
+                size: 13, color: AppColors.goldDark),
+          ),
         ],
       ),
     );

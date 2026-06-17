@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../widgets/app_section_label.dart';
+import '../../core/app_styles.dart';
+import '../../widgets/app_back_button.dart';
 import '../../providers/settings_provider.dart';
+import 'help_support_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -9,15 +13,19 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = Theme.of(context).scaffoldBackgroundColor;
+    final textPrimary = isDark ? Colors.white : AppColors.black;
+    final textSecondary = isDark ? const Color(0xFF9E9E9E) : AppColors.grey;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: bg,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: bg,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.goldDark),
-          onPressed: () => Navigator.pop(context),
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Center(child: AppBackButton()),
         ),
         title: Text('Settings',
             style: TextStyle(
@@ -35,37 +43,43 @@ class SettingsScreen extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.black)),
+                    color: textPrimary)),
             const SizedBox(height: 4),
             Text('Manage your shop and preferences',
-                style: TextStyle(fontSize: 13, color: AppColors.grey)),
+                style: TextStyle(fontSize: 13, color: textSecondary)),
 
             const SizedBox(height: 24),
 
-            //  NOTIFICATIONS 
-            _sectionLabel('NOTIFICATIONS'),
+            // NOTIFICATIONS
+            const AppSectionLabel(label: 'NOTIFICATIONS'),
             const SizedBox(height: 10),
-            _buildCard(children: [
+            _buildCard(context: context, children: [
               _toggleTile(
+                context: context,
                 icon: Icons.warning_amber_rounded,
                 iconColor: AppColors.orange,
                 title: 'Low Stock Alerts',
+                subtitle: 'Alert when products run low',
                 value: settings.lowStockAlerts,
                 onChanged: (v) => context.read<SettingsProvider>().setLowStockAlerts(v),
               ),
-              _divider(),
+              _divider(context),
               _toggleTile(
+                context: context,
                 icon: Icons.calendar_today_rounded,
                 iconColor: AppColors.blue,
                 title: 'Expiry Alerts',
+                subtitle: 'Alert for products expiring within 30 days',
                 value: settings.expiryAlerts,
                 onChanged: (v) => context.read<SettingsProvider>().setExpiryAlerts(v),
               ),
-              _divider(),
+              _divider(context),
               _toggleTile(
+                context: context,
                 icon: Icons.credit_card_rounded,
-                iconColor: AppColors.grey,
+                iconColor: AppColors.purple,
                 title: 'Credit Due Alerts',
+                subtitle: 'Remind about pending customer dues',
                 value: settings.creditDueAlerts,
                 onChanged: (v) => context.read<SettingsProvider>().setCreditDueAlerts(v),
               ),
@@ -73,97 +87,43 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // PREFERENCES 
-            _sectionLabel('PREFERENCES'),
+            // PREFERENCES
+            const AppSectionLabel(label: 'PREFERENCES'),
             const SizedBox(height: 10),
-            _buildCard(children: [
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    // Dark Mode
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.backgroundTop,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.dark_mode_rounded,
-                                color: AppColors.grey, size: 20),
-                            const SizedBox(height: 8),
-                            Text('Dark Mode',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.black)),
-                            const SizedBox(height: 6),
-                            Transform.scale(
-                              scale: 0.8,
-                              alignment: Alignment.centerLeft,
-                              child: Switch(
-                                value: settings.darkMode,
-                                onChanged: (v) => context.read<SettingsProvider>().setDarkMode(v),
-                                activeColor: AppColors.goldDark,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Language
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.backgroundTop,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.language_rounded,
-                                color: AppColors.grey, size: 20),
-                            const SizedBox(height: 8),
-                            Text('Language',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.black)),
-                            const SizedBox(height: 4),
-                            Text(settings.language,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.goldDark,
-                                    fontWeight: FontWeight.w500)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            _buildCard(context: context, children: [
+              _toggleTile(
+                context: context,
+                icon: Icons.dark_mode_rounded,
+                iconColor: const Color(0xFF5C6BC0),
+                title: 'Dark Mode',
+                subtitle: 'Switch to dark theme',
+                value: settings.darkMode,
+                onChanged: (v) => context.read<SettingsProvider>().setDarkMode(v),
               ),
             ]),
 
             const SizedBox(height: 20),
 
-            //  ABOUT 
-            _sectionLabel('ABOUT'),
+            // ABOUT
+            const AppSectionLabel(label: 'ABOUT'),
             const SizedBox(height: 10),
-            _buildCard(children: [
+            _buildCard(context: context, children: [
               _infoTile(
+                context: context,
                 title: 'App Version',
                 trailing: 'v2.4.12-pro',
               ),
-              _divider(),
+              _divider(context),
               _tapTile(
+                context: context,
                 icon: Icons.help_outline_rounded,
                 title: 'Help & Support',
-                onTap: () {},
+               onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const HelpSupportScreen()),
+  );
+},
               ),
             ]),
 
@@ -174,108 +134,126 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  //  HELPERS 
-
-  Widget _sectionLabel(String label) => Text(label,
-      style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.grey,
-          letterSpacing: 1.2));
-
-  Widget _buildCard({required List<Widget> children}) => Container(
+  Widget _buildCard({required BuildContext context, required List<Widget> children}) =>
+      Container(
         width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 3))
-          ],
-        ),
+        decoration: appCardDecoration(context: context),
         child: Column(children: children),
       );
 
   Widget _toggleTile({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String title,
+    String? subtitle,
     required bool value,
     required ValueChanged<bool> onChanged,
-  }) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: Row(
-          children: [
-            Container(
-              width: 38, height: 38,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 18),
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppColors.black;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 38, height: 38,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(title,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600)),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary)),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: TextStyle(fontSize: 11, color: AppColors.warmGrey)),
+                ],
+              ],
             ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-              activeColor: AppColors.goldDark,
-            ),
-          ],
-        ),
-      );
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.goldDark,
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _infoTile({required String title, required String trailing}) =>
-      Padding(
+  Widget _infoTile({
+    required BuildContext context,
+    required String title,
+    required String trailing,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : AppColors.black)),
+          Text(trailing,
+              style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.grey,
+                  fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+
+  Widget _tapTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(title,
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w600)),
-            Text(trailing,
                 style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.grey,
-                    fontWeight: FontWeight.w500)),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : AppColors.black)),
+            Icon(Icons.open_in_new_rounded,
+                color: AppColors.grey, size: 18),
           ],
         ),
-      );
+      ),
+    );
+  }
 
-  Widget _tapTile({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) =>
-      GestureDetector(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600)),
-              Icon(Icons.open_in_new_rounded,
-                  color: AppColors.grey, size: 18),
-            ],
-          ),
-        ),
-      );
-
-  Widget _divider() => Divider(
-        height: 1,
-        indent: 70,
-        endIndent: 16,
-        color: AppColors.lightGrey.withOpacity(0.5),
-      );
+  Widget _divider(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Divider(
+      height: 1,
+      indent: 70,
+      endIndent: 16,
+      color: isDark
+          ? const Color(0xFF2C2C2C)
+          : AppColors.lightGrey.withOpacity(0.5),
+    );
+  }
 }

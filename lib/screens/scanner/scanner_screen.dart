@@ -371,7 +371,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 }
 
-// ─── Scan Overlay ────────────────────────────────────────────────────────────
+//  Scan Overlay
 
 class _ScanOverlay extends StatefulWidget {
   final bool active;
@@ -542,7 +542,7 @@ class _ProductCard extends StatelessWidget {
           Container(
             width: 40, height: 4,
             decoration: BoxDecoration(
-              color: AppColors.grey[300],
+              color: AppColors.grey,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -594,7 +594,7 @@ class _ProductCard extends StatelessWidget {
                                 fontSize: 12,
                                 color: low
                                     ? AppColors.darkRed
-                                    : AppColors.grey[600],
+                                    : AppColors.grey,
                                 fontWeight: low
                                     ? FontWeight.w600
                                     : FontWeight.normal)),
@@ -654,13 +654,13 @@ class _ProductCard extends StatelessWidget {
             height: 44,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.grey[300]!),
+                side: BorderSide(color: AppColors.grey!),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: onDismiss,
               child: Text('Scan Another',
-                  style: TextStyle(color: AppColors.grey[600], fontSize: 14)),
+                  style: TextStyle(color: AppColors.grey, fontSize: 14)),
             ),
           ),
         ],

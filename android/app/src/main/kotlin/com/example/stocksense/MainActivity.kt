@@ -1,4 +1,4 @@
-package com.example.stocksense
+package com.asla.stocksense
 
 import io.flutter.embedding.android.FlutterActivity
 

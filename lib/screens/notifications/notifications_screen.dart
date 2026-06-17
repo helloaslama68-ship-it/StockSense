@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/app_notification.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/app_confirm_dialog.dart';
+import '../../widgets/empty_state.dart';
 import '../inventory/inventory_screen.dart';
 import '../alerts/alerts_screen.dart';
 import '../sales/sales_list_screen.dart';
@@ -30,38 +33,16 @@ class NotificationsScreen extends StatelessWidget {
     }
   }
 
-  void _confirmClearAll(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Clear All?',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text('Remove all notifications?',
-            style: TextStyle(color: AppColors.grey)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: AppColors.grey)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.goldDark,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-              elevation: 0,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<NotificationProvider>().clearAll();
-            },
-            child: const Text('Clear All',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+  Future<void> _confirmClearAll(BuildContext context) async {
+    final confirmed = await AppConfirmDialog.show(
+      context,
+      title: 'Clear All?',
+      message: 'Remove all notifications?',
+      deleteLabel: 'Clear All',
     );
+    if (confirmed && context.mounted) {
+      context.read<NotificationProvider>().clearAll();
+    }
   }
 
   String _timeAgo(DateTime time) {
@@ -81,21 +62,20 @@ class NotificationsScreen extends StatelessWidget {
     final unread = provider.unreadCount;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Center(child: AppBackButton()),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Notifications',
                 style: TextStyle(
-                    color: AppColors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                     fontSize: 18)),
             if (unread > 0)
@@ -119,7 +99,11 @@ class NotificationsScreen extends StatelessWidget {
         ],
       ),
       body: notifications.isEmpty
-          ? _emptyState()
+          ? const EmptyState(
+              icon: Icons.notifications_none_rounded,
+              title: 'All caught up!',
+              subtitle: 'No notifications right now',
+            )
           : ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: notifications.length,
@@ -131,7 +115,7 @@ class NotificationsScreen extends StatelessWidget {
   }
 
   Widget _notifTile(BuildContext context, AppNotification notif) {
-    final config = _notifConfig(notif.type);
+    final config = _notifConfig(context, notif.type);
 
     return GestureDetector(
       onTap: () => _onTap(context, notif),
@@ -139,19 +123,27 @@ class NotificationsScreen extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: notif.isRead ? AppColors.white : config['bg'] as Color,
+          color: notif.isRead
+    ? Theme.of(context).cardColor
+    : config['bg'] as Color,
           borderRadius: BorderRadius.circular(14),
           border: notif.isRead
-              ? Border.all(color: AppColors.lightGrey.withOpacity(0.5))
+              ? Border.all(
+  color: Theme.of(context).dividerColor,
+  )
               : Border.all(
                   color: (config['color'] as Color).withOpacity(0.2)),
           boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+  BoxShadow(
+    color: Colors.black.withOpacity(
+      Theme.of(context).brightness == Brightness.dark
+          ? 0.25
+          : 0.03,
+    ),
+    blurRadius: 8,
+    offset: const Offset(0, 2),
+  ),
+],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,22 +176,25 @@ class NotificationsScreen extends StatelessWidget {
                                   ? FontWeight.w500
                                   : FontWeight.bold,
                               fontSize: 13,
-                              color: AppColors.black)),
+                             color: Theme.of(context).colorScheme.onSurface)),
                       Text(_timeAgo(notif.time),
                           style: TextStyle(
                               fontSize: 10,
                               color: notif.isRead
-                                  ? AppColors.grey
-                                  : config['color'] as Color,
+    ? Theme.of(context).textTheme.bodySmall?.color
+    : config['color'] as Color,
                               fontWeight: FontWeight.w500)),
                     ],
                   ),
                   const SizedBox(height: 3),
-                  Text(notif.subtitle,
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.grey,
-                          height: 1.3)),
+                 Text(
+  notif.subtitle,
+  style: TextStyle(
+    fontSize: 12,
+    color: Theme.of(context).textTheme.bodyMedium?.color,
+    height: 1.3,
+  ),
+),
                 ],
               ),
             ),
@@ -221,66 +216,57 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 
-  Map<String, dynamic> _notifConfig(NotifType type) {
-    switch (type) {
-      case NotifType.lowStock:
-        return {
-          'icon': Icons.inventory_2_rounded,
-          'color': Colors.red,
-          'bg': const Color(0xFFFFF0F0),
-        };
-      case NotifType.expiry:
-        return {
-          'icon': Icons.access_time_rounded,
-          'color': AppColors.goldDark,
-          'bg': const Color(0xFFFFF8E1),
-        };
-      case NotifType.expired:
-        return {
-          'icon': Icons.cancel_rounded,
-          'color': Colors.deepOrange,
-          'bg': const Color(0xFFFFF3E0),
-        };
-      case NotifType.sale:
-        return {
-          'icon': Icons.receipt_rounded,
-          'color': Colors.blue,
-          'bg': AppColors.backgroundBottom,
-        };
-      case NotifType.credit:
-        return {
-          'icon': Icons.account_balance_wallet_rounded,
-          'color': AppColors.purple,
-          'bg': AppColors.backgroundBottom,
-        };
-    }
-  }
+Map<String, dynamic> _notifConfig(
+  BuildContext context,
+  NotifType type,
+) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  Widget _emptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.lightGrey.withOpacity(0.3),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.notifications_none_rounded,
-                size: 48, color: AppColors.grey),
-          ),
-          const SizedBox(height: 16),
-          Text('All caught up!',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.black)),
-          const SizedBox(height: 6),
-          Text('No notifications right now',
-              style: TextStyle(fontSize: 13, color: AppColors.grey)),
-        ],
-      ),
-    );
+  switch (type) {
+    case NotifType.lowStock:
+      return {
+        'icon': Icons.inventory_2_rounded,
+        'color': AppColors.red,
+        'bg': isDark
+            ? AppColors.darkNotificationRed
+            : AppColors.backgroundBottom,
+      };
+
+    case NotifType.expiry:
+      return {
+        'icon': Icons.access_time_rounded,
+        'color': AppColors.goldDark,
+        'bg': isDark
+            ? AppColors.darkGold
+            : AppColors.backgroundBottom,
+      };
+
+    case NotifType.expired:
+      return {
+        'icon': Icons.cancel_rounded,
+        'color': AppColors.deepOrange,
+        'bg': isDark
+            ? AppColors.darkOrange
+            : AppColors.backgroundBottom,
+      };
+
+    case NotifType.sale:
+      return {
+        'icon': Icons.receipt_rounded,
+        'color': AppColors.blue,
+        'bg': isDark
+            ? AppColors.darkBlue
+            : AppColors.backgroundBottom,
+      };
+
+    case NotifType.credit:
+      return {
+        'icon': Icons.account_balance_wallet_rounded,
+        'color': AppColors.purple,
+        'bg': isDark
+            ? AppColors.darkPurple
+            : AppColors.backgroundBottom,
+      };
   }
+}
 }

@@ -10,6 +10,7 @@ class AppInputField extends StatelessWidget {
   final String? Function(String?)? validator;
   final bool readOnly;
   final VoidCallback? onTap;
+  final void Function(String)? onChanged;
 
   const AppInputField({
     Key? key,
@@ -21,10 +22,15 @@ class AppInputField extends StatelessWidget {
     this.validator,
     this.readOnly = false,
     this.onTap,
+    this.onChanged,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillColor = isDark ? const Color(0xFF2C2C2C) : AppColors.backgroundBottom;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return TextFormField(
       controller: controller,
       keyboardType: keyboard,
@@ -32,10 +38,11 @@ class AppInputField extends StatelessWidget {
       validator: validator,
       readOnly: readOnly,
       onTap: onTap,
-      style: const TextStyle(
+      onChanged: onChanged,
+      style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w500,
-        color: Colors.black,
+        color: textColor,
       ),
       decoration: InputDecoration(
         hintText: hint,
@@ -54,7 +61,7 @@ class AppInputField extends StatelessWidget {
           fontWeight: FontWeight.w400,
         ),
         filled: true,
-        fillColor: AppColors.backgroundBottom,
+        fillColor: fillColor,
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none),

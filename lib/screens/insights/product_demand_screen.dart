@@ -57,7 +57,11 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
 
     _daysRemaining = _dailyAvg > 0
         ? (widget.product.quantity / _dailyAvg).floor()
-        : 999;
+        : (widget.product.quantity <= widget.product.lowStockThreshold
+            ? 2
+            : widget.product.quantity <= widget.product.lowStockThreshold * 2
+                ? 5
+                : 999);
 
     if (daily.length == 7) {
       final first4 = daily.sublist(0, 4).fold(0.0, (a, b) => a + b) / 4;
@@ -84,12 +88,17 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
   }
 
   String get _alertMessage {
-    if (_daysRemaining <= 1) return 'Critical: Running out today — restock immediately';
-    if (_daysRemaining <= 3) {
-      return 'High demand product — restock soon\nCurrent velocity suggests stockout in ${_daysRemaining * 24} hours';
+    final noSales = _dailyAvg == 0;
+    if (_daysRemaining <= 1) {
+      return noSales ? 'Critical: Stock below threshold — restock immediately' : 'Critical: Running out today — restock immediately';
     }
-    if (_daysRemaining <= 7) return 'Moderate demand — consider restocking this week';
-    return 'Sufficient stock — stable supply for $_daysRemaining days';
+    if (_daysRemaining <= 3) {
+      return noSales ? 'High demand product — restock soon\nCurrent stock below safe threshold' : 'High demand product — restock soon\nCurrent velocity suggests stockout in ${_daysRemaining * 24} hours';
+    }
+    if (_daysRemaining <= 7) {
+      return noSales ? 'High demand product — restock soon\nStock getting low' : 'Moderate demand — consider restocking this week';
+    }
+    return 'Sufficient stock — no recent sales data';
   }
 
   @override

@@ -93,7 +93,9 @@ class StorageService {
     // Clear sales records
     await Hive.box<Sale>('sales').clear();
 
-    // Purchases box can also be cleared later
+    // Clear customer credit data
+    await Hive.box('customers').clear();
+    await Hive.box('credit_transactions').clear();
 
     // Remove profile image
     _box.delete('profileImage');

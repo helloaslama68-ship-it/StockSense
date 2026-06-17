@@ -1,21 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 class SettingsProvider extends ChangeNotifier {
-  bool   _lowStockAlerts  = true;
-  bool   _expiryAlerts    = true;
-  bool   _creditDueAlerts = false;
-  bool   _darkMode        = false;
-  String _language        = 'English (EN)';
+  Box get _box => Hive.box('settings');
 
-  bool   get lowStockAlerts  => _lowStockAlerts;
-  bool   get expiryAlerts    => _expiryAlerts;
-  bool   get creditDueAlerts => _creditDueAlerts;
-  bool   get darkMode        => _darkMode;
-  String get language        => _language;
+  bool get lowStockAlerts =>
+      _box.get('lowStockAlerts', defaultValue: true) as bool;
 
-  void setLowStockAlerts(bool v)  { _lowStockAlerts  = v; notifyListeners(); }
-  void setExpiryAlerts(bool v)    { _expiryAlerts    = v; notifyListeners(); }
-  void setCreditDueAlerts(bool v) { _creditDueAlerts = v; notifyListeners(); }
-  void setDarkMode(bool v)        { _darkMode        = v; notifyListeners(); }
-  void setLanguage(String v)      { _language        = v; notifyListeners(); }
+  bool get expiryAlerts =>
+      _box.get('expiryAlerts', defaultValue: true) as bool;
+
+  bool get creditDueAlerts =>
+      _box.get('creditDueAlerts', defaultValue: false) as bool;
+
+  bool get darkMode =>
+      _box.get('darkMode', defaultValue: false) as bool;
+
+  void setLowStockAlerts(bool value) {
+    _box.put('lowStockAlerts', value);
+    notifyListeners();
+  }
+
+  void setExpiryAlerts(bool value) {
+    _box.put('expiryAlerts', value);
+    notifyListeners();
+  }
+
+  void setCreditDueAlerts(bool value) {
+    _box.put('creditDueAlerts', value);
+    notifyListeners();
+  }
+
+  void setDarkMode(bool value) {
+    _box.put('darkMode', value);
+    notifyListeners();
+  }
 }

@@ -14,7 +14,7 @@ class ProductFormProvider extends ChangeNotifier {
 
   // INIT
 
-  /// Load existing product data (Edit flow).
+  /// Load existing product data 
   void initFromProduct(Product p) {
     imagePath        = p.imagePath;
     selectedCategory = p.category;
@@ -23,7 +23,7 @@ class ProductFormProvider extends ChangeNotifier {
         ? DateTime.tryParse(p.expiryDate!)
         : null;
     loading          = false;
-    // No notifyListeners — called in initState before first build
+    // called in initState before first build
   }
 
   /// Clear all state.

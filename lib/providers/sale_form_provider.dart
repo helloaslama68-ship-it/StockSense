@@ -85,7 +85,7 @@ class SaleFormProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Updates search query text WITHOUT clearing the selected product.
+
   void setSearchQueryOnly(String q) {
     _searchQuery = q;
     notifyListeners();

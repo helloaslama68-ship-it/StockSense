@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/colors.dart';
 
-/// White shadow card wrapper — use everywhere instead of inline Container.
+/// Theme-aware shadow card wrapper.
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets? padding;
@@ -10,15 +10,16 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.black.withOpacity(isDark ? 0.0 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -76,8 +77,7 @@ class AppFieldLabel extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: AppColors.grey,
-          letterSpacing: 0.5,
+color: Theme.of(context).hintColor,          letterSpacing: 0.5,
         ),
       ),
     );

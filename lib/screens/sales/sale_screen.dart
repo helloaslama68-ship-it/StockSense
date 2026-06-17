@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
+import '../../core/utils/responsive.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/sale_form_provider.dart';
 import '../../providers/sale_provider.dart';
 import '../../models/product.dart';
 import '../scanner/scanner_screen.dart';
 import '../sales/sale_details_screen.dart';
+import '../../widgets/app_back_button.dart';
 import '../../widgets/app_snack_bar.dart';
 
 class SaleScreen extends StatelessWidget {
@@ -29,24 +32,8 @@ class SaleScreen extends StatelessWidget {
 class _SaleScreenBody extends StatelessWidget {
   const _SaleScreenBody();
 
-  String _formatDate(DateTime d) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${months[d.month-1]} ${d.day}, ${d.year}';
-  }
-
   Future<void> _pickDate(BuildContext context, SaleFormProvider p) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: p.saleDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.light(primary: AppColors.goldDark),
-        ),
-        child: child!,
-      ),
-    );
+    final picked = await appShowDatePicker(context, initialDate: p.saleDate);
     if (picked != null) p.setSaleDate(picked);
   }
 
@@ -68,19 +55,15 @@ class _SaleScreenBody extends StatelessWidget {
       AppSnackBar.error(context, 'Add at least one item');
       return;
     }
-
     final saleProvider = context.read<SaleProvider>();
     final customerCtrl = form.customerName;
-
     try {
       final sale = await saleProvider.recordCartSale(
         cart: form.cart,
         taxPercent: form.taxPercent,
         customerName: customerCtrl,
       );
-
       if (!context.mounted) return;
-
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => SaleDetailsScreen(sale: sale)),
@@ -120,180 +103,212 @@ class _SaleScreenBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<SaleFormProvider>();
+    final r = Responsive.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: AppSpacing.sectionPad,
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.05), blurRadius: 8)],
-                      ),
-                      child: Icon(Icons.arrow_back_rounded, color: AppColors.black, size: 20),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Text('New Sale', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.goldDark)),
+                  const AppBackButton(),
+                  AppSpacing.hLg,
+                  Text('New Sale', style: TextStyle(
+                    fontSize: r.sp(18), fontWeight: FontWeight.bold, color: AppColors.goldDark,
+                  )),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            AppSpacing.vLg,
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
-                      ),
-                      child: Column(
-                        children: [
-                          TextField(
-                            onChanged: (v) => p.setCustomerName(v),
-                            decoration: InputDecoration(
-                              hintText: 'Customer Name (Optional)',
-                              hintStyle: TextStyle(color: AppColors.grey, fontSize: 13),
-                              filled: true,
-                              fillColor: AppColors.lightGrey.withOpacity(0.3),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.goldDark, width: 1.5)),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            onTap: () => _pickDate(context, p),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              decoration: BoxDecoration(color: AppColors.lightGrey.withOpacity(0.3), borderRadius: BorderRadius.circular(10)),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.grey),
-                                  const SizedBox(width: 10),
-                                  Text(_formatDate(p.saleDate), style: TextStyle(fontSize: 13, color: AppColors.black)),
-                                ],
+                padding: EdgeInsets.fromLTRB(r.pageHPad, 0, r.pageHPad, 24),
+                child: r.constrain(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── CUSTOMER + DATE ───────────────────────
+                      Container(
+                        padding: AppSpacing.cardPad,
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+                        ),
+                        child: Column(
+                          children: [
+                            TextField(
+                              onChanged: (v) => p.setCustomerName(v),
+                              decoration: InputDecoration(
+                                hintText: 'Customer Name (Optional)',
+                                hintStyle: TextStyle(color: AppColors.grey, fontSize: r.sp(13)),
+                                filled: true,
+                                fillColor: AppColors.lightGrey.withOpacity(0.3),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.goldDark, width: 1.5)),
+                                contentPadding: AppSpacing.inputPad,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.goldDark,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
-                        ),
-                        onPressed: () => _addItem(context, p),
-                        icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.white),
-                        label: const Text('ADD ITEM', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (p.cart.isNotEmpty) ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Cart Items', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.black)),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: AppColors.goldDark.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                            child: Text('${p.cart.length} ITEM${p.cart.length > 1 ? 'S' : ''}',
-                                style: TextStyle(fontSize: 10, color: AppColors.goldDark, fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      ...p.cart.asMap().entries.map((e) => _CartTile(index: e.key, item: e.value)),
-                    ],
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
-                      ),
-                      child: Column(
-                        children: [
-                          _TotalRow(label: 'Subtotal', value: '₹${p.subtotal.toStringAsFixed(2)}'),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(children: [
-                                Text('Tax', style: TextStyle(color: AppColors.grey, fontSize: 13)),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () => _editTax(context, p),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(color: AppColors.goldDark.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                                    child: Text('${p.taxPercent.toStringAsFixed(0)}%',
-                                        style: TextStyle(fontSize: 11, color: AppColors.goldDark, fontWeight: FontWeight.bold)),
-                                  ),
+                            AppSpacing.vMd,
+                            GestureDetector(
+                              onTap: () => _pickDate(context, p),
+                              child: Container(
+                                padding: AppSpacing.inputPad,
+                                decoration: BoxDecoration(
+                                  color: AppColors.lightGrey.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                              ]),
-                              Text('₹${p.taxAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 13, color: AppColors.grey)),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Divider(color: AppColors.lightGrey),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text('TOTAL AMOUNT', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.black)),
-                                Text('INCLUSIVE OF ALL TAXES', style: TextStyle(fontSize: 9, color: AppColors.grey, letterSpacing: 0.5)),
-                              ]),
-                              Text('₹${p.totalAmount.toStringAsFixed(2)}',
-                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.goldDark)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.goldDark,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                        ),
-                        onPressed: () => _completeSale(context, p),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text('COMPLETE SALE', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward_rounded, color: AppColors.white, size: 18),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.grey),
+                                    AppSpacing.hSm,
+                                    Text(formatDate(p.saleDate), style: TextStyle(fontSize: r.sp(13), color: AppColors.black)),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+
+                      AppSpacing.vLg,
+
+                      // ── ADD ITEM BUTTON ───────────────────────
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.goldDark,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          onPressed: () => _addItem(context, p),
+                          icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.white),
+                          label: Text('ADD ITEM', style: TextStyle(
+                            color: AppColors.white, fontWeight: FontWeight.bold,
+                            fontSize: r.sp(15), letterSpacing: 1,
+                          )),
+                        ),
+                      ),
+
+                      AppSpacing.vLg,
+
+                      // ── CART ──────────────────────────────────
+                      if (p.cart.isNotEmpty) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Cart Items', style: TextStyle(
+                              fontSize: r.sp(15), fontWeight: FontWeight.bold, color: AppColors.black,
+                            )),
+                            Container(
+                              padding: AppSpacing.chipPad,
+                              decoration: BoxDecoration(
+                                color: AppColors.goldDark.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '${p.cart.length} ITEM${p.cart.length > 1 ? 'S' : ''}',
+                                style: TextStyle(fontSize: r.sp(10), color: AppColors.goldDark, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                        AppSpacing.vSm,
+                        ...p.cart.asMap().entries.map((e) => _CartTile(index: e.key, item: e.value)),
+                      ],
+
+                      AppSpacing.vLg,
+
+                      // ── TOTALS ────────────────────────────────
+                      Container(
+                        padding: AppSpacing.cardPad,
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+                        ),
+                        child: Column(
+                          children: [
+                            _TotalRow(label: 'Subtotal', value: '₹${p.subtotal.toStringAsFixed(2)}', r: r),
+                            AppSpacing.vSm,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(children: [
+                                  Text('Tax', style: TextStyle(color: AppColors.grey, fontSize: r.sp(13))),
+                                  AppSpacing.hSm,
+                                  GestureDetector(
+                                    onTap: () => _editTax(context, p),
+                                    child: Container(
+                                      padding: AppSpacing.chipPad,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.goldDark.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text('${p.taxPercent.toStringAsFixed(0)}%',
+                                          style: TextStyle(fontSize: r.sp(11), color: AppColors.goldDark, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                ]),
+                                Text('₹${p.taxAmount.toStringAsFixed(2)}',
+                                    style: TextStyle(fontSize: r.sp(13), color: AppColors.grey)),
+                              ],
+                            ),
+                            AppSpacing.vMd,
+                            Divider(color: AppColors.lightGrey),
+                            AppSpacing.vSm,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text('TOTAL AMOUNT', style: TextStyle(
+                                    fontSize: r.sp(13), fontWeight: FontWeight.bold, color: AppColors.black,
+                                  )),
+                                  Text('INCLUSIVE OF ALL TAXES', style: TextStyle(
+                                    fontSize: r.sp(9), color: AppColors.grey, letterSpacing: 0.5,
+                                  )),
+                                ]),
+                                Text('₹${p.totalAmount.toStringAsFixed(2)}',
+                                    style: TextStyle(fontSize: r.sp(22), fontWeight: FontWeight.bold, color: AppColors.goldDark)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      AppSpacing.vXl,
+
+                      // ── COMPLETE SALE ─────────────────────────
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.goldDark,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            elevation: 0,
+                          ),
+                          onPressed: () => _completeSale(context, p),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('COMPLETE SALE', style: TextStyle(
+                                color: AppColors.white, fontWeight: FontWeight.bold,
+                                fontSize: r.sp(15), letterSpacing: 1,
+                              )),
+                              AppSpacing.hSm,
+                              const Icon(Icons.arrow_forward_rounded, color: AppColors.white, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -304,6 +319,8 @@ class _SaleScreenBody extends StatelessWidget {
   }
 }
 
+// ─── CART TILE ────────────────────────────────────────────────────────────────
+
 class _CartTile extends StatelessWidget {
   final int index;
   final CartItem item;
@@ -312,9 +329,10 @@ class _CartTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.read<SaleFormProvider>();
+    final r = Responsive.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.cardPad,
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
@@ -326,16 +344,17 @@ class _CartTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                const SizedBox(height: 2),
-                Text('AVAILABLE: ${item.product.quantity} UNITS', style: TextStyle(fontSize: 10, color: AppColors.grey)),
-                const SizedBox(height: 4),
+                Text(item.product.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: r.sp(13))),
+                AppSpacing.vXs,
+                Text('AVAILABLE: ${item.product.quantity} UNITS',
+                    style: TextStyle(fontSize: r.sp(10), color: AppColors.grey)),
+                AppSpacing.vXs,
                 Row(children: [
                   Text('₹${item.product.sellingPrice.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 12, color: AppColors.black, fontWeight: FontWeight.w600)),
-                  const SizedBox(width: 8),
+                      style: TextStyle(fontSize: r.sp(12), color: AppColors.black, fontWeight: FontWeight.w600)),
+                  AppSpacing.hSm,
                   Text('₹${item.subtotal.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 12, color: AppColors.black, fontWeight: FontWeight.w600)),
+                      style: TextStyle(fontSize: r.sp(12), color: AppColors.black, fontWeight: FontWeight.w600)),
                 ]),
               ],
             ),
@@ -343,13 +362,17 @@ class _CartTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              GestureDetector(onTap: () => p.removeAt(index),
-                  child: const Icon(Icons.delete_rounded, color: AppColors.darkRed, size: 18)),
-              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => p.removeAt(index),
+                child: const Icon(Icons.delete_rounded, color: AppColors.darkRed, size: 18),
+              ),
+              AppSpacing.vSm,
               Row(children: [
                 _QtyBtn(icon: Icons.remove, onTap: () => p.decrementAt(index)),
-                Container(width: 32, alignment: Alignment.center,
-                    child: Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                Container(
+                  width: 32, alignment: Alignment.center,
+                  child: Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
                 _QtyBtn(icon: Icons.add, onTap: () {
                   if (item.quantity < item.product.quantity) {
                     p.incrementAt(index);
@@ -366,6 +389,8 @@ class _CartTile extends StatelessWidget {
   }
 }
 
+// ─── QTY BUTTON ──────────────────────────────────────────────────────────────
+
 class _QtyBtn extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -376,28 +401,34 @@ class _QtyBtn extends StatelessWidget {
     onTap: onTap,
     child: Container(
       width: 28, height: 28,
-      decoration: BoxDecoration(color: AppColors.lightGrey.withOpacity(0.5), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        color: AppColors.lightGrey.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Icon(icon, size: 16, color: AppColors.black),
     ),
   );
 }
 
+// ─── TOTAL ROW ────────────────────────────────────────────────────────────────
+
 class _TotalRow extends StatelessWidget {
   final String label, value;
-  const _TotalRow({required this.label, required this.value});
+  final Responsive r;
+  const _TotalRow({required this.label, required this.value, required this.r});
 
   @override
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(label, style: TextStyle(fontSize: 13, color: AppColors.grey)),
-      Text(value, style: TextStyle(fontSize: 13, color: AppColors.grey)),
+      Text(label, style: TextStyle(fontSize: r.sp(13), color: AppColors.grey)),
+      Text(value,  style: TextStyle(fontSize: r.sp(13), color: AppColors.grey)),
     ],
   );
 }
 
-// StatefulWidget kept for: TextEditingController lifecycle + mounted check only
-// All reactive state (searchQuery, selectedProduct) lives in provider
+// ─── PRODUCT PICKER SHEET ─────────────────────────────────────────────────────
+
 class _ProductPickerSheet extends StatefulWidget {
   final List<Product> products;
   const _ProductPickerSheet({required this.products});
@@ -415,16 +446,11 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
     super.dispose();
   }
 
-  List<Product> _filtered(String q) =>
-      widget.products
-          .where((p) => p.name.toLowerCase().contains(q.toLowerCase()) && p.quantity > 0)
-          .toList();
-
   @override
   Widget build(BuildContext context) {
     final p = context.watch<SaleFormProvider>();
+    final r = Responsive.of(context);
 
-    // Sync controller text with provider (e.g. after scan fills it)
     if (searchCtrl.text != p.searchQuery) {
       searchCtrl.text = p.searchQuery;
       searchCtrl.selection = TextSelection.collapsed(offset: p.searchQuery.length);
@@ -443,32 +469,38 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(width: 40, height: 4,
-                  decoration: BoxDecoration(color: AppColors.grey[300], borderRadius: BorderRadius.circular(10))),
-              const SizedBox(height: 16),
+              Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(10)),
+              ),
+              AppSpacing.vLg,
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('Add Item', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text('Add product to current transaction', style: TextStyle(fontSize: 12, color: AppColors.grey)),
+                    Text('Add Item', style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.bold)),
+                    Text('Add product to current transaction',
+                        style: TextStyle(fontSize: r.sp(12), color: AppColors.grey)),
                   ]),
                   GestureDetector(
                     onTap: () { p.resetPicker(); Navigator.pop(context); },
-                    child: Container(padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(color: AppColors.grey[100], shape: BoxShape.circle),
-                        child: const Icon(Icons.close_rounded, size: 18)),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: AppColors.grey, shape: BoxShape.circle),
+                      child: const Icon(Icons.close_rounded, size: 18),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
 
-              // ── BARCODE SCAN SECTION
+              AppSpacing.vXl,
+
+              // ── BARCODE SCAN ──────────────────────────────
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
-                  color: AppColors.grey[100],
+                  color: AppColors.grey,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(
@@ -478,11 +510,12 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                       decoration: BoxDecoration(color: AppColors.goldDark, borderRadius: BorderRadius.circular(14)),
                       child: const Icon(Icons.qr_code_scanner_rounded, color: AppColors.white, size: 28),
                     ),
-                    const SizedBox(height: 10),
-                    const Text('Scan Barcode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    const SizedBox(height: 2),
-                    Text('Quick item entry via camera', style: TextStyle(fontSize: 11, color: AppColors.grey)),
-                    const SizedBox(height: 12),
+                    AppSpacing.vSm,
+                    Text('Scan Barcode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: r.sp(13))),
+                    AppSpacing.vXs,
+                    Text('Quick item entry via camera',
+                        style: TextStyle(fontSize: r.sp(11), color: AppColors.grey)),
+                    AppSpacing.vMd,
                     GestureDetector(
                       onTap: () async {
                         final code = await Navigator.push<String>(
@@ -510,17 +543,20 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                           border: Border.all(color: AppColors.goldDark.withOpacity(0.3)),
                         ),
                         child: Text('Open Scanner',
-                            style: TextStyle(fontSize: 13, color: AppColors.goldDark, fontWeight: FontWeight.w600)),
+                            style: TextStyle(fontSize: r.sp(13), color: AppColors.goldDark, fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 16),
-              Text('SELECT PRODUCT',
-                  style: TextStyle(fontSize: 10, letterSpacing: 1.2, color: AppColors.grey, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
+              AppSpacing.vLg,
+
+              Text('SELECT PRODUCT', style: TextStyle(
+                fontSize: r.sp(10), letterSpacing: 1.2, color: AppColors.grey, fontWeight: FontWeight.w600,
+              )),
+              AppSpacing.vSm,
+
               TextField(
                 controller: searchCtrl,
                 onChanged: (val) {
@@ -530,19 +566,17 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                           prod.quantity > 0)
                       .firstOrNull;
                   if (match != null) {
-                    // Update query text and select product (don't clear selection)
                     p.setSearchQueryOnly(val);
                     p.selectProduct(match);
                   } else {
-                    // Update query and clear any stale selection
                     p.setSearchQuery(val);
                   }
                 },
                 decoration: InputDecoration(
                   hintText: 'Enter product name',
-                  hintStyle: TextStyle(color: AppColors.grey, fontSize: 13),
+                  hintStyle: TextStyle(color: AppColors.grey, fontSize: r.sp(13)),
                   filled: true,
-                  fillColor: AppColors.grey[100],
+                  fillColor: AppColors.grey,
                   prefixIcon: const Icon(Icons.edit_outlined, size: 20),
                   suffixIcon: p.selectedProduct != null
                       ? const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20)
@@ -552,53 +586,60 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(color: AppColors.goldDark, width: 1.5),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                  contentPadding: AppSpacing.inputPad,
                 ),
               ),
+
               if (p.searchQuery.isNotEmpty && p.selectedProduct == null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'No matching product found',
-                  style: TextStyle(fontSize: 11, color: AppColors.grey),
-                ),
+                AppSpacing.vXs,
+                Text('No matching product found',
+                    style: TextStyle(fontSize: r.sp(11), color: AppColors.grey)),
               ],
-              const SizedBox(height: 16),
+
+              AppSpacing.vLg,
+
+              // ── QTY + PRICE ───────────────────────────────
               Row(children: [
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('QUANTITY', style: TextStyle(fontSize: 10, color: AppColors.grey, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 6),
+                    Text('QUANTITY', style: TextStyle(fontSize: r.sp(10), color: AppColors.grey, fontWeight: FontWeight.w600)),
+                    AppSpacing.vSm,
                     Container(
-                      decoration: BoxDecoration(color: AppColors.grey[100], borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(10)),
                       child: Row(children: [
                         IconButton(onPressed: p.decrementPickerQty, icon: const Icon(Icons.remove, size: 18), padding: EdgeInsets.zero),
                         Expanded(child: Text('${p.pickerQuantity}', textAlign: TextAlign.center,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: r.sp(15)))),
                         IconButton(onPressed: p.incrementPickerQty, icon: const Icon(Icons.add, size: 18), padding: EdgeInsets.zero),
                       ]),
                     ),
                   ],
                 )),
-                const SizedBox(width: 12),
+                AppSpacing.hMd,
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('UNIT PRICE', style: TextStyle(fontSize: 10, color: AppColors.grey, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 6),
+                    Text('UNIT PRICE', style: TextStyle(fontSize: r.sp(10), color: AppColors.grey, fontWeight: FontWeight.w600)),
+                    AppSpacing.vSm,
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                      decoration: BoxDecoration(color: AppColors.grey[100], borderRadius: BorderRadius.circular(10)),
+                      padding: AppSpacing.inputPad,
+                      decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(10)),
                       child: Text(
                         p.selectedProduct != null ? '₹ ${p.selectedProduct!.sellingPrice.toStringAsFixed(2)}' : '₹ 0.00',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
-                            color: p.selectedProduct != null ? AppColors.black : AppColors.grey),
+                        style: TextStyle(
+                          fontSize: r.sp(14), fontWeight: FontWeight.w600,
+                          color: p.selectedProduct != null ? AppColors.black : AppColors.grey,
+                        ),
                       ),
                     ),
                   ],
                 )),
               ]),
-              const SizedBox(height: 16),
+
+              AppSpacing.vLg,
+
+              // ── CALCULATED TOTAL ──────────────────────────
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -607,15 +648,18 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('CALCULATED TOTAL', style: TextStyle(fontSize: 9, color: AppColors.white, letterSpacing: 1)),
-                      Text('inclusive of all taxes', style: TextStyle(fontSize: 9, color: AppColors.white)),
+                      Text('CALCULATED TOTAL', style: TextStyle(fontSize: r.sp(9), color: AppColors.white, letterSpacing: 1)),
+                      Text('inclusive of all taxes', style: TextStyle(fontSize: r.sp(9), color: AppColors.white)),
                     ]),
                     Text('₹${p.calculatedTotal.toStringAsFixed(2)}',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.goldDark)),
+                        style: TextStyle(fontSize: r.sp(20), fontWeight: FontWeight.bold, color: AppColors.goldDark)),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+
+              AppSpacing.vLg,
+
+              // ── ADD TO SALE ───────────────────────────────
               SizedBox(
                 width: double.infinity, height: 50,
                 child: ElevatedButton(
@@ -629,12 +673,15 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     p.resetPicker();
                     Navigator.pop(context);
                   },
-                  child: const Text('Add to Sale', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  child: Text('Add to Sale', style: TextStyle(
+                    color: AppColors.white, fontWeight: FontWeight.bold, fontSize: r.sp(15),
+                  )),
                 ),
               ),
+
               TextButton(
                 onPressed: () { p.resetPicker(); Navigator.pop(context); },
-                child: Text('Cancel', style: TextStyle(color: AppColors.grey, fontSize: 13)),
+                child: Text('Cancel', style: TextStyle(color: AppColors.grey, fontSize: r.sp(13))),
               ),
             ],
           ),

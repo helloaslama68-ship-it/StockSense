@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../widgets/app_section_label.dart';
+import '../../widgets/app_back_button.dart';
 import '../../providers/profile_provider.dart';
 import '../onboarding/onboarding_main.dart';
 import 'edit_profile_screen.dart';
@@ -13,9 +15,11 @@ class ProfileScreen extends StatelessWidget {
   void _showImagePicker(BuildContext context) {
     final provider = context.read<ProfileProvider>();
     final hasPhoto = provider.imagePath != null && provider.imagePath!.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => Container(
@@ -27,7 +31,7 @@ class ProfileScreen extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.lightGrey,
+                color: isDark ? const Color(0xFF3A3A3A) : AppColors.lightGrey,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -39,24 +43,28 @@ class ProfileScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _photoOption(
+                  context: context,
                   icon: Icons.camera_alt_rounded,
                   label: "Camera",
                   color: AppColors.goldDark,
                   onTap: () async {
                     Navigator.pop(context);
-await provider.pickImage(context: context, fromCamera: true);                  },
+                    await provider.pickImage(context: context, fromCamera: true);
+                  },
                 ),
                 _photoOption(
+                  context: context,
                   icon: Icons.photo_library_rounded,
                   label: "Gallery",
                   color: AppColors.blue,
                   onTap: () async {
                     Navigator.pop(context);
-                  await provider.pickImage(context: context, fromCamera: false);
+                    await provider.pickImage(context: context, fromCamera: false);
                   },
                 ),
                 if (hasPhoto)
                   _photoOption(
+                    context: context,
                     icon: Icons.delete_rounded,
                     label: "Remove",
                     color: AppColors.darkRed,
@@ -75,6 +83,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
   }
 
   Widget _photoOption({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required Color color,
@@ -93,7 +102,6 @@ await provider.pickImage(context: context, fromCamera: true);                  }
           Text(label,
               style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.black,
                   fontWeight: FontWeight.w500)),
         ],
       ),
@@ -105,10 +113,8 @@ await provider.pickImage(context: context, fromCamera: true);                  }
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title:
-            Text('Logout?', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text('Are you sure you want to logout?',
-            style: TextStyle(color: AppColors.grey)),
+        title: Text('Logout?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to logout?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -117,7 +123,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-             context.read<ProfileProvider>().logout();
+              context.read<ProfileProvider>().logout();
               if (context.mounted) {
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -138,6 +144,9 @@ await provider.pickImage(context: context, fromCamera: true);                  }
   @override
   Widget build(BuildContext context) {
     final profile = context.watch<ProfileProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
+    final dividerColor = isDark ? const Color(0xFF2C2C2C) : AppColors.lightGrey.withOpacity(0.5);
 
     final ownerName = profile.ownerName ?? '';
     final storeName = profile.storeName ?? '';
@@ -147,13 +156,13 @@ await provider.pickImage(context: context, fromCamera: true);                  }
     final hasPhoto = imagePath != null && imagePath.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.goldDark),
-          onPressed: () => Navigator.pop(context),
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Center(child: AppBackButton()),
         ),
         title: Text('Profile',
             style: TextStyle(
@@ -162,7 +171,8 @@ await provider.pickImage(context: context, fromCamera: true);                  }
                 fontSize: 18)),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings_rounded, color: AppColors.black),
+            icon: Icon(Icons.settings_rounded,
+                color: isDark ? AppColors.white : AppColors.black),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
@@ -175,16 +185,16 @@ await provider.pickImage(context: context, fromCamera: true);                  }
         child: Column(
           children: [
 
-            // PROFILE HERO CARD 
+            // PROFILE HERO CARD
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: 28, horizontal: 20),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withOpacity(0.05),
+                    color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
                     blurRadius: 15,
                     offset: Offset(0, 4),
                   ),
@@ -193,7 +203,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
               child: Column(
                 children: [
 
-                  // TAPPABLE AVATAR 
+                  // TAPPABLE AVATAR
                   GestureDetector(
                     onTap: () => _showImagePicker(context),
                     child: Stack(
@@ -203,7 +213,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
                           height: 96,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(24),
-                            color: AppColors.lightGrey,
+                            color: isDark ? const Color(0xFF2C2C2C) : AppColors.lightGrey,
                             border: Border.all(
                                 color: AppColors.goldDark, width: 2.5),
                           ),
@@ -223,8 +233,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
                             decoration: BoxDecoration(
                               color: AppColors.goldDark,
                               borderRadius: BorderRadius.circular(10),
-                              border:
-                                  Border.all(color: AppColors.white, width: 2),
+                              border: Border.all(color: cardColor, width: 2),
                             ),
                             child: Icon(Icons.verified_rounded,
                                 color: AppColors.white, size: 14),
@@ -266,8 +275,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
                   SizedBox(height: 6),
 
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
                       color: AppColors.goldDark.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -294,15 +302,15 @@ await provider.pickImage(context: context, fromCamera: true);                  }
 
             SizedBox(height: 16),
 
-            // CONTACT CARD 
+            // CONTACT CARD
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withOpacity(0.05),
+                    color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
                     blurRadius: 15,
                     offset: Offset(0, 4),
                   ),
@@ -311,27 +319,9 @@ await provider.pickImage(context: context, fromCamera: true);                  }
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 3,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: AppColors.goldDark,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Text('CONTACT INFORMATION',
-                            style: TextStyle(
-                                fontSize: 11,
-                                letterSpacing: 1.5,
-                                color: AppColors.grey,
-                                fontWeight: FontWeight.w700)),
-                      ],
-                    ),
+                    child: AppSectionLabel(label: 'CONTACT INFORMATION', showBar: true),
                   ),
                   SizedBox(height: 8),
                   _contactRow(
@@ -339,13 +329,15 @@ await provider.pickImage(context: context, fromCamera: true);                  }
                     label: 'PHONE NUMBER',
                     value: phone.isEmpty ? '+91 00000 00000' : phone,
                     iconColor: AppColors.darkGreen,
+                    dividerColor: dividerColor,
                   ),
-                  _divider(),
+                  Divider(height: 1, indent: 70, endIndent: 16, color: dividerColor),
                   _contactRow(
                     icon: Icons.location_on_rounded,
                     label: 'SHOP ADDRESS',
                     value: address.isEmpty ? 'Shop Address' : address,
                     iconColor: AppColors.darkRed,
+                    dividerColor: dividerColor,
                   ),
                   SizedBox(height: 8),
                 ],
@@ -354,7 +346,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
 
             SizedBox(height: 24),
 
-            // EDIT PROFILE BUTTON 
+            // EDIT PROFILE BUTTON
             Container(
               width: double.infinity,
               height: 52,
@@ -377,8 +369,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
-                icon:
-                    Icon(Icons.edit_rounded, color: AppColors.white, size: 18),
+                icon: Icon(Icons.edit_rounded, color: AppColors.white, size: 18),
                 label: Text('Edit Profile',
                     style: TextStyle(
                         color: AppColors.white,
@@ -388,7 +379,6 @@ await provider.pickImage(context: context, fromCamera: true);                  }
                   context,
                   MaterialPageRoute(builder: (_) => EditProfileScreen()),
                 ),
-                // No need for setState on return — ProfileProvider notifies listeners
               ),
             ),
 
@@ -434,6 +424,7 @@ await provider.pickImage(context: context, fromCamera: true);                  }
     required String label,
     required String value,
     required Color iconColor,
+    required Color dividerColor,
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -461,22 +452,13 @@ await provider.pickImage(context: context, fromCamera: true);                  }
                         fontWeight: FontWeight.w500)),
                 SizedBox(height: 3),
                 Text(value,
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded,
-              color: AppColors.lightGrey, size: 20),
+          Icon(Icons.chevron_right_rounded, color: AppColors.grey, size: 20),
         ],
       ),
     );
   }
-
-  Widget _divider() => Divider(
-        height: 1,
-        indent: 70,
-        endIndent: 16,
-        color: AppColors.lightGrey.withOpacity(0.5),
-      );
 }

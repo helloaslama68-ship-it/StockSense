@@ -2,6 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/empty_state.dart';
 import '../../models/product.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/sale_provider.dart';
@@ -106,14 +109,13 @@ class SmartInsightsScreen extends StatelessWidget {
         .length;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Center(child: AppBackButton()),
         ),
         title: Row(
           children: [
@@ -237,17 +239,7 @@ class SmartInsightsScreen extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      decoration: appCardDecoration(),
       child: Column(
         children: [
           Padding(
@@ -428,26 +420,10 @@ class SmartInsightsScreen extends StatelessWidget {
   }
 
   Widget _emptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.lightGrey.withOpacity(0.3),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.bolt_rounded, size: 48, color: AppColors.grey),
-          ),
-          const SizedBox(height: 16),
-          const Text('No products yet',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          Text('Add products to see smart predictions',
-              style: TextStyle(fontSize: 13, color: AppColors.grey)),
-        ],
-      ),
+    return const EmptyState(
+      icon: Icons.bolt_rounded,
+      title: 'No products yet',
+      subtitle: 'Add products to see smart predictions',
     );
   }
 }

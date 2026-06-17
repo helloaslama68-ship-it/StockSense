@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/app_styles.dart';
 import '../../core/colors.dart';
 import '../../providers/log_loss_form_provider.dart';
 import '../../providers/loss_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/app_filter_chip.dart';
 import '../../widgets/app_snack_bar.dart';
 
 class LogLossScreen extends StatefulWidget {
@@ -23,7 +26,6 @@ class _LogLossScreenState extends State<LogLossScreen> {
   @override
   void initState() {
     super.initState();
-    // Reset form state when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<LogLossFormProvider>().reset();
     });
@@ -42,17 +44,9 @@ class _LogLossScreenState extends State<LogLossScreen> {
   }
 
   void _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
+    final picked = await appShowDatePicker(
+      context,
       lastDate: DateTime.now(),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.light(primary: AppColors.goldDark),
-        ),
-        child: child!,
-      ),
     );
     if (picked != null && context.mounted) {
       context.read<LogLossFormProvider>().setIncidentDate(picked);
@@ -61,10 +55,10 @@ class _LogLossScreenState extends State<LogLossScreen> {
 
   void _save(BuildContext context) {
     final p   = context.read<LogLossFormProvider>();
-    if (p.selectedProduct == null) { _snack('Select a product'); return; }
+    if (p.selectedProduct == null)  { _snack('Select a product'); return; }
     final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
-    if (qty <= 0)           { _snack('Enter a valid quantity'); return; }
-    if (p.incidentDate == null) { _snack('Select date of incident'); return; }
+    if (qty <= 0)                   { _snack('Enter a valid quantity'); return; }
+    if (p.incidentDate == null)     { _snack('Select date of incident'); return; }
 
     context.read<LossProvider>().addLoss(
       productId:     p.selectedProduct!.id,
@@ -87,14 +81,11 @@ class _LogLossScreenState extends State<LogLossScreen> {
     return Consumer<LogLossFormProvider>(
       builder: (context, p, _) {
         return Scaffold(
-          backgroundColor: AppColors.backgroundTop,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
-            backgroundColor: AppColors.backgroundTop,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: AppColors.goldDark),
-              onPressed: () => Navigator.pop(context),
-            ),
+            leading: const AppBackButton(),
             title: Text(
               'Log Loss',
               style: TextStyle(
@@ -110,34 +101,18 @@ class _LogLossScreenState extends State<LogLossScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
-                // ── HEADER ────────────────────────────────────────
-                const Text(
-                  'INVENTORY MANAGEMENT',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF888780),
-                    letterSpacing: 1.4,
-                  ),
-                ),
+                // HEADER
+                const Text('INVENTORY MANAGEMENT', style: appPageCategoryStyle),
                 const SizedBox(height: 4),
-                const Text(
-                  'Record Discrepancy',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1A1A),
-                    letterSpacing: -0.5,
-                  ),
-                ),
+                const Text('Record Discrepancy', style: appPageTitleStyle),
 
                 const SizedBox(height: 28),
 
-                // PRODUCT NAME 
-                _label('Product Name'),
+                // PRODUCT NAME
+                const Text('Product Name', style: appFieldLabelStyle),
                 const SizedBox(height: 8),
                 Container(
-                  decoration: _boxDecor(),
+                  decoration: appOutlineBoxDecoration(),
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton(
@@ -160,7 +135,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
 
                 const SizedBox(height: 20),
 
-                //  QUANTITY + DATE ROW 
+                // QUANTITY + DATE ROW
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -168,38 +143,14 @@ class _LogLossScreenState extends State<LogLossScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _label('Quantity Lost'),
+                          const Text('Quantity Lost', style: appFieldLabelStyle),
                           const SizedBox(height: 8),
-                          // ValueListenableBuilder avoids full rebuild on qty typing
                           ValueListenableBuilder<TextEditingValue>(
                             valueListenable: _qtyCtrl,
                             builder: (_, __, ___) => TextField(
                               controller: _qtyCtrl,
                               keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                hintText: '0',
-                                hintStyle: const TextStyle(
-                                    color: Color(0xFFBBB9B4), fontSize: 20),
-                                filled: true,
-                                fillColor: AppColors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                      color: Color(0xFFE0DDD8), width: 1),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                      color: Color(0xFFE0DDD8), width: 1),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                      color: AppColors.goldDark, width: 1.5),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 14),
-                              ),
+                              decoration: appInputDeco('0'),
                             ),
                           ),
                         ],
@@ -210,19 +161,14 @@ class _LogLossScreenState extends State<LogLossScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _label('Date of Incident'),
+                          const Text('Date of Incident', style: appFieldLabelStyle),
                           const SizedBox(height: 8),
                           GestureDetector(
                             onTap: () => _pickDate(context),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 14, vertical: 14),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: const Color(0xFFE0DDD8), width: 1),
-                              ),
+                              decoration: appOutlineBoxDecoration(),
                               child: Text(
                                 p.incidentDate == null
                                     ? 'mm/dd/yyyy'
@@ -244,103 +190,45 @@ class _LogLossScreenState extends State<LogLossScreen> {
 
                 const SizedBox(height: 20),
 
-                //  LOSS TYPE
-                _label('Loss Type'),
+                // LOSS TYPE
+                const Text('Loss Type', style: appFieldLabelStyle),
                 const SizedBox(height: 10),
                 Row(
-                  children: _types.map((t) {
-                    final active = p.lossType == t;
-                    return GestureDetector(
-                      onTap: () => context.read<LogLossFormProvider>().setLossType(t),
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: active ? AppColors.goldDark : AppColors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: active
-                                ? AppColors.goldDark
-                                : const Color(0xFFE0DDD8),
-                          ),
-                        ),
-                        child: Text(
-                          t,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: active ? Colors.white : const Color(0xFF1A1A1A),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                  children: _types.map((t) => AppFilterChip(
+                    label: t,
+                    active: p.lossType == t,
+                    onTap: () => context.read<LogLossFormProvider>().setLossType(t),
+                    margin: const EdgeInsets.only(right: 10),
+                  )).toList(),
                 ),
 
                 const SizedBox(height: 20),
 
-                //  NOTES 
-                _label('Notes'),
+                // NOTES
+                const Text('Notes', style: appFieldLabelStyle),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _notesCtrl,
                   maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: 'Describe the reason for loss...',
-                    hintStyle: const TextStyle(
-                        color: Color(0xFF888780), fontSize: 13),
-                    filled: true,
-                    fillColor: AppColors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: Color(0xFFE0DDD8), width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: Color(0xFFE0DDD8), width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: AppColors.goldDark, width: 1.5),
-                    ),
-                    contentPadding: const EdgeInsets.all(14),
-                  ),
+                  decoration: appInputDeco('Describe the reason for loss...'),
                 ),
 
                 const SizedBox(height: 24),
 
-                // FINANCIAL IMPACT 
-                // ValueListenableBuilder: reacts to qty changes without full rebuild
+                // FINANCIAL IMPACT
                 ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _qtyCtrl,
                   builder: (_, __, ___) => Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                          color: const Color(0xFFE0DDD8), width: 1),
-                    ),
+                    decoration: appOutlineBoxDecoration(radius: 14),
                     child: Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'FINANCIAL IMPACT',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF888780),
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
+                              const Text('FINANCIAL IMPACT', style: appPageCategoryStyle),
                               const SizedBox(height: 6),
                               Text(
                                 'Total Loss Amount: ₹${_totalLoss(p).toStringAsFixed(2)}',
@@ -362,7 +250,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
 
                 const SizedBox(height: 28),
 
-                //  SAVE BUTTON 
+                // SAVE BUTTON
                 SizedBox(
                   width: double.infinity,
                   height: 54,
@@ -395,19 +283,4 @@ class _LogLossScreenState extends State<LogLossScreen> {
       },
     );
   }
-
-  Widget _label(String text) => Text(
-        text,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF1A1A1A),
-        ),
-      );
-
-  BoxDecoration _boxDecor() => BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0DDD8), width: 1),
-      );
 }

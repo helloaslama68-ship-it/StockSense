@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
+import '../../widgets/app_back_button.dart';
 import '../../models/product.dart';
 import '../../providers/stock_recommendation_provider.dart';
 import '../purchase/purchase_screen.dart';
@@ -20,14 +22,13 @@ class StockRecommendationScreen extends StatelessWidget {
     final visible  = provider.visible;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundTop,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Center(child: AppBackButton()),
         ),
         title: Row(children: [
           const Icon(Icons.bolt_rounded, color: AppColors.goldDark, size: 16),
@@ -79,7 +80,7 @@ class StockRecommendationScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // ignore via provider — no setState
+                      
                       onIgnore: () =>
                           context.read<StockRecommendationProvider>()
                               .ignore(visible[i]),
@@ -112,17 +113,7 @@ class _SuggestionCard extends StatelessWidget {
     final hasImage = p.imagePath != null && p.imagePath!.isNotEmpty;
 
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      decoration: appCardDecoration(),
       child: Column(children: [
         Padding(
           padding: const EdgeInsets.all(14),

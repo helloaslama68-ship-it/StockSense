@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colors.dart';
+import '../../widgets/app_back_button.dart';
 import '../../providers/brand_search_provider.dart';
 import '../../providers/inventory_provider.dart';
 import '../../providers/product_provider.dart';
@@ -79,14 +80,14 @@ class ManageBrandsScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => BrandSearchProvider(),
       child: Scaffold(
-        backgroundColor: AppColors.backgroundTop,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: AppColors.backgroundTop,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.goldDark),
-            onPressed: () => Navigator.pop(context),
-          ),
+          leading: const Padding(
+          padding: EdgeInsets.only(left: 12),
+          child: Center(child: AppBackButton()),
+        ),
           title: const Text(
             'Manage Brands',
             style: TextStyle(
