@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'core/colors.dart';
+import 'core/app_theme.dart';
 import 'screens/splash.dart';
 
 // Models
@@ -186,32 +186,9 @@ class StockSenseApp extends StatelessWidget {
 
 
       // THEME
-      themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: AppColors.backgroundTop,
-        primaryColor: AppColors.primary,
-        colorScheme: ColorScheme.light(
-          primary: AppColors.goldDark,
-          secondary: AppColors.goldLight,
-        ),
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppColors.backgroundDark,
-        primaryColor: AppColors.primary,
-        colorScheme: ColorScheme.dark(
-          primary: AppColors.goldLight,
-          secondary: AppColors.goldDark,
-          surface: AppColors.surfaceDark,
-        ),
-        cardColor: AppColors.cardDark,
-        dividerColor: AppColors.dividerDark,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.backgroundDark,
-          foregroundColor: AppColors.white,
-        ),
-      ),
+      themeMode: settings.themeMode,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       home: Splash(),
     );
   }

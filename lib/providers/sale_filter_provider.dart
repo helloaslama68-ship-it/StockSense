@@ -22,7 +22,7 @@ extension SaleSortLabel on SaleSortOption {
 class SaleFilterProvider extends ChangeNotifier {
   static const double kMaxAmount = 99999;
 
-  // ── committed
+  // committed
   SaleSortOption _sortBy = SaleSortOption.newest;
   String _customerQuery = '';
   DateTimeRange? _dateRange;
@@ -37,7 +37,7 @@ class SaleFilterProvider extends ChangeNotifier {
   double get maxAmount => _maxAmount;
   String get channel => _channel;
 
-  // ── draft
+  //  draft
   SaleSortOption draftSortBy = SaleSortOption.newest;
   String draftCustomerQuery = '';
   DateTimeRange? draftDateRange;

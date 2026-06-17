@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 
 /// Transient form state for Add + Edit product screens.
-/// Register as non-persistent provider (do NOT use keepAlive).
+/// Register as non-persistent provider .
 /// Call [initFromProduct] when editing, [reset] when adding.
 class ProductFormProvider extends ChangeNotifier {
   // FIELDS 

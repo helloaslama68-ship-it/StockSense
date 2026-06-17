@@ -30,7 +30,7 @@ import '../scanner/scanner_screen.dart';
 import '../loss/loss_log_screen.dart';
 import 'all_activity_screen.dart';
 
-// ─── NAV DESTINATIONS ────────────────────────────────────────────────────────
+//  NAV DESTINATIONS 
 
 const _kDests = [
   _Dest(icon: Icons.grid_view_rounded,   label: 'Dashboard'),
@@ -45,7 +45,7 @@ class _Dest {
   const _Dest({required this.icon, required this.label});
 }
 
-// ─── ROOT SHELL ───────────────────────────────────────────────────────────────
+//  ROOT SHELL 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -76,8 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
             VerticalDivider(
               width: 1, thickness: 1,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF2C2C2C)
-                  : const Color(0xFFF0EDE8),
+                  ? AppColors.dividerDark
+                  : AppColors.warmWhite,
             ),
             Expanded(child: _screens[navIdx]),
           ],
@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ─── SIDE RAIL (desktop) ──────────────────────────────────────────────────────
+// SIDE RAIL (desktop) 
 
 class _SideRail extends StatelessWidget {
   final int current;
@@ -104,7 +104,7 @@ class _SideRail extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 220,
-      color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+      color: isDark ? AppColors.surfaceDark : AppColors.white,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +124,7 @@ class _SideRail extends StatelessWidget {
                 AppSpacing.hSm,
                 Text('StockSense', style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppColors.nearBlack,
+                  color: isDark ? AppColors.white : AppColors.nearBlack,
                   letterSpacing: -0.5,
                 )),
               ]),
@@ -140,17 +140,17 @@ class _SideRail extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: active ? AppColors.goldDark.withOpacity(0.1) : Colors.transparent,
+                    color: active ? AppColors.goldDark.withOpacity(0.1) : AppColors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(children: [
                     Icon(d.icon, size: 20,
-                      color: active ? AppColors.goldDark : (isDark ? Colors.white38 : const Color(0xFF888780))),
+                      color: active ? AppColors.goldDark : (isDark ? AppColors.white38 : AppColors.charcoalGrey)),
                     AppSpacing.hMd,
                     Text(d.label, style: TextStyle(
                       fontSize: 14,
                       fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                      color: active ? AppColors.goldDark : (isDark ? Colors.white60 : const Color(0xFF444444)),
+                      color: active ? AppColors.goldDark : (isDark ? AppColors.warmGrey : AppColors.darkGrey),
                     )),
                   ]),
                 ),
@@ -163,7 +163,7 @@ class _SideRail extends StatelessWidget {
   }
 }
 
-// ─── BOTTOM NAV (phone/tablet) ────────────────────────────────────────────────
+// BOTTOM NAV 
 
 class _BottomNav extends StatelessWidget {
   final int current;
@@ -176,7 +176,7 @@ class _BottomNav extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+        color: isDark ?  AppColors.surfaceDark : AppColors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -197,7 +197,7 @@ class _BottomNav extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: active ? AppColors.goldDark.withOpacity(0.1) : Colors.transparent,
+                color: active ? AppColors.goldDark.withOpacity(0.1) : AppColors.transparent,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
@@ -206,14 +206,14 @@ class _BottomNav extends StatelessWidget {
                   Icon(d.icon,
                     color: active
                         ? AppColors.goldDark
-                        : (isDark ? Colors.white38 : const Color(0xFFBBBAB6)),
+                        : (isDark ? AppColors.white38 : AppColors.mutedGrey),
                     size: 22),
                   AppSpacing.vXs,
                   Text(d.label, style: TextStyle(
                     fontSize: 10,
                     color: active
                         ? AppColors.goldDark
-                        : (isDark ? Colors.white38 : const Color(0xFFBBBAB6)),
+                        : (isDark ? AppColors.white38 : AppColors.mutedGrey),
                     fontWeight: active ? FontWeight.w700 : FontWeight.w400,
                     letterSpacing: 0.2,
                   )),
@@ -227,7 +227,7 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-// ─── DASHBOARD BODY ───────────────────────────────────────────────────────────
+// DASHBOARD BODY 
 
 class _DashboardBody extends StatelessWidget {
   const _DashboardBody();
@@ -317,7 +317,7 @@ class _DashboardBody extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              // ── TOP BAR ──────────────────────────────────────
+              //  TOP BAR
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -336,12 +336,12 @@ class _DashboardBody extends StatelessWidget {
                   Row(children: [
                     if (!r.isDesktop) ...[
                       _IconBtn(
-                        color: isDark ? const Color(0xFF2C2C2C) : AppColors.white,
+                        color: isDark ? AppColors.dividerDark : AppColors.white,
                         shadow: !isDark,
                         onTap: () => Navigator.push(context,
                             MaterialPageRoute(builder: (_) => const ManageScreen())),
                         child: Icon(Icons.menu_rounded, size: 20,
-                            color: isDark ? Colors.white : AppColors.black),
+                            color: isDark ? AppColors.white : AppColors.black),
                       ),
                       AppSpacing.hSm,
                     ],
@@ -401,7 +401,7 @@ class _DashboardBody extends StatelessWidget {
 
               AppSpacing.vXl,
 
-              // ── GREETING ─────────────────────────────────────
+              //GREETING 
               Consumer<ProfileProvider>(
                 builder: (_, p, __) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,7 +412,7 @@ class _DashboardBody extends StatelessWidget {
                         fontSize: r.sp(22),
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
-                        color: isDark ? Colors.white : AppColors.nearBlack,
+                        color: isDark ? AppColors.white : AppColors.nearBlack,
                       ),
                     ),
                     AppSpacing.vXs,
@@ -420,7 +420,7 @@ class _DashboardBody extends StatelessWidget {
                       "Here's your inventory snapshot.",
                       style: TextStyle(
                           color: isDark
-                              ? Colors.white38
+                              ? AppColors.white38
                               : AppColors.black.withOpacity(0.4),
                           fontSize: r.sp(13)),
                     ),
@@ -430,7 +430,7 @@ class _DashboardBody extends StatelessWidget {
 
               AppSpacing.vLg,
 
-              // ── HERO + STAT GRID ─────────────────────────────
+              //  HERO & STAT GRID
               r.isDesktop
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,7 +448,7 @@ class _DashboardBody extends StatelessWidget {
 
               AppSpacing.vLg,
 
-              // ── QUICK ACTIONS ─────────────────────────────────
+              //  QUICK ACTIONS 
               AppCard(
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
                 child: Column(
@@ -480,29 +480,29 @@ class _DashboardBody extends StatelessWidget {
                         QuickActionButton(
                           iconPath: 'assets/icons/purchaseicon.png',
                           label: 'Purchase',
-                          bgColor: isDark ? const Color(0xFF2C2C2C) : AppColors.creamBg,
+                          bgColor: isDark ? AppColors.dividerDark : AppColors.creamBg,
                           onTap: () => Navigator.push(context,
                               MaterialPageRoute(builder: (_) => const PurchaseListScreen())),
                         ),
                         QuickActionButton(
                           iconPath: 'assets/icons/saleicon.png',
                           label: 'Sales',
-                          bgColor: isDark ? const Color(0xFF2C2C2C) : AppColors.creamBg,
+                          bgColor: isDark ? AppColors.dividerDark : AppColors.creamBg,
                           onTap: () => Navigator.push(context,
                               MaterialPageRoute(builder: (_) => const SalesListScreen())),
                         ),
                         QuickActionButton(
                           iconPath: 'assets/icons/crediticon.png',
                           label: 'Credit',
-                          bgColor: isDark ? const Color(0xFF2C2C2C) : AppColors.creamBg,
+                          bgColor: isDark ? AppColors.dividerDark : AppColors.creamBg,
                           onTap: () => Navigator.push(context,
                               MaterialPageRoute(builder: (_) => const CustomersScreen())),
                         ),
                         QuickActionButton(
                           iconPath: 'assets/icons/barcodeicon .png',
                           label: 'Scan',
-                          bgColor: isDark ? const Color(0xFF2C2C2C) : AppColors.creamBg,
-                          iconColor: isDark ? Colors.white : AppColors.black,
+                          bgColor: isDark ? AppColors.dividerDark : AppColors.creamBg,
+                          iconColor: isDark ? AppColors.white : AppColors.black,
                           onTap: () => Navigator.push(context,
                               MaterialPageRoute(builder: (_) => const ScannerScreen())),
                         ),
@@ -514,7 +514,7 @@ class _DashboardBody extends StatelessWidget {
 
               AppSpacing.vLg,
 
-              // ── PENDING CREDIT ────────────────────────────────
+              //  PENDING CREDIT 
               Consumer<CustomerProvider>(
                 builder: (_, c, __) => GestureDetector(
                   onTap: () => Navigator.push(context,
@@ -524,12 +524,12 @@ class _DashboardBody extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: isDark
                           ? const LinearGradient(
-                              colors: [Color(0xFF2A1F0A), Color(0xFF1E1A0D)],
+                              colors: [AppColors.warmDarkBrown, AppColors.deepBrownBlack],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             )
                           : const LinearGradient(
-                              colors: [Color(0xFFFAEEDA), Color(0xFFFDF6EC)],
+                              colors: [AppColors.warmOrange, AppColors.creamWhite],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -562,7 +562,7 @@ class _DashboardBody extends StatelessWidget {
                             Text('₹${c.totalDue.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontSize: r.sp(20), fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : AppColors.nearBlack,
+                                color: isDark ? AppColors.white : AppColors.nearBlack,
                                 letterSpacing: -0.5,
                               )),
                           ],
@@ -585,7 +585,7 @@ class _DashboardBody extends StatelessWidget {
 
               AppSpacing.vLg,
 
-              // ── SMART PREDICTION ──────────────────────────────
+              // SMART PREDICTION
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -645,7 +645,7 @@ class _DashboardBody extends StatelessWidget {
 
               AppSpacing.vXl,
 
-              // ── RECENT ACTIVITY ───────────────────────────────
+              // RECENT ACTIVITY
               AppSectionLabel(
                 label: 'RECENT ACTIVITY',
                 actionLabel: 'View all activity',
@@ -681,7 +681,7 @@ class _DashboardBody extends StatelessWidget {
 
               AppSpacing.vMd,
 
-              // ── WASTED ITEMS CTA ──────────────────────────────
+              //  WASTED ITEMS 
               GestureDetector(
                 onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const LossLogScreen())),
@@ -691,7 +691,7 @@ class _DashboardBody extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.nearBlack,
                     borderRadius: BorderRadius.circular(14),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
                   ),
                   child: Column(children: [
                     Text('SEE DETAILS OF', style: TextStyle(
@@ -716,7 +716,7 @@ class _DashboardBody extends StatelessWidget {
   }
 }
 
-// ─── REVENUE CARD ─────────────────────────────────────────────────────────────
+// REVENUE CARD
 
 class _RevenueCard extends StatelessWidget {
   final Responsive r;
@@ -786,7 +786,7 @@ class _RevenueCard extends StatelessWidget {
   }
 }
 
-// ─── STAT GRID ────────────────────────────────────────────────────────────────
+//STAT GRID 
 
 class _StatGrid extends StatelessWidget {
   final Responsive r;
@@ -806,11 +806,11 @@ class _StatGrid extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2C2C2C) : AppColors.creamBg,
+                    color: isDark ? AppColors.dividerDark : AppColors.creamBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.inventory_2_rounded,
-                      color: isDark ? Colors.white54 : const Color(0xFF5F5E5A), size: 20),
+                      color: isDark ? AppColors.white54 : AppColors.mutedGrey, size: 20),
                 ),
                 AppSpacing.hLg,
                 Expanded(
@@ -825,7 +825,7 @@ class _StatGrid extends StatelessWidget {
                       Text(p.totalProducts.toString(), style: TextStyle(
                         fontSize: r.sp(22), fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
-                        color: isDark ? Colors.white : AppColors.nearBlack,
+                        color: isDark ? AppColors.white : AppColors.nearBlack,
                       )),
                     ],
                   ),
@@ -859,7 +859,7 @@ class _StatGrid extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2A1212) : AppColors.lightRed,
+                  color: isDark ?  AppColors.backgroundDark: AppColors.lightRed,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: AppColors.darkRed.withOpacity(0.2), width: 1),
                 ),
@@ -892,7 +892,7 @@ class _StatGrid extends StatelessWidget {
                   Positioned(
                     bottom: 0, right: 0,
                     child: Icon(Icons.inventory_2_rounded, size: 44,
-                        color: const Color(0xFFA32D2D).withOpacity(0.08)),
+                        color: AppColors.darkRed.withOpacity(0.08)),
                   ),
                 ]),
               ),
@@ -905,7 +905,7 @@ class _StatGrid extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1F1A08) : const Color(0xFFFFF8EC),
+                  color: isDark ? AppColors.deepBrownBlack :  AppColors.creamWhite,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: AppColors.goldDark.withOpacity(0.2), width: 1),
                 ),
@@ -917,10 +917,10 @@ class _StatGrid extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(color: AppColors.goldDark, borderRadius: BorderRadius.circular(6)),
                         child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.hourglass_bottom_rounded, size: 10, color: Colors.white),
+                          Icon(Icons.hourglass_bottom_rounded, size: 10, color: AppColors.white),
                           SizedBox(width: 3),
                           Text('EXPIRING', style: TextStyle(
-                            fontSize: 9, color: Colors.white,
+                            fontSize: 9, color: AppColors.white,
                             fontWeight: FontWeight.w800, letterSpacing: 0.5,
                           )),
                         ]),
@@ -950,7 +950,7 @@ class _StatGrid extends StatelessWidget {
   }
 }
 
-// ─── SHARED ICON BUTTON ───────────────────────────────────────────────────────
+// SHARED ICON BUTTON 
 
 class _IconBtn extends StatelessWidget {
   final Color color;
@@ -969,7 +969,7 @@ class _IconBtn extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(12),
           boxShadow: shadow
-              ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))]
+              ? [BoxShadow(color: AppColors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))]
               : null,
         ),
         child: child,

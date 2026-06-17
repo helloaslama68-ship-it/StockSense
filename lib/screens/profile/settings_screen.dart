@@ -87,19 +87,11 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // PREFERENCES
-            const AppSectionLabel(label: 'PREFERENCES'),
+            // APPEARANCE
+            const AppSectionLabel(label: 'APPEARANCE'),
             const SizedBox(height: 10),
             _buildCard(context: context, children: [
-              _toggleTile(
-                context: context,
-                icon: Icons.dark_mode_rounded,
-                iconColor: const Color(0xFF5C6BC0),
-                title: 'Dark Mode',
-                subtitle: 'Switch to dark theme',
-                value: settings.darkMode,
-                onChanged: (v) => context.read<SettingsProvider>().setDarkMode(v),
-              ),
+              _themeSelectorTile(context: context, settings: settings),
             ]),
 
             const SizedBox(height: 20),
@@ -130,6 +122,97 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 30),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _themeSelectorTile({
+    required BuildContext context,
+    required SettingsProvider settings,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : AppColors.black;
+
+    const options = [
+      (ThemeMode.light, '☀️', 'Light'),
+      (ThemeMode.dark,  '🌙', 'Dark'),
+      (ThemeMode.system,'📱', 'System'),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 38, height: 38,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF5C6BC0).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.palette_rounded,
+                    color: Color(0xFF5C6BC0), size: 18),
+              ),
+              const SizedBox(width: 14),
+              Text('Theme',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: textPrimary)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: options.map((opt) {
+              final (mode, emoji, label) = opt;
+              final selected = settings.themeMode == mode;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: GestureDetector(
+                    onTap: () => context.read<SettingsProvider>().setThemeMode(mode),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.goldDark.withOpacity(isDark ? 0.25 : 0.12)
+                            : (isDark
+                                ? const Color(0xFF2C2C2C)
+                                : AppColors.lightGrey.withOpacity(0.4)),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.goldDark
+                              : Colors.transparent,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(emoji, style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 4),
+                          Text(label,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: selected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: selected
+                                    ? AppColors.goldDark
+                                    : AppColors.warmGrey,
+                              )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

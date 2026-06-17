@@ -49,7 +49,7 @@ InputDecoration appInputDeco(String hint) => InputDecoration(
 BoxDecoration appCardDecoration({double radius = 16, BuildContext? context}) {
   final isDark = context != null &&
       Theme.of(context).brightness == Brightness.dark;
-  final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
+  final cardColor = isDark ? AppColors.surfaceDark: AppColors.white;
   return BoxDecoration(
     color: cardColor,
     borderRadius: BorderRadius.circular(radius),
@@ -98,10 +98,10 @@ BoxDecoration appOutlineBoxDecoration({double radius = 12, BuildContext? context
   final isDark = context != null &&
       Theme.of(context).brightness == Brightness.dark;
   return BoxDecoration(
-    color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+    color: isDark ?  AppColors.surfaceDark : AppColors.white,
     borderRadius: BorderRadius.circular(radius),
     border: Border.all(
-      color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE0DDD8),
+      color: isDark ? AppColors.dividerDark : AppColors.warmSurface,
       width: 1,
     ),
   );
@@ -132,21 +132,21 @@ Future<DateTime?> appShowDatePicker(
 const TextStyle appPageTitleStyle = TextStyle(
   fontSize: 26,
   fontWeight: FontWeight.w800,
-  color: Color(0xFF1A1A1A),
+  color: AppColors.nearBlack,
   letterSpacing: -0.5,
 );
 
 const TextStyle appPageCategoryStyle = TextStyle(
   fontSize: 10,
   fontWeight: FontWeight.w700,
-  color: Color(0xFF888780),
+  color: AppColors.charcoalGrey,
   letterSpacing: 1.4,
 );
 
 const TextStyle appFieldLabelStyle = TextStyle(
   fontSize: 13,
   fontWeight: FontWeight.w600,
-  color: Color(0xFF1A1A1A),
+  color: AppColors.nearBlack,
 );
 
 // UNIT CONSTANTS

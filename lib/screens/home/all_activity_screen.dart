@@ -59,8 +59,8 @@ class AllActivityScreen extends StatelessWidget {
     ),
     _ActivityItem(
       icon: Icons.person_add_rounded,
-      iconBg: Color(0xFFEAF0FF),
-      iconColor: Color(0xFF3B5BDB),
+      iconBg: AppColors.paleBlue,
+      iconColor: AppColors.royalBlue,
       title: 'Customer Added',
       subtitle: 'Ravi Kumar',
       time: '2 days ago',
@@ -68,8 +68,8 @@ class AllActivityScreen extends StatelessWidget {
     ),
     _ActivityItem(
       icon: Icons.account_balance_wallet_rounded,
-      iconBg: Color(0xFFFAEEDA),
-      iconColor: Color(0xFF854F0B),
+      iconBg: AppColors.warmOrange,
+      iconColor: AppColors.brownGold,
       title: 'Payment Recorded',
       subtitle: 'Priya Stores · ₹500',
       time: '2 days ago',

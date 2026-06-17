@@ -72,12 +72,12 @@ class AlertsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: active
                                 ? AppColors.goldDark
-                                : (isDark ? const Color(0xFF1E1E1E) : AppColors.white),
+                                : (isDark ? AppColors.surfaceDark : AppColors.white),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: active
                                   ? AppColors.goldDark
-                                  : (isDark ? const Color(0xFF3C3C3C) : AppColors.lightGrey),
+                                  : (isDark ? AppColors.darkGrey2 : AppColors.lightGrey),
                             ),
                           ),
                           child: Text(tab,
@@ -86,7 +86,7 @@ class AlertsScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                   color: active
                                       ? AppColors.white
-                                      : (isDark ? Colors.white54 : AppColors.grey))),
+                                      : (isDark ? AppColors.white54 : AppColors.grey))),
                         ),
                       );
                     },
@@ -130,7 +130,7 @@ class _LowStockCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+        color: isDark ? AppColors.surfaceDark : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border(left: BorderSide(color: AppColors.darkRed, width: 3)),
         boxShadow: [
@@ -146,7 +146,7 @@ class _LowStockCard extends StatelessWidget {
         const SizedBox(height: 6),
         Text(product.name,
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black)),
+                color: isDark ? AppColors.white : AppColors.black)),
         const SizedBox(height: 8),
         Row(children: [
           Icon(Icons.inventory_2_rounded, color: AppColors.grey, size: 14),
@@ -191,7 +191,7 @@ class _ExpiryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+        color: isDark ? AppColors.surfaceDark : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border(left: BorderSide(color: borderColor, width: 3)),
         boxShadow: [
@@ -207,7 +207,7 @@ class _ExpiryCard extends StatelessWidget {
         const SizedBox(height: 6),
         Text(product.name,
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black)),
+                color: isDark ? AppColors.white : AppColors.black)),
         const SizedBox(height: 8),
         Row(children: [
           Icon(isExpired ? Icons.cancel_rounded : Icons.access_time_rounded, color: badgeColor, size: 14),
@@ -221,12 +221,12 @@ class _ExpiryCard extends StatelessWidget {
               height: 42,
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: isDark ? const Color(0xFF3C3C3C) : AppColors.lightGrey, width: 1.5),
+                  side: BorderSide(color: isDark ? AppColors.darkGrey2: AppColors.lightGrey, width: 1.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: () {},
                 child: Text('Details',
-                    style: TextStyle(color: isDark ? Colors.white70 : AppColors.black, fontWeight: FontWeight.w600)),
+                    style: TextStyle(color: isDark ? AppColors.white70 : AppColors.black, fontWeight: FontWeight.w600)),
               ),
             ),
           ),
@@ -265,11 +265,11 @@ class _CreditCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+        color: isDark ? AppColors.surfaceDark : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border(left: BorderSide(color: AppColors.purple, width: 3)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(isDark ? 0.0 : 0.04), blurRadius: 8, offset: const Offset(0, 2))
+          BoxShadow(color: AppColors.black.withOpacity(isDark ? 0.0 : 0.04), blurRadius: 8, offset: const Offset(0, 2))
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -280,7 +280,7 @@ class _CreditCard extends StatelessWidget {
         ]),
         const SizedBox(height: 6),
         Text(name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black)),
+            color: isDark ? AppColors.white : AppColors.black)),
         const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Row(children: [

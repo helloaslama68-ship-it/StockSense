@@ -24,7 +24,7 @@ class InventoryScreen extends StatelessWidget {
     final result = await showModalBottomSheet<InventoryFilter>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (_) => DraggableScrollableSheet(
         initialChildSize: 0.85,
         minChildSize: 0.5,
@@ -110,12 +110,12 @@ class _InventoryHeader extends StatelessWidget {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.filter_alt_rounded, size: 12, color: Colors.white),
+                    Icon(Icons.filter_alt_rounded, size: 12, color: AppColors.white),
                     SizedBox(width: 4),
                     Text('Filtered',
                         style: TextStyle(
                             fontSize: 11,
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.3)),
                   ],
@@ -142,7 +142,7 @@ class _InventoryHeader extends StatelessWidget {
   }
 }
 
-// STATS STRIP (uses gradient — looks fine in both modes)
+// STATS STRIP 
 
 class _StatsStrip extends StatelessWidget {
   const _StatsStrip();
@@ -621,7 +621,7 @@ Widget _productImage({String? imagePath, double size = 64, double radius = 10, b
   return Container(
     width: size, height: size,
     decoration: BoxDecoration(
-      color: isDark ? const Color(0xFF2C2C2C) : AppColors.backgroundTop,
+      color: isDark ? AppColors.dividerDark : AppColors.backgroundTop,
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: AppColors.goldLight.withOpacity(0.2), width: 1),
     ),

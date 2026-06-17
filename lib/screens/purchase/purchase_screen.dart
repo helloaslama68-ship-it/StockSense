@@ -33,7 +33,7 @@ class PurchaseScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<PurchaseFormProvider>(),
         child: _AddItemSheet(

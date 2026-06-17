@@ -13,8 +13,33 @@ class SettingsProvider extends ChangeNotifier {
   bool get creditDueAlerts =>
       _box.get('creditDueAlerts', defaultValue: false) as bool;
 
-  bool get darkMode =>
-      _box.get('darkMode', defaultValue: false) as bool;
+  /// 'light' | 'dark' | 'system'
+  String get _themeModeKey =>
+      _box.get('themeMode', defaultValue: 'system') as String;
+
+  ThemeMode get themeMode {
+    switch (_themeModeKey) {
+      case 'dark':
+        return ThemeMode.dark;
+      case 'light':
+        return ThemeMode.light;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  
+  bool get darkMode => _themeModeKey == 'dark';
+
+  void setThemeMode(ThemeMode mode) {
+    final key = mode == ThemeMode.dark
+        ? 'dark'
+        : mode == ThemeMode.light
+            ? 'light'
+            : 'system';
+    _box.put('themeMode', key);
+    notifyListeners();
+  }
 
   void setLowStockAlerts(bool value) {
     _box.put('lowStockAlerts', value);
@@ -31,8 +56,6 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setDarkMode(bool value) {
-    _box.put('darkMode', value);
-    notifyListeners();
-  }
+  /// Legacy compat
+  void setDarkMode(bool value) => setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
 }

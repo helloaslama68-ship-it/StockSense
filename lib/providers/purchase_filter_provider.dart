@@ -26,7 +26,7 @@ extension PurchaseSortLabel on PurchaseSortOption {
 class PurchaseFilterProvider extends ChangeNotifier {
   static const double kMaxAmount = 99999;
 
-  // ── committed state (drives the list)
+  
   PurchaseSortOption _sortBy = PurchaseSortOption.newest;
   String _supplierQuery = '';
   DateTimeRange? _dateRange;
@@ -39,7 +39,7 @@ class PurchaseFilterProvider extends ChangeNotifier {
   double get minAmount => _minAmount;
   double get maxAmount => _maxAmount;
 
-  // ── draft state (lives in sheet, no setState needed)
+  // 
   PurchaseSortOption draftSortBy = PurchaseSortOption.newest;
   String draftSupplierQuery = '';
   DateTimeRange? draftDateRange;
@@ -102,7 +102,7 @@ class PurchaseFilterProvider extends ChangeNotifier {
     return c;
   }
 
-  // ── committed helpers
+  
   bool get isActive =>
       _sortBy != PurchaseSortOption.newest ||
       _supplierQuery.isNotEmpty ||
