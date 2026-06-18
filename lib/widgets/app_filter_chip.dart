@@ -28,12 +28,12 @@ class AppFilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: active
               ? AppColors.goldDark
-              : (isDark ? const Color(0xFF2C2C2C) : AppColors.white),
+              : (isDark ? AppColors.dividerDark : AppColors.white),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: active
                 ? AppColors.goldDark
-                : (isDark ? const Color(0xFF3C3C3C) : const Color(0xFFE0DDD8)),
+                : (isDark ? AppColors.darkGrey2 : AppColors.warmSurface),
           ),
         ),
         child: Text(
@@ -42,8 +42,8 @@ class AppFilterChip extends StatelessWidget {
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: active
-                ? Colors.white
-                : (isDark ? Colors.white70 : const Color(0xFF1A1A1A)),
+                ? AppColors.white
+                : (isDark ? AppColors.white70 : AppColors.nearBlack),
           ),
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/colors.dart';
 
 
 class AppConfirmDialog {
@@ -25,7 +26,7 @@ class AppConfirmDialog {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               deleteLabel,
-              style: const TextStyle(color: Color(0xFFA32D2D)),
+              style: const TextStyle(color: AppColors.darkRed),
             ),
           ),
         ],

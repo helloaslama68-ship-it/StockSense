@@ -224,7 +224,7 @@ class _DatePickerField extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black)),
+                      color: AppColors.black)),
             ),
             Icon(Icons.calendar_today_rounded,
                 size: 16, color: AppColors.goldDark),

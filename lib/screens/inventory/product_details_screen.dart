@@ -36,14 +36,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       final expiry = DateTime.tryParse(p.expiryDate!);
       if (expiry != null) {
         final days = expiry.difference(DateTime.now()).inDays;
-        if (days < 0)  return {'label': 'EXPIRED',     'color': Colors.red};
-        if (days <= 3) return {'label': 'NEAR EXPIRY', 'color': Colors.orange};
+        if (days < 0)  return {'label': 'EXPIRED',     'color': AppColors.red};
+        if (days <= 3) return {'label': 'NEAR EXPIRY', 'color': AppColors.orange};
       }
     }
     if (p.quantity == 0)
-      return {'label': 'OUT OF STOCK', 'color': Colors.red};
+      return {'label': 'OUT OF STOCK', 'color': AppColors.red};
     if (p.quantity <= p.lowStockThreshold)
-      return {'label': 'LOW STOCK', 'color': Colors.orange};
+      return {'label': 'LOW STOCK', 'color': AppColors.orange};
     return null;
   }
 
@@ -66,7 +66,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel',
-                style: TextStyle(color: Colors.grey)),
+                style: TextStyle(color: AppColors.grey)),
           ),
           TextButton(
             onPressed: () {
@@ -165,7 +165,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.12),
+                              color: AppColors.black.withOpacity(0.12),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),

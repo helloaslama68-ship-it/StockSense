@@ -36,7 +36,7 @@ class PurchaseListScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<PurchaseFilterProvider>(),
         child: const PurchaseFilterSheet(),
@@ -58,7 +58,7 @@ class PurchaseListScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ── HEADER
+            //HEADER
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
@@ -85,7 +85,7 @@ class PurchaseListScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
+                            color: AppColors.black.withOpacity(0.06),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -98,7 +98,7 @@ class PurchaseListScreen extends StatelessWidget {
                             Icons.tune_rounded,
                             size: 20,
                             color: filterCount > 0
-                                ? Colors.white
+                                ? AppColors.white
                                 : AppColors.goldDark,
                           ),
                           if (filterCount > 0)
@@ -116,7 +116,7 @@ class PurchaseListScreen extends StatelessWidget {
                                   child: Text('$filterCount',
                                       style: const TextStyle(
                                           fontSize: 9,
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           fontWeight: FontWeight.bold)),
                                 ),
                               ),
@@ -137,7 +137,7 @@ class PurchaseListScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── MONTHLY TOTAL CARD
+                    // MONTHLY TOTAL CARD
                     AppCard(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -183,7 +183,7 @@ class PurchaseListScreen extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    // ── SECTION HEADER
+                    // SECTION HEADER
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -219,13 +219,13 @@ class PurchaseListScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // ── ACTIVE FILTER CHIPS
+                    // ACTIVE FILTER CHIPS
                     if (filterCount > 0) ...[
                       _ActiveFilterChips(provider: filterProvider),
                       const SizedBox(height: 12),
                     ],
 
-                    // ── PURCHASE TILES
+                    // PURCHASE TILES
                     if (purchases.isEmpty)
                       EmptyState(
                         icon: Icons.receipt_long_outlined,
@@ -253,7 +253,7 @@ class PurchaseListScreen extends StatelessWidget {
         ),
         backgroundColor: AppColors.goldDark,
         elevation: 4,
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+        child: const Icon(Icons.add_rounded, color: AppColors.white, size: 28),
       ),
     );
   }
@@ -272,7 +272,7 @@ class PurchaseListScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: AppColors.black.withOpacity(0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -398,7 +398,7 @@ class PurchaseListScreen extends StatelessWidget {
   }
 }
 
-// ── Active filter pills shown below section header
+// Active filter pills shown below section header
 class _ActiveFilterChips extends StatelessWidget {
   final PurchaseFilterProvider provider;
   const _ActiveFilterChips({required this.provider});

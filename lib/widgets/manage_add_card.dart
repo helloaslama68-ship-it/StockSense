@@ -23,11 +23,11 @@ class ManageAddCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+          color: isDark ? AppColors.surfaceDark : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
+              color: AppColors.black.withOpacity(isDark ? 0.0 : 0.05),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -41,7 +41,7 @@ class ManageAddCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white54 : AppColors.grey,
+                color: isDark ? AppColors.white54 : AppColors.grey,
                 letterSpacing: 1.2,
               ),
             ),
@@ -52,14 +52,14 @@ class ManageAddCard extends StatelessWidget {
                   controller: controller,
                   textCapitalization: TextCapitalization.words,
                   onSubmitted: (_) => onAdd(),
-                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                  style: TextStyle(color: isDark ? AppColors.white : AppColors.black),
                   decoration: InputDecoration(
                     hintText: hintText,
                     hintStyle: TextStyle(
-                        color: isDark ? Colors.white38 : AppColors.grey,
+                        color: isDark ? AppColors.white38 : AppColors.grey,
                         fontSize: 14),
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF2C2C2C) : AppColors.backgroundTop,
+                    fillColor: isDark ? AppColors.dividerDark: AppColors.backgroundTop,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
@@ -86,7 +86,7 @@ class ManageAddCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.add_rounded,
-                      color: Colors.white, size: 22),
+                      color: AppColors.white, size: 22),
                 ),
               ),
             ]),

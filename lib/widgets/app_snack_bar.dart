@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/colors.dart';
 
-/// Snackbar helpers. No instantiation needed — all static.
+/// Snackbar helpers. 
 ///
 /// Usage:
 ///   AppSnackBar.success(context, 'Product saved!');

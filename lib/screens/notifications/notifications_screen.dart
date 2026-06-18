@@ -135,7 +135,7 @@ class NotificationsScreen extends StatelessWidget {
                   color: (config['color'] as Color).withOpacity(0.2)),
           boxShadow: [
   BoxShadow(
-    color: Colors.black.withOpacity(
+    color: AppColors.black.withOpacity(
       Theme.of(context).brightness == Brightness.dark
           ? 0.25
           : 0.03,

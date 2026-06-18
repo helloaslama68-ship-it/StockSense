@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/colors.dart';
 
 class QuickActionButton extends StatelessWidget {
   final String       iconPath;
@@ -41,7 +42,7 @@ class QuickActionButton extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize:      10,
-            color:         isDark ? Colors.white54 : const Color(0xFF555452),
+            color:         isDark ? AppColors.white54 : AppColors.darkGrey,
             fontWeight:    FontWeight.w500,
             letterSpacing: 0.1,
           ),

@@ -87,6 +87,7 @@ class AppColors {
   
 
   static const Color purple = Color(0xFF6C4AB6);
+  static const Color primaryColor = Color(0xFF5C6BC0);
 
   
   // ORANGE

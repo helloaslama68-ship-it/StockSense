@@ -45,8 +45,8 @@ class PurchaseReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
-    final shadowColor = Colors.black.withOpacity(isDark ? 0.0 : 0.04);
+    final cardColor = isDark ? AppColors.surfaceDark : AppColors.white;
+    final shadowColor = AppColors.black.withOpacity(isDark ? 0.0 : 0.04);
 
     final purchaseProvider = context.watch<PurchaseProvider>();
     final filterProvider = context.watch<PurchaseFilterProvider>();
@@ -101,13 +101,13 @@ class PurchaseReportScreen extends StatelessWidget {
                           color: filterCount > 0
                               ? AppColors.goldDark
                               : isDark
-                                  ? const Color(0xFF3A3A3A)
-                                  : const Color(0xFFE0DDD8),
+                                  ? AppColors.surfaceDark2
+                                  : AppColors.creamBg,
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
+                            color: AppColors.black.withOpacity(isDark ? 0.0 : 0.05),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -180,7 +180,7 @@ class PurchaseReportScreen extends StatelessWidget {
                     // SUMMARY ROW
                     Row(
                       children: [
-                        // Gold card — total spent (intentionally always gold, fine)
+                        // Gold card 
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(16),
@@ -237,7 +237,7 @@ class PurchaseReportScreen extends StatelessWidget {
 
                         const SizedBox(width: 12),
 
-                        // Right column — dark-aware cards
+                        // Right column 
                         Expanded(
                           child: Column(
                             children: [
@@ -431,7 +431,7 @@ class _PurchaseTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.0 : 0.04),
+            color: AppColors.black.withOpacity(isDark ? 0.0 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

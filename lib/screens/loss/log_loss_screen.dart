@@ -176,8 +176,8 @@ class _LogLossScreenState extends State<LogLossScreen> {
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: p.incidentDate == null
-                                      ? const Color(0xFFBBB9B4)
-                                      : const Color(0xFF1A1A1A),
+                                      ? AppColors.warmGrey
+                                      : AppColors.nearBlack,
                                 ),
                               ),
                             ),
@@ -242,7 +242,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
                           ),
                         ),
                         const Icon(Icons.account_balance_wallet_outlined,
-                            color: Color(0xFFE0DDD8), size: 36),
+                            color: AppColors.warmSurface, size: 36),
                       ],
                     ),
                   ),
@@ -257,11 +257,11 @@ class _LogLossScreenState extends State<LogLossScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () => _save(context),
                     icon: const Icon(Icons.save_rounded,
-                        color: Colors.white, size: 18),
+                        color: AppColors.white, size: 18),
                     label: const Text(
                       'Save Loss Record',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
                       ),

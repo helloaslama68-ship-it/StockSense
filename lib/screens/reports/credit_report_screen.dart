@@ -11,8 +11,8 @@ class CreditReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
-    final shadowColor = Colors.black.withOpacity(isDark ? 0.0 : 0.04);
+    final cardColor = isDark ? AppColors.surfaceDark: AppColors.white;
+    final shadowColor = AppColors.black.withOpacity(isDark ? 0.0 : 0.04);
 
     final provider = context.watch<CustomerProvider>();
     final customers = provider.customers;
@@ -66,8 +66,8 @@ class CreditReportScreen extends StatelessWidget {
 
               const SizedBox(height: 4),
 
-              // theme-aware title — appPageTitleStyle has hardcoded 0xFF1A1A1A,
-              // so we override color here
+              
+              
               Text(
                 'Customer Credit',
                 style: TextStyle(
@@ -126,14 +126,14 @@ class CreditReportScreen extends StatelessWidget {
                               const SizedBox(width: 4),
                               _Bar(
                                 color: isDark
-                                    ? const Color(0xFF3A3A3A)
+                                    ? AppColors.surfaceDark2
                                     : AppColors.lightGrey,
                                 width: 18,
                               ),
                               const SizedBox(width: 4),
                               _Bar(
                                 color: isDark
-                                    ? const Color(0xFF3A3A3A)
+                                    ? AppColors.surfaceDark2
                                     : AppColors.lightGrey,
                                 width: 12,
                               ),
@@ -146,7 +146,7 @@ class CreditReportScreen extends StatelessWidget {
 
                   const SizedBox(width: 12),
 
-                  // Total Collected — gold card, intentionally always gold
+                  // Total Collected 
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(14),
@@ -345,7 +345,7 @@ class _CustomerCreditRow extends StatelessWidget {
                 : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.0 : 0.04),
+            color: AppColors.black.withOpacity(isDark ? 0.0 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

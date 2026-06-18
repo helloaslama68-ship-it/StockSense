@@ -28,8 +28,8 @@ class AppInputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fillColor = isDark ? const Color(0xFF2C2C2C) : AppColors.backgroundBottom;
-    final textColor = isDark ? Colors.white : Colors.black;
+    final fillColor = isDark ? AppColors.dividerDark : AppColors.backgroundBottom;
+    final textColor = isDark ? AppColors.white : AppColors.black;
 
     return TextFormField(
       controller: controller,
@@ -73,10 +73,10 @@ class AppInputField extends StatelessWidget {
             borderSide: BorderSide(color: AppColors.goldDark, width: 1.5)),
         errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.red, width: 1)),
+            borderSide: const BorderSide(color: AppColors.red, width: 1)),
         focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.red, width: 1.5)),
+            borderSide: const BorderSide(color: AppColors.red, width: 1.5)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       ),

@@ -62,9 +62,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = Theme.of(context).scaffoldBackgroundColor;
-    final textPrimary = isDark ? Colors.white : AppColors.black;
-    final textSecondary = isDark ? const Color(0xFF9E9E9E) : AppColors.grey;
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textPrimary = isDark ? AppColors.white : AppColors.black;
+    final textSecondary = isDark ? AppColors.warmGrey : AppColors.grey;
+    final cardColor = isDark ? AppColors.surfaceDark: AppColors.white;
 
     return Scaffold(
       backgroundColor: bg,
@@ -93,7 +93,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 color: cardColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isDark ? Colors.white12 : AppColors.lightGrey,
+                  color: isDark ? AppColors.white38 : AppColors.lightGrey,
                 ),
               ),
               child: TextField(
@@ -144,7 +144,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color:
-                              isDark ? Colors.white12 : AppColors.lightGrey,
+                              isDark ? AppColors.white38 : AppColors.lightGrey,
                         ),
                       ),
                       child: Column(
@@ -163,7 +163,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                                 Divider(
                                   height: 1,
                                   color: isDark
-                                      ? Colors.white12
+                                      ? AppColors.white38
                                       : AppColors.lightGrey,
                                   indent: 16,
                                   endIndent: 16,

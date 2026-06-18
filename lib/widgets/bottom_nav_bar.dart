@@ -13,11 +13,11 @@ class BottomNavBar extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.09),
+            color: AppColors.black.withOpacity(0.09),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -58,14 +58,14 @@ class _NavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? AppColors.goldDark.withOpacity(0.1) : Colors.transparent,
+          color: active ? AppColors.goldDark.withOpacity(0.1) : AppColors.transparent,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon,
-              color: active ? AppColors.goldDark : const Color(0xFFBBBAB6),
+              color: active ? AppColors.goldDark : AppColors.mutedGrey,
               size: 22,
             ),
             const SizedBox(height: 4),
@@ -73,7 +73,7 @@ class _NavItem extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize:      10,
-                color:         active ? AppColors.goldDark : const Color(0xFFBBBAB6),
+                color:         active ? AppColors.goldDark : AppColors.mutedGrey,
                 fontWeight:    active ? FontWeight.w700 : FontWeight.w400,
                 letterSpacing: 0.2,
               ),

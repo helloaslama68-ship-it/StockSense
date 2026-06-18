@@ -93,7 +93,7 @@ class SalesReportScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ── HEADER
+            // HEADER
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
@@ -179,7 +179,7 @@ class SalesReportScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── TOTAL SALES HERO CARD
+                      // TOTAL SALES HERO CARD
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
@@ -288,7 +288,7 @@ class SalesReportScreen extends StatelessWidget {
 
                       const SizedBox(height: 12),
 
-                      // ── TRANSACTIONS + AVG TICKET
+                      // TRANSACTIONS + AVG TICKET
                       Row(
                         children: [
                           Expanded(
@@ -311,7 +311,7 @@ class SalesReportScreen extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── WEEKLY VELOCITY
+                      // WEEKLY VELOCITY
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: appCardDecoration(),
@@ -433,7 +433,7 @@ class SalesReportScreen extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── DAILY BREAKDOWN
+                      // DAILY BREAKDOWN
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -532,7 +532,7 @@ class SalesReportScreen extends StatelessWidget {
   }
 }
 
-// ── STAT CARD
+// STAT CARD
 
 class _StatCard extends StatelessWidget {
   final String label;
@@ -578,7 +578,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ── DAILY ROW
+// DAILY ROW
 
 class _DailyRow extends StatelessWidget {
   final _DaySummary summary;
@@ -606,7 +606,7 @@ class _DailyRow extends StatelessWidget {
         border: isLast
             ? null
             : const Border(
-                bottom: BorderSide(color: Color(0xFFF1EFE8), width: 1)),
+                bottom: BorderSide(color: AppColors.creamBg, width: 1)),
       ),
       child: Row(
         children: [
@@ -675,7 +675,7 @@ class _DailyRow extends StatelessWidget {
   }
 }
 
-// ── DATA CLASSES
+// DATA CLASSES
 
 class _DayBar {
   final DateTime day;

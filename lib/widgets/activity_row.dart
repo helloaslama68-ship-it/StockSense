@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/colors.dart';
 
 class ActivityRow extends StatelessWidget {
   final IconData icon;
@@ -34,7 +35,7 @@ class ActivityRow extends StatelessWidget {
             ? null
             : Border(
                 bottom: BorderSide(
-                  color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1EFE8),
+                  color: isDark ?AppColors.dividerDark : AppColors.creamBg,
                   width: 1,
                 ),
               ),
@@ -55,12 +56,12 @@ class ActivityRow extends StatelessWidget {
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: isDark ? Colors.white : const Color(0xFF1A1A1A))),
+                    color: isDark ? AppColors.white : AppColors.nearBlack)),
             const SizedBox(height: 2),
             Text(subtitle,
                 style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFFAAAAAA) : const Color(0xFF888780))),
+                    color: isDark ? AppColors.midGrey : AppColors.charcoalGrey)),
           ]),
         ),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -70,12 +71,12 @@ class ActivityRow extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFFFCEBEB),
+                color: AppColors.lightRed,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(badge!,
                   style: const TextStyle(
-                      fontSize: 10, color: Color(0xFFA32D2D), fontWeight: FontWeight.w700)),
+                      fontSize: 10, color: AppColors.darkRed, fontWeight: FontWeight.w700)),
             ),
           ],
         ]),

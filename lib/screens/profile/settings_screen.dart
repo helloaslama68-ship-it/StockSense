@@ -15,8 +15,8 @@ class SettingsScreen extends StatelessWidget {
     final settings = context.watch<SettingsProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = Theme.of(context).scaffoldBackgroundColor;
-    final textPrimary = isDark ? Colors.white : AppColors.black;
-    final textSecondary = isDark ? const Color(0xFF9E9E9E) : AppColors.grey;
+    final textPrimary = isDark ? AppColors.white : AppColors.black;
+    final textSecondary = isDark ? AppColors.warmGrey: AppColors.grey;
 
     return Scaffold(
       backgroundColor: bg,
@@ -131,7 +131,7 @@ class SettingsScreen extends StatelessWidget {
     required SettingsProvider settings,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? Colors.white : AppColors.black;
+    final textPrimary = isDark ? AppColors.white : AppColors.black;
 
     const options = [
       (ThemeMode.light, '☀️', 'Light'),
@@ -149,11 +149,11 @@ class SettingsScreen extends StatelessWidget {
               Container(
                 width: 38, height: 38,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF5C6BC0).withOpacity(0.1),
+                  color: AppColors.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.palette_rounded,
-                    color: Color(0xFF5C6BC0), size: 18),
+                    color: AppColors.primaryColor, size: 18),
               ),
               const SizedBox(width: 14),
               Text('Theme',
@@ -180,13 +180,13 @@ class SettingsScreen extends StatelessWidget {
                         color: selected
                             ? AppColors.goldDark.withOpacity(isDark ? 0.25 : 0.12)
                             : (isDark
-                                ? const Color(0xFF2C2C2C)
+                                ? AppColors.dividerDark
                                 : AppColors.lightGrey.withOpacity(0.4)),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: selected
                               ? AppColors.goldDark
-                              : Colors.transparent,
+                              : AppColors.transparent,
                           width: 1.5,
                         ),
                       ),
@@ -234,7 +234,7 @@ class SettingsScreen extends StatelessWidget {
     required ValueChanged<bool> onChanged,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? Colors.white : AppColors.black;
+    final textPrimary = isDark ? AppColors.white : AppColors.black;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -290,7 +290,7 @@ class SettingsScreen extends StatelessWidget {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.black)),
+                  color: isDark ? AppColors.white : AppColors.black)),
           Text(trailing,
               style: TextStyle(
                   fontSize: 13,
@@ -319,7 +319,7 @@ class SettingsScreen extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : AppColors.black)),
+                    color: isDark ? AppColors.white : AppColors.black)),
             Icon(Icons.open_in_new_rounded,
                 color: AppColors.grey, size: 18),
           ],
@@ -335,7 +335,7 @@ class SettingsScreen extends StatelessWidget {
       indent: 70,
       endIndent: 16,
       color: isDark
-          ? const Color(0xFF2C2C2C)
+          ?  AppColors.dividerDark
           : AppColors.lightGrey.withOpacity(0.5),
     );
   }

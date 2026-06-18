@@ -117,8 +117,8 @@ class ReportsScreen extends StatelessWidget {
 
                   _GridReportCard(
                     icon: Icons.inventory_2_rounded,
-                    iconColor: Colors.blue,
-                    bgColor: Colors.blue.withOpacity(0.08),
+                    iconColor: AppColors.blue,
+                    bgColor: AppColors.blue.withOpacity(0.08),
                     title: 'Stock Report',
                     subtitle: 'Real-time availability and warehouse mapping.',
                     isDark: isDark,
@@ -132,8 +132,8 @@ class ReportsScreen extends StatelessWidget {
 
                   _GridReportCard(
                     icon: Icons.credit_card_rounded,
-                    iconColor: Colors.purple,
-                    bgColor: Colors.purple.withOpacity(0.08),
+                    iconColor: AppColors.purple,
+                    bgColor: AppColors.purple.withOpacity(0.08),
                     title: 'Credit Report',
                     subtitle: 'Outstanding balances and payment aging.',
                     isDark: isDark,
@@ -192,7 +192,7 @@ class _FeaturedReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
+    final cardColor = isDark ? AppColors.surfaceDark : AppColors.white;
 
     return GestureDetector(
       onTap: onTap,
@@ -204,7 +204,7 @@ class _FeaturedReportCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
+              color: AppColors.black.withOpacity(isDark ? 0.0 : 0.05),
               blurRadius: 15,
               offset: const Offset(0, 4),
             ),
@@ -289,7 +289,7 @@ class _GridReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
+    final cardColor = isDark ? AppColors.surfaceDark : AppColors.white;
 
     return GestureDetector(
       onTap: onTap,
@@ -305,7 +305,7 @@ class _GridReportCard extends StatelessWidget {
               : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.0 : 0.04),
+              color: AppColors.black.withOpacity(isDark ? 0.0 : 0.04),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),

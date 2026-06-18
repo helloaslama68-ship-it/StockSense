@@ -17,10 +17,10 @@ class LossLogScreen extends StatelessWidget {
   const LossLogScreen({super.key});
 
   static const _reasonMeta = {
-    'damaged': (label: 'Damaged', color: Color(0xFF185FA5), bg: Color(0xFFE6F1FB)),
-    'spoiled': (label: 'Spoiled', color: Color(0xFF3B6D11), bg: Color(0xFFE8F5E9)),
-    'expired': (label: 'Expired', color: Color(0xFFA32D2D), bg: Color(0xFFFCEBEB)),
-    'other':   (label: 'Other',   color: Color(0xFF888780), bg: Color(0xFFF1EFE8)),
+    'damaged': (label: 'Damaged', color: AppColors.darkBlue2, bg: AppColors.lightBlue),
+    'spoiled': (label: 'Spoiled', color: AppColors.forestGreen, bg: AppColors.lightGreen),
+    'expired': (label: 'Expired', color: AppColors.darkRed, bg: AppColors.lightRed),
+    'other':   (label: 'Other',   color: AppColors.charcoalGrey, bg: AppColors.creamBg),
   };
 
   @override
@@ -34,7 +34,7 @@ class LossLogScreen extends StatelessWidget {
         title: const Text(
           'Loss Log',
           style: TextStyle(
-            color: Color(0xFF1A1A1A),
+            color: AppColors.nearBlack,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -58,7 +58,7 @@ class LossLogScreen extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Monthly Audit Period: ${formatMonthYear(DateTime.now())}',
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF888780)),
+                  style: const TextStyle(fontSize: 13, color: AppColors.charcoalGrey),
                 ),
                 const SizedBox(height: 16),
 
@@ -80,13 +80,13 @@ class LossLogScreen extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1A1A1A),
+                              color: AppColors.nearBlack,
                               letterSpacing: -0.5,
                             ),
                           ),
                           const Text(
                             'Units',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF888780)),
+                            style: TextStyle(fontSize: 12, color: AppColors.charcoalGrey),
                           ),
                         ],
                       ),
@@ -97,9 +97,9 @@ class LossLogScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A1A),
+                        color: AppColors.nearBlack,
                         borderRadius: BorderRadius.circular(18),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,14 +123,14 @@ class LossLogScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE04545).withOpacity(0.15),
+                              color: AppColors.redAccent.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
                               '↑ this month',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Color(0xFFE04545),
+                                color: AppColors.redAccent,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -192,13 +192,13 @@ class LossLogScreen extends StatelessWidget {
                           'Audit Complete',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A1A),
+                            color: AppColors.nearBlack,
                           ),
                         ),
                         const SizedBox(height: 4),
                         const Text(
                           'Next scheduled audit in 14 days.',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF888780)),
+                          style: TextStyle(fontSize: 12, color: AppColors.charcoalGrey),
                         ),
                       ],
                     ),
@@ -215,7 +215,7 @@ class LossLogScreen extends StatelessWidget {
         onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const LogLossScreen())),
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: AppColors.white),
       ),
     );
   }
@@ -230,7 +230,7 @@ class LossLogScreen extends StatelessWidget {
               Text(
                 'No ${filter == 'All' ? '' : filter.toLowerCase() + ' '}losses logged',
                 style: const TextStyle(
-                    color: Color(0xFF888780), fontWeight: FontWeight.w600),
+                    color: AppColors.charcoalGrey, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -238,7 +238,7 @@ class LossLogScreen extends StatelessWidget {
       );
 }
 
-// ─── LOSS TILE ───────────────────────────────────────────────────────────────
+// LOSS TILE 
 
 class _LossTile extends StatelessWidget {
   final InventoryLoss loss;
@@ -252,10 +252,10 @@ class _LossTile extends StatelessWidget {
   });
 
   static const _meta = {
-    'damaged': (label: 'DAMAGED', color: Color(0xFF185FA5), bg: Color(0xFFE6F1FB)),
-    'spoiled': (label: 'SPOILED', color: Color(0xFF3B6D11), bg: Color(0xFFE8F5E9)),
-    'expired': (label: 'EXPIRED', color: Color(0xFFA32D2D), bg: Color(0xFFFCEBEB)),
-    'other':   (label: 'OTHER',   color: Color(0xFF888780), bg: Color(0xFFF1EFE8)),
+    'damaged': (label: 'DAMAGED', color: AppColors.darkBlue2, bg: AppColors.lightBlue),
+    'spoiled': (label: 'SPOILED', color: AppColors.forestGreen, bg: AppColors.lightGreen),
+    'expired': (label: 'EXPIRED', color: AppColors.darkRed, bg: AppColors.lightRed),
+    'other':   (label: 'OTHER',   color: AppColors.charcoalGrey, bg: AppColors.creamBg),
   };
 
   @override
@@ -269,7 +269,7 @@ class _LossTile extends StatelessWidget {
         border: isLast
             ? null
             : const Border(
-                bottom: BorderSide(color: Color(0xFFF1EFE8), width: 1)),
+                bottom: BorderSide(color: AppColors.creamBg, width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +292,7 @@ class _LossTile extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
-                    color: Color(0xFF1A1A1A),
+                    color: AppColors.nearBlack,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -317,18 +317,18 @@ class _LossTile extends StatelessWidget {
                   Text(
                     dateStr,
                     style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF888780)),
+                        fontSize: 11, color: AppColors.charcoalGrey),
                   ),
                 ]),
                 const SizedBox(height: 6),
                 Row(children: [
                   const Icon(Icons.inventory_2_outlined,
-                      size: 12, color: Color(0xFF888780)),
+                      size: 12, color: AppColors.charcoalGrey),
                   const SizedBox(width: 4),
                   Text(
                     '${loss.quantity}${loss.unit != null ? ' ${loss.unit}' : ''} units',
                     style: const TextStyle(
-                        fontSize: 12, color: Color(0xFF888780)),
+                        fontSize: 12, color: AppColors.charcoalGrey),
                   ),
                 ]),
                 const SizedBox(height: 2),
@@ -336,7 +336,7 @@ class _LossTile extends StatelessWidget {
                   'Valuation Loss: ₹${loss.valuationLoss.toStringAsFixed(0)}',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFFA32D2D),
+                    color: AppColors.darkRed,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -346,7 +346,7 @@ class _LossTile extends StatelessWidget {
           GestureDetector(
             onTap: () => _confirmDelete(context),
             child: const Icon(Icons.delete_outline_rounded,
-                size: 18, color: Color(0xFF888780)),
+                size: 18, color: AppColors.charcoalGrey),
           ),
         ],
       ),
@@ -372,7 +372,7 @@ class _LossTile extends StatelessWidget {
   }
 }
 
-// ─── LOG LOSS SHEET (bottom sheet variant) ───────────────────────────────────
+// LOG LOSS SHEET 
 
 class _LogLossSheet extends StatefulWidget {
   const _LogLossSheet();
@@ -436,7 +436,7 @@ class _LogLossSheetState extends State<_LogLossSheet> {
                 child: Container(
                   width: 36, height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE0DDD8),
+                    color:  AppColors.warmSurface,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -505,7 +505,7 @@ class _LogLossSheetState extends State<_LogLossSheet> {
                   child: const Text(
                     'Log Loss',
                     style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 15),
                   ),

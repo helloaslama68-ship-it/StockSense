@@ -19,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+      backgroundColor: isDark ? AppColors.surfaceDark : AppColors.white,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => Container(
@@ -31,7 +31,7 @@ class ProfileScreen extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF3A3A3A) : AppColors.lightGrey,
+                color: isDark ? AppColors.surfaceDark2: AppColors.lightGrey,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -145,8 +145,8 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final profile = context.watch<ProfileProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
-    final dividerColor = isDark ? const Color(0xFF2C2C2C) : AppColors.lightGrey.withOpacity(0.5);
+    final cardColor = isDark ? AppColors.surfaceDark : AppColors.white;
+    final dividerColor = isDark ? AppColors.dividerDark: AppColors.lightGrey.withOpacity(0.5);
 
     final ownerName = profile.ownerName ?? '';
     final storeName = profile.storeName ?? '';
@@ -194,7 +194,7 @@ class ProfileScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
+                    color: AppColors.black.withOpacity(isDark ? 0.0 : 0.05),
                     blurRadius: 15,
                     offset: Offset(0, 4),
                   ),
@@ -213,7 +213,7 @@ class ProfileScreen extends StatelessWidget {
                           height: 96,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(24),
-                            color: isDark ? const Color(0xFF2C2C2C) : AppColors.lightGrey,
+                            color: isDark ? AppColors.dividerDark: AppColors.lightGrey,
                             border: Border.all(
                                 color: AppColors.goldDark, width: 2.5),
                           ),
@@ -310,7 +310,7 @@ class ProfileScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.0 : 0.05),
+                    color: AppColors.black.withOpacity(isDark ? 0.0 : 0.05),
                     blurRadius: 15,
                     offset: Offset(0, 4),
                   ),
@@ -364,8 +364,8 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
+                  backgroundColor: AppColors.transparent,
+                  shadowColor: AppColors.transparent,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),

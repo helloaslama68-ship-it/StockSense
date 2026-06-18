@@ -51,7 +51,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
       body: Stack(
         children: [
 
-          // GRADIENT BACKGROUND — dark-aware
+          // GRADIENT BACKGROUND — dark
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -96,7 +96,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        // theme-aware — DefaultTextStyle handles this via Theme
+                        
                       ),
                     ),
 
@@ -127,7 +127,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
                       height: 4,
                       decoration: BoxDecoration(
                         color: isDark
-                            ? const Color(0xFF2C2C2C)
+                            ? AppColors.surfaceDark
                             : AppColors.lightGrey,
                         borderRadius: BorderRadius.circular(10),
                       ),

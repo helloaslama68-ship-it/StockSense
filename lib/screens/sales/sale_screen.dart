@@ -42,7 +42,7 @@ class _SaleScreenBody extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
         value: p,
         child: _ProductPickerSheet(products: products),
@@ -93,7 +93,7 @@ class _SaleScreenBody extends StatelessWidget {
               p.setTaxPercent(double.tryParse(ctrl.text) ?? 0);
               Navigator.pop(context);
             },
-            child: const Text('Apply', style: TextStyle(color: Colors.white)),
+            child: const Text('Apply', style: TextStyle(color: AppColors.white)),
           ),
         ],
       ),
@@ -130,7 +130,7 @@ class _SaleScreenBody extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── CUSTOMER + DATE ───────────────────────
+                      // CUSTOMER + DATE 
                       Container(
                         padding: AppSpacing.cardPad,
                         decoration: BoxDecoration(
@@ -176,7 +176,7 @@ class _SaleScreenBody extends StatelessWidget {
 
                       AppSpacing.vLg,
 
-                      // ── ADD ITEM BUTTON ───────────────────────
+                      // ADD ITEM BUTTON 
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -197,7 +197,7 @@ class _SaleScreenBody extends StatelessWidget {
 
                       AppSpacing.vLg,
 
-                      // ── CART ──────────────────────────────────
+                      // CART 
                       if (p.cart.isNotEmpty) ...[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -224,7 +224,7 @@ class _SaleScreenBody extends StatelessWidget {
 
                       AppSpacing.vLg,
 
-                      // ── TOTALS ────────────────────────────────
+                      // TOTALS
                       Container(
                         padding: AppSpacing.cardPad,
                         decoration: BoxDecoration(
@@ -283,7 +283,7 @@ class _SaleScreenBody extends StatelessWidget {
 
                       AppSpacing.vXl,
 
-                      // ── COMPLETE SALE ─────────────────────────
+                      // COMPLETE SALE
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -319,7 +319,7 @@ class _SaleScreenBody extends StatelessWidget {
   }
 }
 
-// ─── CART TILE ────────────────────────────────────────────────────────────────
+// CART TILE 
 
 class _CartTile extends StatelessWidget {
   final int index;
@@ -389,7 +389,7 @@ class _CartTile extends StatelessWidget {
   }
 }
 
-// ─── QTY BUTTON ──────────────────────────────────────────────────────────────
+// QTY BUTTON 
 
 class _QtyBtn extends StatelessWidget {
   final IconData icon;
@@ -410,7 +410,7 @@ class _QtyBtn extends StatelessWidget {
   );
 }
 
-// ─── TOTAL ROW ────────────────────────────────────────────────────────────────
+// TOTAL ROW 
 
 class _TotalRow extends StatelessWidget {
   final String label, value;
@@ -427,7 +427,7 @@ class _TotalRow extends StatelessWidget {
   );
 }
 
-// ─── PRODUCT PICKER SHEET ─────────────────────────────────────────────────────
+// PRODUCT PICKER SHEET 
 
 class _ProductPickerSheet extends StatefulWidget {
   final List<Product> products;
@@ -495,7 +495,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
 
               AppSpacing.vXl,
 
-              // ── BARCODE SCAN ──────────────────────────────
+              //BARCODE SCAN 
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -579,7 +579,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                   fillColor: AppColors.grey,
                   prefixIcon: const Icon(Icons.edit_outlined, size: 20),
                   suffixIcon: p.selectedProduct != null
-                      ? const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20)
+                      ? const Icon(Icons.check_circle_rounded, color: AppColors.successGreen, size: 20)
                       : null,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                   focusedBorder: OutlineInputBorder(
@@ -598,7 +598,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
 
               AppSpacing.vLg,
 
-              // ── QTY + PRICE ───────────────────────────────
+              //  QTY + PRICE
               Row(children: [
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,7 +639,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
 
               AppSpacing.vLg,
 
-              // ── CALCULATED TOTAL ──────────────────────────
+              // CALCULATED TOTAL
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -659,7 +659,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
 
               AppSpacing.vLg,
 
-              // ── ADD TO SALE ───────────────────────────────
+              // ADD TO SALE
               SizedBox(
                 width: double.infinity, height: 50,
                 child: ElevatedButton(

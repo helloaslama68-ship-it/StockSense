@@ -221,7 +221,7 @@ class SaleHistoryScreen extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    // ── SECTION LABEL
+                    // SECTION LABEL
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -289,7 +289,7 @@ class SaleHistoryScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
         decoration: const BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1),
+            bottom: BorderSide(color: AppColors.lightGrey, width: 1),
           ),
         ),
         child: Row(

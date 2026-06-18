@@ -30,7 +30,7 @@ class PurchaseFilterSheet extends StatelessWidget {
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
             primary: AppColors.goldDark,
-            onPrimary: Colors.white,
+            onPrimary: AppColors.white,
             surface: AppColors.backgroundTop,
           ),
         ),
@@ -62,7 +62,7 @@ class PurchaseFilterSheet extends StatelessWidget {
               const AppSheetHandle(),
               const SizedBox(height: 4),
 
-              // ── Header
+              // Header
               Container(
                 color: AppColors.backgroundTop,
                 padding:
@@ -78,7 +78,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
+                              color: AppColors.black.withOpacity(0.06),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -109,7 +109,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                               child: Text('$active',
                                   style: const TextStyle(
                                       fontSize: 12,
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontWeight: FontWeight.bold)),
                             ),
                           ],
@@ -135,7 +135,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Sort
+                      //  Sort
                       const AppSectionLabel(label: 'SORT BY'),
                       const SizedBox(height: 10),
                       Wrap(
@@ -166,7 +166,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                                   Icon(icon,
                                       size: 14,
                                       color: isActive
-                                          ? Colors.white
+                                          ? AppColors.white
                                           : AppColors.black),
                                   const SizedBox(width: 6),
                                   Text(label,
@@ -174,7 +174,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
                                           color: isActive
-                                              ? Colors.white
+                                              ? AppColors.white
                                               : AppColors.black)),
                                 ],
                               ),
@@ -185,7 +185,7 @@ class PurchaseFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── Supplier
+                      // Supplier
                       const AppSectionLabel(label: 'SUPPLIER'),
                       const SizedBox(height: 10),
                       TextField(
@@ -225,7 +225,7 @@ class PurchaseFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── Date Range
+                      // Date Range
                       const AppSectionLabel(label: 'DATE RANGE'),
                       const SizedBox(height: 10),
                       GestureDetector(
@@ -239,7 +239,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                             border: Border.all(
                               color: p.draftDateRange != null
                                   ? AppColors.goldDark
-                                  : const Color(0xFFE0DDD8),
+                                  : AppColors.warmSurface,
                               width: p.draftDateRange != null ? 1.5 : 1,
                             ),
                           ),
@@ -280,7 +280,7 @@ class PurchaseFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── Amount Range
+                      // Amount Range
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

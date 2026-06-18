@@ -48,7 +48,7 @@ class BarcodeField extends StatelessWidget {
                 'assets/icons/barcodeicon .png',
                 width: 22,
                 height: 22,
-                color: Colors.black, // ← ADDED
+                color: AppColors.black, // 
               ),
             ),
           ),

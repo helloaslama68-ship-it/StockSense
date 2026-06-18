@@ -27,7 +27,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── TOP BAR
+            // TOP BAR
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -60,7 +60,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── SORT BY
+            // SORT BY
             _SectionLabel(label: 'Sort By', r: r),
             const SizedBox(height: 10),
 
@@ -81,7 +81,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
                       border: Border.all(
                         color: selected
                             ? AppColors.goldDark
-                            : const Color(0xFFE0DDD8),
+                            : AppColors.creamBg,
                         width: 1.5,
                       ),
                     ),
@@ -102,7 +102,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── DATE RANGE
+            //  DATE RANGE
             _SectionLabel(label: 'Date Range', r: r),
             const SizedBox(height: 10),
 
@@ -193,7 +193,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE0DDD8)),
+                  border: Border.all(color: AppColors.creamBg),
                 ),
                 child: Row(
                   children: [
@@ -225,7 +225,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── AMOUNT RANGE
+            // AMOUNT RANGE
             _SectionLabel(label: 'Amount Range', r: r),
             const SizedBox(height: 4),
 
@@ -274,7 +274,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // ── INSIGHT CARD
+            // INSIGHT CARD
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -328,7 +328,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ── APPLY
+            // APPLY
             GoldButton(
               label: 'Apply Filters',
               icon: Icons.check_circle_outline_rounded,
@@ -340,7 +340,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // ── CLEAR ALL
+            //  CLEAR ALL
             GestureDetector(
               onTap: () {
                 provider.resetDraft();
@@ -403,7 +403,7 @@ class PurchaseReportFilterSheet extends StatelessWidget {
       _isToday(r) || _isYesterday(r) || _isLast7(r) || _isLast30(r);
 }
 
-// ── DATE PRESET CHIP
+//  DATE PRESET CHIP
 
 class _DatePreset extends StatelessWidget {
   final String title;
@@ -431,7 +431,7 @@ class _DatePreset extends StatelessWidget {
           color: selected ? AppColors.goldDark : AppColors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? AppColors.goldDark : const Color(0xFFE0DDD8),
+            color: selected ? AppColors.goldDark : AppColors.creamBg,
             width: 1.5,
           ),
         ),
@@ -465,7 +465,7 @@ class _DatePreset extends StatelessWidget {
   }
 }
 
-// ── SECTION LABEL
+//  SECTION LABEL
 
 class _SectionLabel extends StatelessWidget {
   final String label;

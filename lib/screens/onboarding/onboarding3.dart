@@ -41,7 +41,7 @@ class Onboarding3 extends StatelessWidget {
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black12, blurRadius: 15),
+                  BoxShadow(color: AppColors.black, blurRadius: 15),
                 ],
               ),
               child: ClipRRect(

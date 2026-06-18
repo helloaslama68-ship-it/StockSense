@@ -27,7 +27,7 @@ class SalesReportFilterSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── TOP BAR
+            //TOP BAR
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -62,7 +62,7 @@ class SalesReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── DATE RANGE
+            //  DATE RANGE
             _SectionLabel(label: 'Date Range', r: r),
             const SizedBox(height: 10),
 
@@ -154,7 +154,7 @@ class SalesReportFilterSheet extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE0DDD8)),
+                  border: Border.all(color: AppColors.warmSurface),
                 ),
                 child: Row(
                   children: [
@@ -186,7 +186,7 @@ class SalesReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── CHANNEL
+            //  CHANNEL
             _SectionLabel(label: 'Channel', r: r),
             const SizedBox(height: 10),
 
@@ -217,7 +217,7 @@ class SalesReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── AMOUNT RANGE
+            //  AMOUNT RANGE
             _SectionLabel(label: 'Amount Range', r: r),
             const SizedBox(height: 4),
 
@@ -266,7 +266,7 @@ class SalesReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // ── INSIGHT CARD
+            // INSIGHT CARD
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -320,7 +320,7 @@ class SalesReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ── APPLY
+            // APPLY
             GoldButton(
               label: 'Apply Filters',
               icon: Icons.check_circle_outline_rounded,
@@ -332,7 +332,7 @@ class SalesReportFilterSheet extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // ── CLEAR
+            //  CLEAR
             GestureDetector(
               onTap: () {
                 provider.resetDraft();
@@ -356,7 +356,7 @@ class SalesReportFilterSheet extends StatelessWidget {
     );
   }
 
-  // ── helpers
+  // helpers
   static DateTime _startOfDay(DateTime d) =>
       DateTime(d.year, d.month, d.day);
   static DateTime _endOfDay(DateTime d) =>
@@ -397,7 +397,7 @@ class SalesReportFilterSheet extends StatelessWidget {
       _isToday(r) || _isYesterday(r) || _isLast7(r) || _isLast30(r);
 }
 
-// ── DATE PRESET CHIP
+// DATE PRESET CHIP
 
 class _DatePreset extends StatelessWidget {
   final String title;
@@ -427,7 +427,7 @@ class _DatePreset extends StatelessWidget {
           border: Border.all(
             color: selected
                 ? AppColors.goldDark
-                : const Color(0xFFE0DDD8),
+                : AppColors.warmSurface,
             width: 1.5,
           ),
         ),
@@ -461,7 +461,7 @@ class _DatePreset extends StatelessWidget {
   }
 }
 
-// ── CHANNEL CHIP
+// CHANNEL CHIP
 
 class _ChannelChip extends StatelessWidget {
   final String label;
@@ -487,7 +487,7 @@ class _ChannelChip extends StatelessWidget {
           color: selected ? AppColors.goldDark : AppColors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.goldDark : const Color(0xFFE0DDD8),
+            color: selected ? AppColors.goldDark : AppColors.warmSurface,
             width: 1.5,
           ),
         ),
@@ -504,7 +504,7 @@ class _ChannelChip extends StatelessWidget {
   }
 }
 
-// ── SECTION LABEL
+// SECTION LABEL
 
 class _SectionLabel extends StatelessWidget {
   final String label;

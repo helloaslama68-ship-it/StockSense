@@ -78,7 +78,7 @@ class Onboarding1 extends StatelessWidget {
 
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: AppColors.black,
                     blurRadius: 15,
                   ),
                 ],

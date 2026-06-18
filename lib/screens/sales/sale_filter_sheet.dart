@@ -59,7 +59,7 @@ class SaleFilterSheet extends StatelessWidget {
               const AppSheetHandle(),
               const SizedBox(height: 4),
 
-              // ── Header
+              // Header
               Container(
                 color: AppColors.backgroundTop,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -120,7 +120,7 @@ class SaleFilterSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Sort
+                      //  Sort
                       const AppSectionLabel(label: 'SORT BY'),
                       const SizedBox(height: 10),
                       Wrap(
@@ -159,7 +159,7 @@ class SaleFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── Channel
+                      //  Channel
                       const AppSectionLabel(label: 'CHANNEL'),
                       const SizedBox(height: 10),
                       Wrap(
@@ -173,7 +173,7 @@ class SaleFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── Customer search
+                      // Customer search
                       const AppSectionLabel(label: 'CUSTOMER'),
                       const SizedBox(height: 10),
                       TextField(
@@ -207,7 +207,7 @@ class SaleFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── Date Range
+                      // Date Range
                       const AppSectionLabel(label: 'DATE RANGE'),
                       const SizedBox(height: 10),
                       GestureDetector(
@@ -252,7 +252,7 @@ class SaleFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // ── Amount Range
+                      // Amount Range
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

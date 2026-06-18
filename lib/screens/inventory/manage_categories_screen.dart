@@ -134,7 +134,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(Icons.add_rounded,
-                            color: Colors.white, size: 22),
+                            color: AppColors.white, size: 22),
                       ),
                     ),
                   ]),

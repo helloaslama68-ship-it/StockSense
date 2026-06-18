@@ -51,7 +51,7 @@ class SaleDetailsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ── HEADER
+            // HEADER
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
@@ -107,7 +107,7 @@ class SaleDetailsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
-                    // ── CUSTOMER & TOTAL CARD
+                    // CUSTOMER & TOTAL CARD
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: appCardDecoration(),
@@ -173,7 +173,7 @@ class SaleDetailsScreen extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    // ── ORDER ITEMS
+                    //  ORDER ITEMS
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -237,7 +237,7 @@ class SaleDetailsScreen extends StatelessWidget {
 
                     const SizedBox(height: 8),
 
-                    // ── TOTALS SUMMARY
+                    // TOTALS SUMMARY
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: appCardDecoration(),
@@ -273,7 +273,7 @@ class SaleDetailsScreen extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // ── DOWNLOAD INVOICE
+                    //  DOWNLOAD INVOICE
                     GestureDetector(
                       onTap: () => _downloadInvoice(context),
                       child: Container(
@@ -301,7 +301,7 @@ class SaleDetailsScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // ── DELETE
+                    // DELETE
                     Center(
                       child: TextButton.icon(
                         onPressed: () => _confirmDelete(context),

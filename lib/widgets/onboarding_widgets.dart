@@ -25,8 +25,7 @@ class OnboardingDot extends StatelessWidget {
 
 
 /// PRIMARY GRADIENT BUTTON
-/// Note: do NOT use inside a Row without wrapping in Expanded
-/// width is controlled by parent
+
 
 class GradientButton extends StatelessWidget {
   final String text;
@@ -50,14 +49,14 @@ class GradientButton extends StatelessWidget {
       ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
+          shadowColor: AppColors.transparent,
         ),
         onPressed: onTap,
         child: Text(
           text,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -81,7 +80,7 @@ class BackButtonText extends StatelessWidget {
       child: const Text(
         "BACK",
         style: TextStyle(
-          color: Colors.black,
+          color: AppColors.black,
           fontWeight: FontWeight.w600,
         ),
       ),

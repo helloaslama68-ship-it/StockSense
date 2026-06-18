@@ -30,7 +30,7 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: AppColors.black.withOpacity(0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -43,7 +43,7 @@ class ProductCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF8E1),
+                color: AppColors.lightGold,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: hasImage
@@ -77,13 +77,13 @@ class ProductCard extends StatelessWidget {
                     children: [
                       Icon(Icons.inventory_2_outlined,
                           size: 11,
-                          color: isLow ? Colors.red : AppColors.grey),
+                          color: isLow ? AppColors.red : AppColors.grey),
                       const SizedBox(width: 3),
                       Text(
                         '${product.quantity} units',
                         style: TextStyle(
                           fontSize: 11,
-                          color: isLow ? Colors.red : AppColors.grey,
+                          color: isLow ? AppColors.red : AppColors.grey,
                           fontWeight: isLow
                               ? FontWeight.w600
                               : FontWeight.normal,
@@ -95,13 +95,13 @@ class ProductCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 5, vertical: 1),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
+                            color: AppColors.red.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text('LOW',
                               style: TextStyle(
                                   fontSize: 9,
-                                  color: Colors.red,
+                                  color: AppColors.red,
                                   fontWeight: FontWeight.bold)),
                         ),
                       ],

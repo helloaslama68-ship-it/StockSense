@@ -11,36 +11,36 @@ import '../../widgets/app_back_button.dart';
 class LossReportScreen extends StatelessWidget {
   const LossReportScreen({super.key});
 
-  // ── reason meta ──────────────────────────────────────────────────────────
+  
   static const _meta = {
     'damaged': (
       label: 'DAMAGED',
-      color: Color(0xFF185FA5),
-      bg: Color(0xFFE6F1FB),
+      color: AppColors.darkBlue2,
+      bg: AppColors.lightBlue,
     ),
     'spoiled': (
       label: 'SPOILED',
-      color: Color(0xFF3B6D11),
-      bg: Color(0xFFE8F5E9),
+      color: AppColors.forestGreen,
+      bg: AppColors.lightGreen,
     ),
     'expired': (
       label: 'EXPIRED',
-      color: Color(0xFFA32D2D),
-      bg: Color(0xFFFCEBEB),
+      color: AppColors.darkRed,
+      bg: AppColors.lightRed,
     ),
     'other': (
       label: 'OTHER',
-      color: Color(0xFF888780),
-      bg: Color(0xFFF1EFE8),
+      color: AppColors.charcoalGrey,
+      bg: AppColors.creamBg,
     ),
   };
 
-  // ── helpers ───────────────────────────────────────────────────────────────
+  // helpers 
 
   int _countByReason(List<InventoryLoss> losses, String reason) =>
       losses.where((l) => l.reason == reason).fold(0, (s, l) => s + l.quantity);
 
-  // mock last-month delta — replace with real logic if available
+  
   String _deltaLabel(double current) {
     const delta = 12; // percent
     return '+$delta% from last month';
@@ -54,10 +54,10 @@ class LossReportScreen extends StatelessWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: const AppBackButton(),
-        title: const Text(
+        title: Text(
           'Loss Report',
           style: TextStyle(
-            color: Color(0xFF1A1A1A),
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -76,7 +76,7 @@ class LossReportScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── HEADER ─────────────────────────────────────────────────
+                //  HEADER 
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -84,12 +84,12 @@ class LossReportScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Loss\nSummary',
                             style: TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1A1A1A),
+                              color: Theme.of(context).colorScheme.onSurface,
                               height: 1.1,
                               letterSpacing: -0.5,
                             ),
@@ -119,7 +119,7 @@ class LossReportScreen extends StatelessWidget {
                         'LIVE DATA',
                         style: TextStyle(
                           fontSize: 10,
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.8,
                         ),
@@ -130,7 +130,7 @@ class LossReportScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // ── STAT CARDS ─────────────────────────────────────────────
+                //STAT CARDS 
                 Row(
                   children: [
                     // Total loss amount
@@ -142,10 +142,10 @@ class LossReportScreen extends StatelessWidget {
                           children: [
                             Text(
                               '₹${totalAmount.toStringAsFixed(2)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF1A1A1A),
+                                color: Theme.of(context).colorScheme.onSurface,
                                 letterSpacing: -0.5,
                               ),
                             ),
@@ -155,14 +155,14 @@ class LossReportScreen extends StatelessWidget {
                                 const Icon(
                                   Icons.trending_up_rounded,
                                   size: 12,
-                                  color: Color(0xFFA32D2D),
+                                  color: AppColors.darkRed,
                                 ),
                                 const SizedBox(width: 3),
                                 Text(
                                   _deltaLabel(totalAmount),
                                   style: const TextStyle(
                                     fontSize: 10,
-                                    color: Color(0xFFA32D2D),
+                                    color: AppColors.darkRed,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -186,10 +186,10 @@ class LossReportScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   '$totalItems',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF1A1A1A),
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     letterSpacing: -0.5,
                                   ),
                                 ),
@@ -198,7 +198,7 @@ class LossReportScreen extends StatelessWidget {
                                   'units',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Color(0xFF888780),
+                                    color: AppColors.charcoalGrey,
                                   ),
                                 ),
                               ],
@@ -207,12 +207,12 @@ class LossReportScreen extends StatelessWidget {
                             Row(
                               children: [
                                 _DotBadge(
-                                  color: const Color(0xFFA32D2D),
+                                  color: AppColors.darkRed,
                                   label: '$expiredQty Expired',
                                 ),
                                 const SizedBox(width: 8),
                                 _DotBadge(
-                                  color: const Color(0xFF185FA5),
+                                  color: AppColors.darkBlue2,
                                   label: '$damagedQty Damaged',
                                 ),
                               ],
@@ -226,13 +226,13 @@ class LossReportScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // ── RECENT LOSS ENTRIES ────────────────────────────────────
-                const Text(
+                // RECENT LOSS ENTRIES
+                Text(
                   'Recent Loss Entries',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1A1A),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
 
@@ -275,7 +275,7 @@ class LossReportScreen extends StatelessWidget {
               const Text(
                 'No loss entries recorded',
                 style: TextStyle(
-                  color: Color(0xFF888780),
+                  color: AppColors.charcoalGrey,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -284,7 +284,7 @@ class LossReportScreen extends StatelessWidget {
                 'Losses logged from inventory will appear here.',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF888780),
+                  color: AppColors.charcoalGrey,
                 ),
               ),
             ],
@@ -293,7 +293,7 @@ class LossReportScreen extends StatelessWidget {
       );
 }
 
-// ── STAT CARD ─────────────────────────────────────────────────────────────────
+// STAT CARD
 
 class _StatCard extends StatelessWidget {
   final String label;
@@ -305,17 +305,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      decoration: appCardDecoration(context: context, radius: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -324,7 +314,7 @@ class _StatCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF888780),
+              color: AppColors.charcoalGrey,
               letterSpacing: 0.8,
             ),
           ),
@@ -336,7 +326,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ── DOT BADGE ─────────────────────────────────────────────────────────────────
+// DOT BADGE 
 
 class _DotBadge extends StatelessWidget {
   final Color color;
@@ -356,14 +346,14 @@ class _DotBadge extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: Color(0xFF888780)),
+          style: const TextStyle(fontSize: 10, color: AppColors.charcoalGrey),
         ),
       ],
     );
   }
 }
 
-// ── LOSS REPORT TILE ──────────────────────────────────────────────────────────
+// LOSS REPORT TILE
 
 class _LossReportTile extends StatelessWidget {
   final InventoryLoss loss;
@@ -373,23 +363,23 @@ class _LossReportTile extends StatelessWidget {
   static const _meta = {
     'damaged': (
       label: 'DAMAGED',
-      color: Color(0xFF185FA5),
-      bg: Color(0xFFE6F1FB),
+      color: AppColors.darkBlue2,
+      bg: AppColors.lightBlue2,
     ),
     'spoiled': (
       label: 'SPOILED',
-      color: Color(0xFF3B6D11),
-      bg: Color(0xFFE8F5E9),
+      color: AppColors.forestGreen,
+      bg: AppColors.lightGreen,
     ),
     'expired': (
       label: 'EXPIRED',
-      color: Color(0xFFA32D2D),
-      bg: Color(0xFFFCEBEB),
+      color: AppColors.darkRed,
+      bg: AppColors.lightRed,
     ),
     'other': (
       label: 'OTHER',
-      color: Color(0xFF888780),
-      bg: Color(0xFFF1EFE8),
+      color: AppColors.charcoalGrey,
+      bg: AppColors.creamBg,
     ),
   };
 
@@ -414,17 +404,7 @@ class _LossReportTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: appCardDecoration(context: context, radius: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -447,10 +427,10 @@ class _LossReportTile extends StatelessWidget {
               children: [
                 Text(
                   loss.productName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1A1A),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -479,7 +459,7 @@ class _LossReportTile extends StatelessWidget {
                       'Lot #${loss.id.substring(0, 4).toUpperCase()} • ${loss.quantity} Units',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF888780),
+                        color: AppColors.charcoalGrey,
                       ),
                     ),
                   ],
@@ -499,7 +479,7 @@ class _LossReportTile extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFFA32D2D),
+                  color: AppColors.darkRed,
                 ),
               ),
               const SizedBox(height: 3),
@@ -507,7 +487,7 @@ class _LossReportTile extends StatelessWidget {
                 dateStr.toUpperCase(),
                 style: const TextStyle(
                   fontSize: 10,
-                  color: Color(0xFF888780),
+                  color: AppColors.charcoalGrey,
                 ),
               ),
             ],

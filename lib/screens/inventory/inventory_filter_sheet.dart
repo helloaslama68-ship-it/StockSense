@@ -93,7 +93,7 @@ class InventoryFilterSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
+                              color: AppColors.black.withOpacity(0.06),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -125,7 +125,7 @@ class InventoryFilterSheet extends StatelessWidget {
                               ),
                               child: Text('$activeCount',
                                   style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold)),
                             ),
@@ -261,9 +261,9 @@ class InventoryFilterSheet extends StatelessWidget {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Expanded(child: _statusCard(p, 'outOfStock', 'Out of Stock', Icons.warning_rounded,      const Color(0xFFDC2626))),
+                          Expanded(child: _statusCard(p, 'outOfStock', 'Out of Stock', Icons.warning_rounded,      AppColors.red)),
                           const SizedBox(width: 8),
-                          Expanded(child: _statusCard(p, 'nearExpiry',  'Near Expiry',  Icons.hourglass_bottom_rounded, Colors.orange)),
+                          Expanded(child: _statusCard(p, 'nearExpiry',  'Near Expiry',  Icons.hourglass_bottom_rounded, AppColors.orange)),
                           const SizedBox(width: 8),
                           Expanded(child: _statusCard(p, 'lowStock',    'Low Stock',    Icons.inventory_2_rounded,   AppColors.black)),
                         ],
@@ -373,7 +373,7 @@ class InventoryFilterSheet extends StatelessWidget {
                   color: AppColors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: AppColors.black.withOpacity(0.06),
                       blurRadius: 12,
                       offset: const Offset(0, -4),
                     ),
@@ -426,7 +426,7 @@ class InventoryFilterSheet extends StatelessWidget {
           ),
           boxShadow: selected
               ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 3))]
-              : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
+              : [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
         ),
         child: Column(
           children: [

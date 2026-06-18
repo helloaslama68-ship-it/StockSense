@@ -44,14 +44,14 @@ class ProductImagePicker extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.photo_library_rounded,
-                color: Colors.blue),
+                color: AppColors.blue),
             title: const Text('Gallery'),
             onTap: () => Navigator.pop(ctx, ImageSource.gallery),
           ),
           if (imagePath != null)
             ListTile(
               leading:
-                  const Icon(Icons.delete_rounded, color: Colors.red),
+                  const Icon(Icons.delete_rounded, color: AppColors.red),
               title: const Text('Remove'),
               onTap: () {
                 Navigator.pop(ctx);
