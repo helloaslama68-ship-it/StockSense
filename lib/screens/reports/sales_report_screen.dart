@@ -106,7 +106,7 @@ class SalesReportScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: r.sp(18),
                         fontWeight: FontWeight.w800,
-                        color: AppColors.nearBlack,
+                        color: Theme.of(context).colorScheme.onSurface,
                         letterSpacing: -0.3,
                       ),
                     ),
@@ -119,7 +119,7 @@ class SalesReportScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: filterCount > 0
                             ? AppColors.goldDark
-                            : AppColors.white,
+                            : Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -221,7 +221,7 @@ class SalesReportScreen extends StatelessWidget {
                                           horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
                                         color:
-                                            AppColors.white.withOpacity(0.2),
+                                            Theme.of(context).colorScheme.surface.withOpacity(0.2),
                                         borderRadius:
                                             BorderRadius.circular(8),
                                       ),
@@ -237,7 +237,7 @@ class SalesReportScreen extends StatelessWidget {
                                             style: TextStyle(
                                               fontSize: r.sp(9),
                                               fontWeight: FontWeight.w700,
-                                              color: AppColors.white,
+                                              color: Theme.of(context).colorScheme.surface,
                                               letterSpacing: 0.8,
                                             ),
                                           ),
@@ -253,7 +253,7 @@ class SalesReportScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: r.sp(34),
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.white,
+                                color: Theme.of(context).colorScheme.surface,
                                 letterSpacing: -1.0,
                               ),
                             ),
@@ -262,7 +262,7 @@ class SalesReportScreen extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
-                                color: AppColors.white.withOpacity(0.18),
+                                color:Theme.of(context).colorScheme.surface.withOpacity(0.18),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -276,7 +276,7 @@ class SalesReportScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: r.sp(11),
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.white,
+                                      color: Theme.of(context).colorScheme.surface,
                                     ),
                                   ),
                                 ],
@@ -314,7 +314,7 @@ class SalesReportScreen extends StatelessWidget {
                       // WEEKLY VELOCITY
                       Container(
                         padding: const EdgeInsets.all(20),
-                        decoration: appCardDecoration(),
+                        decoration: appCardDecoration(context: context),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -327,7 +327,7 @@ class SalesReportScreen extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: r.sp(15),
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.nearBlack,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     letterSpacing: -0.3,
                                   ),
                                 ),
@@ -442,7 +442,7 @@ class SalesReportScreen extends StatelessWidget {
   style: TextStyle(
     fontSize: r.sp(15),
     fontWeight: FontWeight.w800,
-    color: AppColors.nearBlack,
+    color: Theme.of(context).colorScheme.onSurface,
     letterSpacing: -0.3,
   ),
 ),
@@ -461,7 +461,7 @@ class SalesReportScreen extends StatelessWidget {
                         )
                       else
                         Container(
-                          decoration: appCardDecoration(),
+                          decoration: appCardDecoration(context: context),
                           child: Column(
                             children: List.generate(dailyRows.length, (i) {
                               final row = dailyRows[i];
@@ -549,7 +549,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: appCardDecoration(),
+      decoration: appCardDecoration(context: context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -568,7 +568,7 @@ class _StatCard extends StatelessWidget {
             style: TextStyle(
               fontSize: r.sp(22),
               fontWeight: FontWeight.w800,
-              color: AppColors.nearBlack,
+              color:  Theme.of(context).colorScheme.onSurface,
               letterSpacing: -0.5,
             ),
           ),
@@ -605,8 +605,11 @@ class _DailyRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : const Border(
-                bottom: BorderSide(color: AppColors.creamBg, width: 1)),
+            : Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  width: 1,
+                )),
       ),
       child: Row(
         children: [
@@ -619,7 +622,7 @@ class _DailyRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: r.sp(13),
                     fontWeight: FontWeight.w700,
-                    color: AppColors.nearBlack,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -641,7 +644,7 @@ class _DailyRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: r.sp(14),
                   fontWeight: FontWeight.w800,
-                  color: AppColors.nearBlack,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               if (pctLabel != null) ...[

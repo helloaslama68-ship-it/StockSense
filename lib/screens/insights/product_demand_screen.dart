@@ -158,6 +158,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                       children: [
                         Expanded(
                           child: _statBox(
+                            context: context,
                             label: 'CURRENT STOCK',
                             value: '${p.quantity}',
                             unit: 'Units',
@@ -167,6 +168,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: _statBox(
+                            context: context,
                             label: 'DAILY AVG',
                             value: _dailyAvg.toStringAsFixed(1),
                             unit: 'Units',
@@ -183,7 +185,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
@@ -267,7 +269,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                       height: 150,
                       padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -360,7 +362,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
 
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
@@ -414,6 +416,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
   }
 
   Widget _statBox({
+    required BuildContext context,
     required String label,
     required String value,
     required String unit,
@@ -422,7 +425,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: dark ? AppColors.black : AppColors.white,
+        color: dark ? AppColors.black : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -439,7 +442,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
               style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: dark ? AppColors.white : AppColors.black)),
+                  color: dark ? AppColors.white : Theme.of(context).colorScheme.onSurface)),
           Text(unit,
               style: TextStyle(
                   fontSize: 11,

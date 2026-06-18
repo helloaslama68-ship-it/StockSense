@@ -177,7 +177,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
                                   fontSize: 14,
                                   color: p.incidentDate == null
                                       ? AppColors.warmGrey
-                                      : AppColors.nearBlack,
+                                      : Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ),

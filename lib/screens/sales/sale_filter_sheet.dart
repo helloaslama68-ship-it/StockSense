@@ -48,8 +48,8 @@ class SaleFilterSheet extends StatelessWidget {
         final active = p.draftActiveCount;
 
         return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.backgroundTop,
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
@@ -61,7 +61,7 @@ class SaleFilterSheet extends StatelessWidget {
 
               // Header
               Container(
-                color: AppColors.backgroundTop,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 child: Row(
                   children: [
@@ -78,11 +78,11 @@ class SaleFilterSheet extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          const Text('Filters',
+                           Text('Filters',
                               style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.black)),
+                                  color: Theme.of(context).colorScheme.onSurface)),
                           if (active > 0) ...[
                             const SizedBox(width: 8),
                             Container(
@@ -133,23 +133,23 @@ class SaleFilterSheet extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isActive ? AppColors.goldDark : AppColors.white,
+                                color: isActive ? AppColors.goldDark : Theme.of(context).colorScheme.surface,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: isActive ? AppColors.goldDark : const Color(0xFFE0DDD8),
+                                  color: isActive ? AppColors.goldDark : Theme.of(context).colorScheme.outline,
                                 ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(icon, size: 14,
-                                      color: isActive ? AppColors.white : AppColors.black),
+                                      color: isActive ? AppColors.white : Theme.of(context).colorScheme.onSurface),
                                   const SizedBox(width: 6),
                                   Text(label,
                                       style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
-                                          color: isActive ? AppColors.white : AppColors.black)),
+                                          color: isActive ? AppColors.white : Theme.of(context).colorScheme.onSurface)),
                                 ],
                               ),
                             ),
@@ -194,7 +194,7 @@ class SaleFilterSheet extends StatelessWidget {
                                 )
                               : null,
                           filled: true,
-                          fillColor: AppColors.white,
+                          fillColor: Theme.of(context).colorScheme.surface,
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none),
@@ -215,10 +215,10 @@ class SaleFilterSheet extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            color: AppColors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: p.draftDateRange != null ? AppColors.goldDark : const Color(0xFFE0DDD8),
+                              color: p.draftDateRange != null ? AppColors.goldDark : Theme.of(context).colorScheme.outline,
                               width: p.draftDateRange != null ? 1.5 : 1,
                             ),
                           ),
@@ -235,7 +235,7 @@ class SaleFilterSheet extends StatelessWidget {
                                       : '${formatDate(p.draftDateRange!.start)}  →  ${formatDate(p.draftDateRange!.end)}',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: p.draftDateRange != null ? AppColors.black : AppColors.grey,
+                                    color: p.draftDateRange != null ? Theme.of(context).colorScheme.onSurface : AppColors.grey,
                                     fontWeight: p.draftDateRange != null ? FontWeight.w600 : FontWeight.normal,
                                   ),
                                 ),

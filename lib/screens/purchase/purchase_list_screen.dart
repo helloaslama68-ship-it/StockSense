@@ -81,7 +81,7 @@ class PurchaseListScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: filterCount > 0
                             ? AppColors.goldDark
-                            : AppColors.white,
+                            : Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -153,10 +153,10 @@ class PurchaseListScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             '₹${purchaseProvider.monthlyTotal.toStringAsFixed(2)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -191,10 +191,10 @@ class PurchaseListScreen extends StatelessWidget {
                           filterCount > 0
                               ? 'Filtered Results (${purchases.length})'
                               : 'Recent Purchases',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         if (filterCount > 0)
@@ -268,7 +268,7 @@ class PurchaseListScreen extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
@@ -303,10 +303,10 @@ class PurchaseListScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(p.productName,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
-                          color: AppColors.black)),
+                          color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(height: 2),
                   Text(p.supplierName,
                       style:
@@ -343,10 +343,10 @@ class PurchaseListScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text('₹${p.totalAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: AppColors.black)),
+                        color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 6),
                 Row(
                   children: [

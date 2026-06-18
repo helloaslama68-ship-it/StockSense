@@ -67,7 +67,7 @@ class PurchaseDetailScreen extends StatelessWidget {
                     // SUMMARY CARD
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: appCardDecoration(),
+                      decoration: appCardDecoration(context: context),
                       child: Column(
                         children: [
                           Row(
@@ -80,10 +80,10 @@ class PurchaseDetailScreen extends StatelessWidget {
                                     const AppSectionLabel(label: 'SUPPLIER'),
                                     const SizedBox(height: 4),
                                     Text(record.supplierName,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.black)),
+                                            color: Theme.of(context).colorScheme.onSurface)),
                                   ],
                                 ),
                               ),
@@ -115,10 +115,10 @@ class PurchaseDetailScreen extends StatelessWidget {
                                     const AppSectionLabel(label: 'PURCHASE DATE'),
                                     const SizedBox(height: 4),
                                     Text(formatDate(record.purchaseDate),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
-                                            color: AppColors.black)),
+                                            color: Theme.of(context).colorScheme.onSurface)),
                                     const SizedBox(height: 2),
                                     Text(formatTime(record.purchaseDate),
                                         style: TextStyle(
@@ -132,10 +132,10 @@ class PurchaseDetailScreen extends StatelessWidget {
                                   const AppSectionLabel(label: 'INVOICE ID'),
                                   const SizedBox(height: 4),
                                   Text(record.invoiceId,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.black)),
+                                          color: Theme.of(context).colorScheme.onSurface)),
                                   const SizedBox(height: 4),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -188,16 +188,16 @@ class PurchaseDetailScreen extends StatelessWidget {
                     const SizedBox(height: 10),
 
                     if (hasItems)
-                      ...record.lineItems.map((item) => _itemTile(item))
+                      ...record.lineItems.map((item) => _itemTile(context, item))
                     else
-                      _fallbackItemTile(record),
+                      _fallbackItemTile(context, record),
 
                     const SizedBox(height: 16),
 
                     // TOTALS CARD
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: appCardDecoration(),
+                      decoration: appCardDecoration(context: context),
                       child: Column(
                         children: [
                           appTotalRow('Subtotal',
@@ -213,17 +213,17 @@ class PurchaseDetailScreen extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('FINAL TOTAL',
+                              Text('FINAL TOTAL',
                                   style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.black,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       letterSpacing: 0.5)),
                               Text('₹${record.totalAmount.toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.black)),
+                                      color: Theme.of(context).colorScheme.onSurface)),
                             ],
                           ),
                         ],
@@ -242,7 +242,7 @@ class PurchaseDetailScreen extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(
             16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
               color: AppColors.black.withOpacity(0.06),
@@ -291,12 +291,12 @@ class PurchaseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _itemTile(PurchaseLineItem item) {
+  Widget _itemTile(BuildContext context, PurchaseLineItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -354,10 +354,10 @@ class PurchaseDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text('₹${item.total.toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: AppColors.black)),
+                      color: Theme.of(context).colorScheme.onSurface)),
             ],
           ),
         ],
@@ -365,12 +365,12 @@ class PurchaseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _fallbackItemTile(PurchaseRecord r) {
+  Widget _fallbackItemTile(BuildContext context, PurchaseRecord r) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(

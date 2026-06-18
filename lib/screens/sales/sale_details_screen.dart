@@ -110,7 +110,7 @@ class SaleDetailsScreen extends StatelessWidget {
                     // CUSTOMER & TOTAL CARD
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: appCardDecoration(),
+                      decoration: appCardDecoration(context: context),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -129,10 +129,10 @@ class SaleDetailsScreen extends StatelessWidget {
                                           fontWeight: FontWeight.w600)),
                                   const SizedBox(height: 4),
                                   Text(customerLabel,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
-                                          color: AppColors.black)),
+                                          color: Theme.of(context).colorScheme.onSurface)),
                                 ],
                               ),
                               Column(
@@ -178,10 +178,10 @@ class SaleDetailsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Order Items (${sale.items.length})',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.black)),
+                                color: Theme.of(context).colorScheme.onSurface)),
                         Text('Receipt #${sale.receiptNumber}',
                             style: const TextStyle(
                                 fontSize: 12,
@@ -227,10 +227,10 @@ class SaleDetailsScreen extends StatelessWidget {
                                 ),
                               ),
                               Text('₹${item.subtotal.toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
-                                      color: AppColors.black)),
+                                      color: Theme.of(context).colorScheme.onSurface)),
                             ],
                           ),
                         )),
@@ -240,7 +240,7 @@ class SaleDetailsScreen extends StatelessWidget {
                     // TOTALS SUMMARY
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: appCardDecoration(),
+                      decoration: appCardDecoration(context: context),
                       child: Column(
                         children: [
                           appTotalRow('Subtotal', '₹${sale.subtotal.toStringAsFixed(2)}'),
@@ -255,11 +255,11 @@ class SaleDetailsScreen extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Grand Total',
+                              Text('Grand Total',
                                   style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.black)),
+                                      color: Theme.of(context).colorScheme.onSurface)),
                               Text('₹${sale.totalAmount.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                       fontSize: 20,

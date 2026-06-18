@@ -31,10 +31,10 @@ class LossLogScreen extends StatelessWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: const AppBackButton(),
-        title: const Text(
+        title: Text(
           'Loss Log',
           style: TextStyle(
-            color: AppColors.nearBlack,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -77,10 +77,10 @@ class LossLogScreen extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             '${lossP.totalLossItems}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.nearBlack,
+                              color: Theme.of(context).colorScheme.onSurface,
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -192,7 +192,7 @@ class LossLogScreen extends StatelessWidget {
                           'Audit Complete',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: AppColors.nearBlack,
+                            color: AppColors.charcoalGrey,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -268,8 +268,10 @@ class _LossTile extends StatelessWidget {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : const Border(
-                bottom: BorderSide(color: AppColors.creamBg, width: 1)),
+            : Border(
+                bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,10 +291,10 @@ class _LossTile extends StatelessWidget {
               children: [
                 Text(
                   loss.productName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
-                    color: AppColors.nearBlack,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),

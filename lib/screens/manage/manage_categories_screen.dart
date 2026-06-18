@@ -76,10 +76,10 @@ class ManageCategoriesScreen extends StatelessWidget {
           padding: EdgeInsets.only(left: 12),
           child: Center(child: AppBackButton()),
         ),
-          title: const Text(
+          title: Text(
             'Manage Categories',
             style: TextStyle(
-              color: AppColors.black,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),

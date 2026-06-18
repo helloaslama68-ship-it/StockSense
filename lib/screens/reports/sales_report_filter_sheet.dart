@@ -16,9 +16,9 @@ class SalesReportFilterSheet extends StatelessWidget {
     final provider = context.watch<SaleFilterProvider>();
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
           20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 32),
@@ -33,15 +33,15 @@ class SalesReportFilterSheet extends StatelessWidget {
               children: [
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.close_rounded,
-                      size: 22, color: AppColors.nearBlack),
+                  child: Icon(Icons.close_rounded,
+                      size: 22, color: Theme.of(context).colorScheme.onSurface),
                 ),
-                const Text(
+                Text(
                   'Filter Reports',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.nearBlack,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 GestureDetector(
@@ -152,9 +152,9 @@ class SalesReportFilterSheet extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.warmSurface),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
                 ),
                 child: Row(
                   children: [
@@ -172,7 +172,7 @@ class SalesReportFilterSheet extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           color: provider.draftDateRange != null &&
                                   !_isPreset(provider.draftDateRange!)
-                              ? AppColors.nearBlack
+                              ? Theme.of(context).colorScheme.onSurface
                               : AppColors.warmGrey,
                         ),
                       ),
@@ -422,12 +422,12 @@ class _DatePreset extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.goldDark : AppColors.white,
+          color: selected ? AppColors.goldDark : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected
                 ? AppColors.goldDark
-                : AppColors.warmSurface,
+                : Theme.of(context).colorScheme.outline,
             width: 1.5,
           ),
         ),
@@ -440,7 +440,7 @@ class _DatePreset extends StatelessWidget {
               style: TextStyle(
                 fontSize: r.sp(12),
                 fontWeight: FontWeight.w700,
-                color: selected ? AppColors.white : AppColors.nearBlack,
+                color: selected ? AppColors.white : Theme.of(context).colorScheme.onSurface,
               ),
             ),
             Text(
@@ -484,10 +484,10 @@ class _ChannelChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.goldDark : AppColors.white,
+          color: selected ? AppColors.goldDark : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.goldDark : AppColors.warmSurface,
+            color: selected ? AppColors.goldDark : Theme.of(context).colorScheme.outline,
             width: 1.5,
           ),
         ),
@@ -496,7 +496,7 @@ class _ChannelChip extends StatelessWidget {
           style: TextStyle(
             fontSize: r.sp(12),
             fontWeight: FontWeight.w700,
-            color: selected ? AppColors.white : AppColors.nearBlack,
+            color: selected ? AppColors.white : Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -519,7 +519,7 @@ class _SectionLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: r.sp(13),
         fontWeight: FontWeight.w700,
-        color: AppColors.nearBlack,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }

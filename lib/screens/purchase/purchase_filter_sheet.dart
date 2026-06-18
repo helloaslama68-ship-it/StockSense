@@ -42,7 +42,6 @@ class PurchaseFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // init draft from committed state once on open
     WidgetsBinding.instance.addPostFrameCallback(
         (_) => context.read<PurchaseFilterProvider>().initDraft());
 
@@ -51,9 +50,9 @@ class PurchaseFilterSheet extends StatelessWidget {
         final active = p.draftActiveCount;
 
         return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.backgroundTop,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -64,7 +63,7 @@ class PurchaseFilterSheet extends StatelessWidget {
 
               // Header
               Container(
-                color: AppColors.backgroundTop,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 child: Row(
@@ -74,7 +73,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
@@ -92,11 +91,11 @@ class PurchaseFilterSheet extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          const Text('Filters',
+                          Text('Filters',
                               style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.black)),
+                                  color: Theme.of(context).colorScheme.onSurface)),
                           if (active > 0) ...[
                             const SizedBox(width: 8),
                             Container(
@@ -135,7 +134,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      //  Sort
+                      // Sort
                       const AppSectionLabel(label: 'SORT BY'),
                       const SizedBox(height: 10),
                       Wrap(
@@ -152,12 +151,12 @@ class PurchaseFilterSheet extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: isActive
                                     ? AppColors.goldDark
-                                    : AppColors.white,
+                                    : Theme.of(context).colorScheme.surface,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isActive
                                       ? AppColors.goldDark
-                                      : const Color(0xFFE0DDD8),
+                                      : Theme.of(context).colorScheme.outline,
                                 ),
                               ),
                               child: Row(
@@ -167,7 +166,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                                       size: 14,
                                       color: isActive
                                           ? AppColors.white
-                                          : AppColors.black),
+                                          : Theme.of(context).colorScheme.onSurface),
                                   const SizedBox(width: 6),
                                   Text(label,
                                       style: TextStyle(
@@ -175,7 +174,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                                           fontWeight: FontWeight.w600,
                                           color: isActive
                                               ? AppColors.white
-                                              : AppColors.black)),
+                                              : Theme.of(context).colorScheme.onSurface)),
                                 ],
                               ),
                             ),
@@ -191,7 +190,9 @@ class PurchaseFilterSheet extends StatelessWidget {
                       TextField(
                         controller: p.draftSupplierCtrl,
                         onChanged: p.setDraftSupplier,
-                        style: const TextStyle(fontSize: 14),
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: 'Search supplier name…',
                           hintStyle: TextStyle(
@@ -210,7 +211,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                                 )
                               : null,
                           filled: true,
-                          fillColor: AppColors.white,
+                          fillColor: Theme.of(context).colorScheme.surface,
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none),
@@ -234,12 +235,12 @@ class PurchaseFilterSheet extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            color: AppColors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: p.draftDateRange != null
                                   ? AppColors.goldDark
-                                  : AppColors.warmSurface,
+                                  : Theme.of(context).colorScheme.outline,
                               width: p.draftDateRange != null ? 1.5 : 1,
                             ),
                           ),
@@ -259,7 +260,7 @@ class PurchaseFilterSheet extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: p.draftDateRange != null
-                                        ? AppColors.black
+                                        ? Theme.of(context).colorScheme.onSurface
                                         : AppColors.grey,
                                     fontWeight: p.draftDateRange != null
                                         ? FontWeight.w600

@@ -85,7 +85,7 @@ class _AddCustomerView extends StatelessWidget {
                                 style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.black)),
+                                    color: Theme.of(context).colorScheme.onSurface)),
                           ),
                           const SizedBox(height: 14),
                           const _FieldLabel('ADDRESS', optional: true),
@@ -120,7 +120,7 @@ class _AddCustomerView extends StatelessWidget {
                                   style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.black)),
+                                      color: Theme.of(context).colorScheme.onSurface)),
                             ],
                           ),
                           const SizedBox(height: 16),
@@ -134,7 +134,7 @@ class _AddCustomerView extends StatelessWidget {
                                 style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.black)),
+                                    color: Theme.of(context).colorScheme.onSurface)),
                           ),
                           const SizedBox(height: 6),
                           Text('Enter amount if customer has pending payment',
@@ -214,17 +214,17 @@ class _DatePickerField extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.backgroundBottom,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           children: [
             Expanded(
               child: Text(label,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.black)),
+                      color: Theme.of(context).colorScheme.onSurface)),
             ),
             Icon(Icons.calendar_today_rounded,
                 size: 16, color: AppColors.goldDark),
@@ -247,7 +247,7 @@ class _SaveBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       decoration: BoxDecoration(
-        color: AppColors.backgroundTop,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
               color: AppColors.black.withOpacity(0.06),

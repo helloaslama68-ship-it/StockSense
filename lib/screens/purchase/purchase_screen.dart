@@ -194,7 +194,7 @@ class PurchaseScreen extends StatelessWidget {
                           // ACQUISITION DETAILS
                           Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: appCardDecoration(),
+                            decoration: appCardDecoration(context: context),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -229,7 +229,7 @@ class PurchaseScreen extends StatelessWidget {
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: form.purchaseDate != null
-                                                ? AppColors.black
+                                                ? Theme.of(context).colorScheme.onSurface
                                                 : AppColors.grey,
                                           ),
                                         ),
@@ -251,7 +251,7 @@ class PurchaseScreen extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 12),
                               decoration: BoxDecoration(
-                                color: AppColors.white,
+                                color: Theme.of(context).colorScheme.surface,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                     color: AppColors.goldDark.withOpacity(0.3)),
@@ -340,7 +340,7 @@ class PurchaseScreen extends StatelessWidget {
                           // TOTALS
                           Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: appCardDecoration(),
+                            decoration: appCardDecoration(context: context),
                             child: Column(
                               children: [
                                 appTotalRow('Subtotal',
@@ -390,7 +390,7 @@ class PurchaseScreen extends StatelessWidget {
                                         style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.black,
+                                            color: AppColors.nearBlack,
                                             letterSpacing: 0.5)),
                                     Text(
                                       '₹${form.finalTotal.toStringAsFixed(2)}',
@@ -445,7 +445,7 @@ class PurchaseScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -564,7 +564,7 @@ class _PurchaseListBody extends StatelessWidget {
                 child: Container(
                   height: 42,
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
@@ -596,7 +596,7 @@ class _PurchaseListBody extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: filterProv.isActive
                             ? AppColors.goldDark
-                            : AppColors.white,
+                            : Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
@@ -757,7 +757,7 @@ class _PurchaseRecordTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -845,9 +845,9 @@ class _PurchaseFilterSheet extends StatelessWidget {
     final prov = context.watch<PurchaseFilterProvider>();
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
           20, 20, 20, MediaQuery.of(context).padding.bottom + 20),
@@ -905,7 +905,7 @@ class _PurchaseFilterSheet extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: selected ? AppColors.white : AppColors.black)),
+                            color: selected ? AppColors.white : Theme.of(context).colorScheme.onSurface)),
                   ),
                 );
               }).toList(),
@@ -940,7 +940,7 @@ class _PurchaseFilterSheet extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 13,
                           color: prov.dateRange != null
-                              ? AppColors.black
+                              ? Theme.of(context).colorScheme.onSurface
                               : AppColors.grey),
                     ),
                     const Spacer(),
@@ -1018,12 +1018,12 @@ class _AddItemSheetState extends State<_AddItemSheet> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       resizeToAvoidBottomInset: true,
       body: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
         child: Form(

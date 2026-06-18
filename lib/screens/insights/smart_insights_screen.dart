@@ -144,7 +144,7 @@ class SmartInsightsScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
@@ -183,22 +183,22 @@ class SmartInsightsScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _statCard(
+                          context: context,
                           label: 'CRITICAL',
                           value: '$runningOut',
                           sub: '$runningOut item${runningOut == 1 ? '' : 's'} below threshold',
                           color: AppColors.darkRed,
-                          bg: AppColors.white,
                           icon: Icons.warning_rounded,
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: _statCard(
+                          context: context,
                           label: 'OPTIMIZATION',
                           value: 'Slow Moving',
                           sub: '$slowMoving item${slowMoving == 1 ? '' : 's'} stagnant',
                           color: AppColors.grey,
-                          bg: AppColors.white,
                           icon: Icons.trending_down_rounded,
                         ),
                       ),
@@ -239,7 +239,7 @@ class SmartInsightsScreen extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: appCardDecoration(),
+      decoration: appCardDecoration(context: context),
       child: Column(
         children: [
           Padding(
@@ -250,7 +250,7 @@ class SmartInsightsScreen extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: hasImage
@@ -369,17 +369,17 @@ class SmartInsightsScreen extends StatelessWidget {
   }
 
   Widget _statCard({
+    required BuildContext context,
     required String label,
     required String value,
     required String sub,
     required Color color,
-    required Color bg,
     required IconData icon,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: bg,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(

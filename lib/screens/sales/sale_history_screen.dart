@@ -74,7 +74,7 @@ class SaleHistoryScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: filterCount > 0 ? AppColors.goldDark : AppColors.white,
+                        color: filterCount > 0 ? AppColors.goldDark : Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [BoxShadow(
                           color: AppColors.black.withOpacity(0.06),
@@ -126,7 +126,7 @@ class SaleHistoryScreen extends StatelessWidget {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
-                      decoration: appCardDecoration(),
+                      decoration: appCardDecoration(context: context),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -143,10 +143,10 @@ class SaleHistoryScreen extends StatelessWidget {
                                 const SizedBox(height: 6),
                                 Text(
                                   '₹${saleProvider.todaySalesTotal.toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 26,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.black),
+                                      color: Theme.of(context).colorScheme.onSurface),
                                 ),
                                 const SizedBox(height: 4),
                                 Container(
@@ -173,10 +173,10 @@ class SaleHistoryScreen extends StatelessWidget {
                                         s.saleDate.month == t.month &&
                                         s.saleDate.day == t.day;
                                   }).length}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.black),
+                                      color: Theme.of(context).colorScheme.onSurface),
                                 ),
                               ],
                             ),
@@ -299,10 +299,10 @@ class SaleHistoryScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(displayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.black)),
+                          color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(height: 2),
                   Row(
                     children: [
@@ -338,7 +338,7 @@ class SaleHistoryScreen extends StatelessWidget {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: s.totalAmount >= 100 ? AppColors.goldDark : AppColors.black),
+                  color: s.totalAmount >= 100 ? AppColors.goldDark : Theme.of(context).colorScheme.onSurface),
             ),
           ],
         ),

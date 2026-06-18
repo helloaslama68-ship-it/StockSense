@@ -134,7 +134,7 @@ class _SaleScreenBody extends StatelessWidget {
                       Container(
                         padding: AppSpacing.cardPad,
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
                         ),
@@ -165,7 +165,7 @@ class _SaleScreenBody extends StatelessWidget {
                                   children: [
                                     Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.grey),
                                     AppSpacing.hSm,
-                                    Text(formatDate(p.saleDate), style: TextStyle(fontSize: r.sp(13), color: AppColors.black)),
+                                    Text(formatDate(p.saleDate), style: TextStyle(fontSize: r.sp(13), color: Theme.of(context).colorScheme.onSurface)),
                                   ],
                                 ),
                               ),
@@ -203,7 +203,7 @@ class _SaleScreenBody extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Cart Items', style: TextStyle(
-                              fontSize: r.sp(15), fontWeight: FontWeight.bold, color: AppColors.black,
+                              fontSize: r.sp(15), fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface,
                             )),
                             Container(
                               padding: AppSpacing.chipPad,
@@ -228,7 +228,7 @@ class _SaleScreenBody extends StatelessWidget {
                       Container(
                         padding: AppSpacing.cardPad,
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
                         ),
@@ -267,7 +267,7 @@ class _SaleScreenBody extends StatelessWidget {
                               children: [
                                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                   Text('TOTAL AMOUNT', style: TextStyle(
-                                    fontSize: r.sp(13), fontWeight: FontWeight.bold, color: AppColors.black,
+                                    fontSize: r.sp(13), fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface,
                                   )),
                                   Text('INCLUSIVE OF ALL TAXES', style: TextStyle(
                                     fontSize: r.sp(9), color: AppColors.grey, letterSpacing: 0.5,
@@ -334,7 +334,7 @@ class _CartTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: AppSpacing.cardPad,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2))],
       ),
@@ -351,10 +351,10 @@ class _CartTile extends StatelessWidget {
                 AppSpacing.vXs,
                 Row(children: [
                   Text('₹${item.product.sellingPrice.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: r.sp(12), color: AppColors.black, fontWeight: FontWeight.w600)),
+                      style: TextStyle(fontSize: r.sp(12), color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w600)),
                   AppSpacing.hSm,
                   Text('₹${item.subtotal.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: r.sp(12), color: AppColors.black, fontWeight: FontWeight.w600)),
+                      style: TextStyle(fontSize: r.sp(12), color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w600)),
                 ]),
               ],
             ),
@@ -405,7 +405,7 @@ class _QtyBtn extends StatelessWidget {
         color: AppColors.lightGrey.withOpacity(0.5),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(icon, size: 16, color: AppColors.black),
+      child: Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurface),
     ),
   );
 }
@@ -459,9 +459,9 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.92),
         child: SingleChildScrollView(
@@ -629,7 +629,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                         p.selectedProduct != null ? '₹ ${p.selectedProduct!.sellingPrice.toStringAsFixed(2)}' : '₹ 0.00',
                         style: TextStyle(
                           fontSize: r.sp(14), fontWeight: FontWeight.w600,
-                          color: p.selectedProduct != null ? AppColors.black : AppColors.grey,
+                          color: p.selectedProduct != null ? Theme.of(context).colorScheme.onSurface : AppColors.grey,
                         ),
                       ),
                     ),

@@ -65,7 +65,7 @@ class CustomersScreen extends StatelessWidget {
                                     style: TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.black)),
+                                        color: Theme.of(context).colorScheme.onSurface)),
                               ],
                             ),
                           ),
@@ -231,7 +231,7 @@ Widget build(BuildContext context) {
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: AppColors.black)),
+                        color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 4),
                 Row(
                   children: [

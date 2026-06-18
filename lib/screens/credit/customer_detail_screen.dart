@@ -91,7 +91,7 @@ class _CustomerDetailView extends StatelessWidget {
                               style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.black)),
+                                  color: Theme.of(context).colorScheme.onSurface)),
                           const SizedBox(height: 4),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -153,7 +153,7 @@ class _CustomerDetailView extends StatelessWidget {
                                 style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.black)),
+                                    color: Theme.of(context).colorScheme.onSurface)),
                           ),
                           const _ActivityList(),
                         ],
@@ -346,7 +346,7 @@ class _BottomBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       decoration: BoxDecoration(
-        color: AppColors.backgroundTop,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
               color: AppColors.black.withOpacity(0.06),

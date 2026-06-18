@@ -86,7 +86,7 @@ class _RecordPaymentView extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.black)),
+                            color: Theme.of(context).colorScheme.onSurface)),
                     const SizedBox(height: 24),
                     const _FieldLabel('AMOUNT'),
                     const SizedBox(height: 6),
@@ -100,7 +100,7 @@ class _RecordPaymentView extends StatelessWidget {
                           style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.black)),
+                              color: Theme.of(context).colorScheme.onSurface)),
                       onChanged: isPayment
                           ? (_) => context
                               .read<RecordPaymentProvider>()
@@ -140,7 +140,7 @@ class _RecordPaymentView extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -166,7 +166,7 @@ class _RecordPaymentView extends StatelessWidget {
                                   style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.black)),
+                                      color: Theme.of(context).colorScheme.onSurface)),
                             ],
                           ),
                           Column(
@@ -239,17 +239,17 @@ class _DatePickerField extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.backgroundBottom,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           children: [
             Expanded(
               child: Text(label,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.black)),
+                      color: Theme.of(context).colorScheme.onSurface)),
             ),
             Icon(Icons.calendar_today_rounded,
                 size: 16, color: AppColors.goldDark),
@@ -271,7 +271,7 @@ class _SaveBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       decoration: BoxDecoration(
-        color: AppColors.backgroundTop,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
               color: AppColors.black.withOpacity(0.06),

@@ -199,7 +199,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(customerLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.black)),
+                  Text(customerLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(height: 3),
                   Text(formatDateTime(s.saleDate), style: TextStyle(fontSize: 10, color: AppColors.grey)),
                   const SizedBox(height: 2),
@@ -209,7 +209,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
               ),
             ),
             Text('₹${s.totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.black)),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurface)),
           ],
         ),
       ),

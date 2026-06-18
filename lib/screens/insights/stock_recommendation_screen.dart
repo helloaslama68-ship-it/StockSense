@@ -113,7 +113,7 @@ class _SuggestionCard extends StatelessWidget {
     final hasImage = p.imagePath != null && p.imagePath!.isNotEmpty;
 
     return Container(
-      decoration: appCardDecoration(),
+      decoration: appCardDecoration(context: context),
       child: Column(children: [
         Padding(
           padding: const EdgeInsets.all(14),
@@ -124,7 +124,7 @@ class _SuggestionCard extends StatelessWidget {
               Container(
                 width: 64, height: 64,
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: hasImage
@@ -191,7 +191,7 @@ class _SuggestionCard extends StatelessWidget {
                 child: Text(suggestion.reason,
                     style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.black.withOpacity(0.75),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
                         height: 1.4)),
               ),
             ],
