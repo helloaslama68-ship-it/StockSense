@@ -11,6 +11,7 @@ import '../../widgets/app_back_button.dart';
 import '../../widgets/activity_row.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/gold_button.dart';
+import '../../widgets/app_snack_bar.dart';
 import '../../models/customer.dart';
 import 'record_payment_screen.dart';
 
@@ -340,7 +341,19 @@ class _BottomBar extends StatelessWidget {
               RecordPaymentScreen(customer: p.customer, type: type),
         ),
       );
-      if (result != null && context.mounted) await p.addTransaction(result);
+      if (result != null && context.mounted) {
+        await p.addTransaction(result);
+        if (!context.mounted) return;
+        final balance = context.read<CustomerProvider>().computeBalance(
+          p.customer.id, p.customer.amountDue,
+        );
+        if (balance <= 0) {
+          await context.read<CustomerProvider>().remove(p.customer.id);
+          if (!context.mounted) return;
+          AppSnackBar.success(context, 'Balance cleared — customer removed');
+          Navigator.of(context).pop(); // back to CustomersScreen
+        }
+      }
     }
 
     return Container(

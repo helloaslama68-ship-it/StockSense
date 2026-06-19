@@ -1,8 +1,4 @@
-
-
 part of 'inventory_loss.dart';
-
-
 
 class InventoryLossAdapter extends TypeAdapter<InventoryLoss> {
   @override
@@ -22,13 +18,14 @@ class InventoryLossAdapter extends TypeAdapter<InventoryLoss> {
       ..valuationLoss = fields[4] as double
       ..reason = fields[5] as String
       ..loggedAt = fields[6] as DateTime
-      ..unit = fields[7] as String?;
+      ..unit = fields[7] as String?
+      ..quantityDecimal = fields[8] as double?;
   }
 
   @override
   void write(BinaryWriter writer, InventoryLoss obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +41,9 @@ class InventoryLossAdapter extends TypeAdapter<InventoryLoss> {
       ..writeByte(6)
       ..write(obj.loggedAt)
       ..writeByte(7)
-      ..write(obj.unit);
+      ..write(obj.unit)
+      ..writeByte(8)
+      ..write(obj.quantityDecimal);
   }
 
   @override

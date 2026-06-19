@@ -55,8 +55,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
-  await Hive.openBox('appBox');
-  await Hive.openBox('settings');
+  if (!Hive.isBoxOpen('appBox')) await Hive.openBox('appBox');
+  if (!Hive.isBoxOpen('settings')) await Hive.openBox('settings');
 
   if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(ProductAdapter());
   if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SaleAdapter());
@@ -66,12 +66,12 @@ void main() async {
   if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(CustomerAdapter());
   if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(CreditTransactionAdapter());
 
-  await Hive.openBox<Product>('products');
-  await Hive.openBox<Sale>('sales');
-  await Hive.openBox<Purchase>('purchases');
-  await Hive.openBox<InventoryLoss>('losses');
-  await Hive.openBox<Customer>('customers');
-  await Hive.openBox<CreditTransaction>('credit_transactions');
+  if (!Hive.isBoxOpen('products')) await Hive.openBox<Product>('products');
+  if (!Hive.isBoxOpen('sales')) await Hive.openBox<Sale>('sales');
+  if (!Hive.isBoxOpen('purchases')) await Hive.openBox<Purchase>('purchases');
+  if (!Hive.isBoxOpen('losses')) await Hive.openBox<InventoryLoss>('losses');
+  if (!Hive.isBoxOpen('customers')) await Hive.openBox<Customer>('customers');
+  if (!Hive.isBoxOpen('credit_transactions')) await Hive.openBox<CreditTransaction>('credit_transactions');
 
   runApp(
     MultiProvider(

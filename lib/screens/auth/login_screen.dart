@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -76,11 +76,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       const SizedBox(height: 28),
 
-                      const Text('PHONE NUMBER',
+                      Text('PHONE NUMBER',
                           style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.black)),
+                              color: Theme.of(context).colorScheme.onSurface)),
 
                       const SizedBox(height: 8),
 

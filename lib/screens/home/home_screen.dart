@@ -9,6 +9,9 @@ import '../../providers/product_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/customer_provider.dart';
 import '../../providers/sale_provider.dart';
+import '../../providers/stock_recommendation_provider.dart';
+import '../../providers/loss_provider.dart';
+import '../../providers/purchase_provider.dart';
 import '../../widgets/activity_row.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_section_label.dart';
@@ -586,7 +589,20 @@ class _DashboardBody extends StatelessWidget {
               AppSpacing.vLg,
 
               // SMART PREDICTION
-              Container(
+              Consumer<StockRecommendationProvider>(
+                builder: (_, rec, __) {
+                  final top = rec.visible.isNotEmpty ? rec.visible.first : null;
+                  final productName = top?.product.name ?? 'No urgent items';
+                  final hoursLeft = top != null
+                      ? (top.daysRemaining * 24).clamp(1, 999)
+                      : null;
+                  final predictionText = top != null
+                      ? '$productName predicted to\nrun out in $hoursLeft hours.'
+                      : 'All products are sufficiently\nstocked right now.';
+                  final subText = top != null
+                      ? 'Based on recent sales velocity,\nconsider restocking now.'
+                      : 'Check back later for restocking\nrecommendations.';
+                  return Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppColors.goldDark,
@@ -619,7 +635,7 @@ class _DashboardBody extends StatelessWidget {
                     ),
                     AppSpacing.vLg,
                     Text(
-                      'Artisan Bread predicted to\nrun out in 6 hours.',
+                      predictionText,
                       style: TextStyle(
                         color: AppColors.white, fontSize: r.sp(18),
                         fontWeight: FontWeight.w800, letterSpacing: -0.3, height: 1.3,
@@ -627,7 +643,7 @@ class _DashboardBody extends StatelessWidget {
                     ),
                     AppSpacing.vSm,
                     Text(
-                      'Based on your Friday evening sales velocity,\nconsider restocking now.',
+                      subText,
                       style: TextStyle(color: AppColors.white70, fontSize: r.sp(12), height: 1.5),
                     ),
                     AppSpacing.vLg,
@@ -641,11 +657,11 @@ class _DashboardBody extends StatelessWidget {
                     ),
                   ],
                 ),
+              );
+                },
               ),
 
               AppSpacing.vXl,
-
-              // RECENT ACTIVITY
               AppSectionLabel(
                 label: 'RECENT ACTIVITY',
                 actionLabel: 'View all activity',
@@ -654,29 +670,79 @@ class _DashboardBody extends StatelessWidget {
               ),
               AppSpacing.vMd,
 
-              AppCard(
-                padding: EdgeInsets.zero,
-                child: Column(children: [
-                  ActivityRow(
-                    icon: Icons.add_circle_rounded,
-                    iconBg: AppColors.lightGreen, iconColor: AppColors.forestGreen,
-                    title: 'Stock Added', subtitle: '+50 Whole Milk',
-                    time: '10:45 AM', timeColor: AppColors.forestGreen, isLast: false,
-                  ),
-                  ActivityRow(
-                    icon: Icons.receipt_rounded,
-                    iconBg: AppColors.creamBg, iconColor: AppColors.blue,
-                    title: 'Sales Transaction', subtitle: 'Order #SL0923 · 4 items',
-                    time: '09:12 AM', timeColor: AppColors.warmGrey, isLast: false,
-                  ),
-                  ActivityRow(
-                    icon: Icons.delete_rounded,
-                    iconBg: AppColors.lightRed, iconColor: AppColors.darkRed,
-                    title: 'Waste Logged', subtitle: '10x Green Yogurt (Expired)',
-                    time: 'Yesterday', timeColor: AppColors.darkRed,
-                    badge: '-₹165', isLast: true,
-                  ),
-                ]),
+              Consumer3<SaleProvider, LossProvider, PurchaseProvider>(
+                builder: (_, sales, losses, purchases, __) {
+                  // Build combined list sorted newest first, take 3
+                  final List<_RecentItem> recent = [];
+                  for (final s in sales.allSales) {
+                    recent.add(_RecentItem(
+                      icon: Icons.receipt_rounded,
+                      iconBg: AppColors.creamBg,
+                      iconColor: AppColors.blue,
+                      title: 'Sales Transaction',
+                      subtitle: 'Order #SL${s.receiptNumber} · ${s.items.length} ${s.items.length == 1 ? 'item' : 'items'}',
+                      time: _fmtTime(s.saleDate),
+                      timeColor: AppColors.warmGrey,
+                      date: s.saleDate,
+                    ));
+                  }
+                  for (final l in losses.allLosses) {
+                    final reason = l.reason.isEmpty ? '' : l.reason[0].toUpperCase() + l.reason.substring(1);
+                    recent.add(_RecentItem(
+                      icon: Icons.delete_rounded,
+                      iconBg: AppColors.lightRed,
+                      iconColor: AppColors.darkRed,
+                      title: 'Waste Logged',
+                      subtitle: '${l.quantity}x ${l.productName} ($reason)',
+                      time: _fmtTime(l.loggedAt),
+                      timeColor: AppColors.darkRed,
+                      badge: '-₹${l.valuationLoss.toStringAsFixed(0)}',
+                      date: l.loggedAt,
+                    ));
+                  }
+                  for (final p in purchases.allPurchases) {
+                    recent.add(_RecentItem(
+                      icon: Icons.shopping_cart_rounded,
+                      iconBg: AppColors.paleBlue,
+                      iconColor: AppColors.royalBlue,
+                      title: 'Purchase Recorded',
+                      subtitle: '${p.productName} · ${p.supplierName}',
+                      time: _fmtTime(p.purchaseDate),
+                      timeColor: AppColors.warmGrey,
+                      date: p.purchaseDate,
+                    ));
+                  }
+                  recent.sort((a, b) => b.date.compareTo(a.date));
+                  final top = recent.take(3).toList();
+
+                  if (top.isEmpty) {
+                    return AppCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Center(
+                        child: Text('No activity yet',
+                          style: TextStyle(color: AppColors.warmGrey, fontSize: r.sp(13))),
+                      ),
+                    );
+                  }
+
+                  return AppCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(children: List.generate(top.length, (i) {
+                      final it = top[i];
+                      return ActivityRow(
+                        icon: it.icon,
+                        iconBg: it.iconBg,
+                        iconColor: it.iconColor,
+                        title: it.title,
+                        subtitle: it.subtitle,
+                        time: it.time,
+                        timeColor: it.timeColor,
+                        badge: it.badge,
+                        isLast: i == top.length - 1,
+                      );
+                    })),
+                  );
+                },
               ),
 
               AppSpacing.vMd,
@@ -976,4 +1042,47 @@ class _IconBtn extends StatelessWidget {
       ),
     );
   }
+}
+
+// RECENT ACTIVITY HELPERS
+
+String _fmtTime(DateTime dt) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = today.subtract(const Duration(days: 1));
+  final d = DateTime(dt.year, dt.month, dt.day);
+  if (d == today) {
+    final h = dt.hour;
+    final m = dt.minute.toString().padLeft(2, '0');
+    final period = h >= 12 ? 'PM' : 'AM';
+    final h12 = h % 12 == 0 ? 12 : h % 12;
+    return '$h12:$m $period';
+  }
+  if (d == yesterday) return 'Yesterday';
+  final diff = today.difference(d).inDays;
+  return diff < 7 ? '$diff days ago' : '${dt.day}/${dt.month}';
+}
+
+class _RecentItem {
+  final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final String time;
+  final Color timeColor;
+  final String? badge;
+  final DateTime date;
+
+  const _RecentItem({
+    required this.icon,
+    required this.iconBg,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.time,
+    required this.timeColor,
+    required this.date,
+    this.badge,
+  });
 }

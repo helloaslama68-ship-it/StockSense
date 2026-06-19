@@ -127,8 +127,13 @@ class SaleFilterProvider extends ChangeNotifier {
       }
       if (_dateRange != null) {
         final d = s.saleDate;
-        if (d.isBefore(_dateRange!.start) ||
-            d.isAfter(_dateRange!.end.add(const Duration(days: 1)))) return false;
+        final endOfDay = DateTime(
+          _dateRange!.end.year,
+          _dateRange!.end.month,
+          _dateRange!.end.day,
+          23, 59, 59,
+        );
+        if (d.isBefore(_dateRange!.start) || d.isAfter(endOfDay)) return false;
       }
       if (s.totalAmount < _minAmount || s.totalAmount > _maxAmount) return false;
       if (_channel.isNotEmpty && s.channel != _channel) return false;

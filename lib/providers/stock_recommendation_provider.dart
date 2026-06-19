@@ -38,6 +38,15 @@ class StockRecommendationProvider extends ChangeNotifier {
 
   StockRecommendationProvider(this._productProvider, this._saleProvider) {
     build();
+    _productProvider.addListener(build);
+    _saleProvider.addListener(build);
+  }
+
+  @override
+  void dispose() {
+    _productProvider.removeListener(build);
+    _saleProvider.removeListener(build);
+    super.dispose();
   }
 
   void build() {

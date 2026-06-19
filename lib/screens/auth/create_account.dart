@@ -36,7 +36,7 @@ class CreateAccount extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Form(
@@ -77,13 +77,13 @@ class CreateAccount extends StatelessWidget {
                       const SizedBox(height: 20),
 
                       // FIELDS 
-                      _field('STORE NAME', 'e.g. Daily Fresh Market',
+                      _field(context, 'STORE NAME', 'e.g. Daily Fresh Market',
                           _storeController, isNameField: true),
 
-                      _field('OWNER NAME', 'Full name',
+                      _field(context, 'OWNER NAME', 'Full name',
                           _ownerController, isNameField: true),
 
-                      _fieldLabel('PHONE NUMBER'),
+                      _fieldLabel(context, 'PHONE NUMBER'),
                       const SizedBox(height: 6),
 
                       // Phone + country code dropdown
@@ -138,7 +138,7 @@ class CreateAccount extends StatelessWidget {
 
                       const SizedBox(height: 15),
 
-                      _field('SHOP ADDRESS', 'Street address, City, State',
+                      _field(context, 'SHOP ADDRESS', 'Street address, City, State',
                           _addressController, maxLines: 3),
 
                       const SizedBox(height: 10),
@@ -267,11 +267,12 @@ class CreateAccount extends StatelessWidget {
   }
 
   // HELPERS 
-  Widget _fieldLabel(String label) => Text(label,
-      style: const TextStyle(
-          fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.black));
+  Widget _fieldLabel(BuildContext context, String label) => Text(label,
+      style: TextStyle(
+          fontSize: 11, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface));
 
   Widget _field(
+    BuildContext context,
     String label,
     String hint,
     TextEditingController ctrl, {
@@ -281,7 +282,7 @@ class CreateAccount extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _fieldLabel(label),
+        _fieldLabel(context, label),
         const SizedBox(height: 6),
         TextFormField(
           controller: ctrl,

@@ -56,10 +56,11 @@ class InventoryFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Init provider with current filter + inventory data once
     WidgetsBinding.instance.addPostFrameCallback((_) => _init(context));
 
-    final maxP = maxProductPrice < 1 ? 10000.0 : maxProductPrice;
+    final maxP   = maxProductPrice < 1 ? 10000.0 : maxProductPrice;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs     = Theme.of(context).colorScheme;
 
     return Consumer<InventoryFilterProvider>(
       builder: (context, p, _) {
@@ -67,20 +68,20 @@ class InventoryFilterSheet extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.backgroundTop,
+            color: cs.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle 
+              // Handle
               const SizedBox(height: 12),
               const AppSheetHandle(),
               const SizedBox(height: 4),
 
-              // Header 
+              // Header
               Container(
-                color: AppColors.backgroundTop,
+                color: cs.surface,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 child: Row(
                   children: [
@@ -89,11 +90,11 @@ class InventoryFilterSheet extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: cs.surfaceContainerHigh,
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.black.withOpacity(0.06),
+                              color: AppColors.black.withOpacity(isDark ? 0.0 : 0.06),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -111,14 +112,14 @@ class InventoryFilterSheet extends StatelessWidget {
                               style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.black)),
+                                  color: cs.onSurface)),
                           if (activeCount > 0) ...[
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
+                                gradient: const LinearGradient(
                                   colors: [AppColors.goldDark, AppColors.goldLight],
                                 ),
                                 borderRadius: BorderRadius.circular(20),
@@ -155,7 +156,7 @@ class InventoryFilterSheet extends StatelessWidget {
                 ),
               ),
 
-              Divider(height: 1, color: AppColors.lightGrey.withOpacity(0.6)),
+              Divider(height: 1, color: cs.outline.withOpacity(0.4)),
 
               // Scrollable body
               Flexible(
@@ -165,7 +166,7 @@ class InventoryFilterSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      //Sort By 
+                      // Sort By
                       AppSectionLabel(label: 'SORT BY'),
                       const SizedBox(height: 10),
                       AppCard(
@@ -185,7 +186,7 @@ class InventoryFilterSheet extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: selected
                                       ? AppColors.goldDark.withOpacity(0.08)
-                                      : Colors.transparent,
+                                      : AppColors.transparent,
                                   borderRadius: BorderRadius.circular(10),
                                   border: selected
                                       ? Border.all(
@@ -200,14 +201,14 @@ class InventoryFilterSheet extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color: selected
                                             ? AppColors.goldDark.withOpacity(0.12)
-                                            : AppColors.backgroundTop,
+                                            : cs.surfaceContainerLow,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Icon(info.$2,
                                           size: 16,
                                           color: selected
                                               ? AppColors.goldDark
-                                              : AppColors.warmGrey),
+                                              : cs.onSurfaceVariant),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
@@ -218,23 +219,23 @@ class InventoryFilterSheet extends StatelessWidget {
                                                   ? FontWeight.w700
                                                   : FontWeight.w500,
                                               color: selected
-                                                  ? AppColors.black
-                                                  : AppColors.warmGrey)),
+                                                  ? cs.onSurface
+                                                  : cs.onSurfaceVariant)),
                                     ),
                                     if (selected)
                                       Container(
                                         width: 20, height: 20,
-                                        decoration: BoxDecoration(
+                                        decoration: const BoxDecoration(
                                           shape: BoxShape.circle,
                                           gradient: LinearGradient(
                                             colors: [
                                               AppColors.goldDark,
-                                              AppColors.goldLight
+                                              AppColors.goldLight,
                                             ],
                                           ),
                                         ),
                                         child: const Icon(Icons.check_rounded,
-                                            size: 12, color: Colors.white),
+                                            size: 12, color: AppColors.white),
                                       )
                                     else
                                       Container(
@@ -242,7 +243,7 @@ class InventoryFilterSheet extends StatelessWidget {
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                              color: AppColors.lightGrey,
+                                              color: cs.outline,
                                               width: 1.5),
                                         ),
                                       ),
@@ -256,16 +257,16 @@ class InventoryFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Product Stat
+                      // Product Status
                       AppSectionLabel(label: 'PRODUCT STATUS'),
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Expanded(child: _statusCard(p, 'outOfStock', 'Out of Stock', Icons.warning_rounded,      AppColors.red)),
+                          Expanded(child: _statusCard(context, p, 'outOfStock', 'Out of Stock', Icons.warning_rounded,          AppColors.red)),
                           const SizedBox(width: 8),
-                          Expanded(child: _statusCard(p, 'nearExpiry',  'Near Expiry',  Icons.hourglass_bottom_rounded, AppColors.orange)),
+                          Expanded(child: _statusCard(context, p, 'nearExpiry',  'Near Expiry',  Icons.hourglass_bottom_rounded, AppColors.orange)),
                           const SizedBox(width: 8),
-                          Expanded(child: _statusCard(p, 'lowStock',    'Low Stock',    Icons.inventory_2_rounded,   AppColors.black)),
+                          Expanded(child: _statusCard(context, p, 'lowStock',    'Low Stock',    Icons.inventory_2_rounded,      cs.onSurface)),
                         ],
                       ),
 
@@ -275,12 +276,13 @@ class InventoryFilterSheet extends StatelessWidget {
                       AppSectionLabel(label: 'CATEGORY'),
                       const SizedBox(height: 10),
                       p.allCategories.isEmpty
-                          ? _emptyChipHint('No categories added yet')
+                          ? _emptyChipHint(context, 'No categories added yet')
                           : Wrap(
                               spacing: 8,
                               runSpacing: 8,
                               children: p.allCategories
                                   .map((c) => _filterChip(
+                                        context: context,
                                         label: c,
                                         selected: p.categories.contains(c),
                                         onTap: () => p.toggleCategory(c),
@@ -290,16 +292,17 @@ class InventoryFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Brand 
+                      // Brand
                       AppSectionLabel(label: 'BRAND'),
                       const SizedBox(height: 10),
                       p.allBrands.isEmpty
-                          ? _emptyChipHint('No brands added yet')
+                          ? _emptyChipHint(context, 'No brands added yet')
                           : Wrap(
                               spacing: 8,
                               runSpacing: 8,
                               children: p.allBrands
                                   .map((b) => _filterChip(
+                                        context: context,
                                         label: b,
                                         selected: p.brands.contains(b),
                                         onTap: () => p.toggleBrand(b),
@@ -309,7 +312,7 @@ class InventoryFilterSheet extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Price Range 
+                      // Price Range
                       AppSectionLabel(label: 'PRICE RANGE'),
                       const SizedBox(height: 12),
                       AppCard(
@@ -319,16 +322,16 @@ class InventoryFilterSheet extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: _priceBox(
-                                      'MIN', '₹${p.priceRange.start.toInt()}'),
+                                      context, 'MIN', '₹${p.priceRange.start.toInt()}'),
                                 ),
                                 Container(
                                   width: 1, height: 36,
-                                  color: AppColors.lightGrey,
+                                  color: cs.outline,
                                   margin: const EdgeInsets.symmetric(horizontal: 12),
                                 ),
                                 Expanded(
                                   child: _priceBox(
-                                      'MAX', '₹${p.priceRange.end.toInt()}',
+                                      context, 'MAX', '₹${p.priceRange.end.toInt()}',
                                       align: CrossAxisAlignment.end),
                                 ),
                               ],
@@ -337,7 +340,7 @@ class InventoryFilterSheet extends StatelessWidget {
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
                                 activeTrackColor: AppColors.goldDark,
-                                inactiveTrackColor: AppColors.lightGrey,
+                                inactiveTrackColor: cs.outline,
                                 thumbColor: AppColors.goldDark,
                                 overlayColor: AppColors.goldDark.withOpacity(0.12),
                                 rangeThumbShape: const RoundRangeSliderThumbShape(
@@ -365,15 +368,15 @@ class InventoryFilterSheet extends StatelessWidget {
                 ),
               ),
 
-              // Footer Buttons 
+              // Footer Buttons
               Container(
                 padding: EdgeInsets.fromLTRB(
                     16, 12, 16, MediaQuery.of(context).padding.bottom + 16),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: cs.surfaceContainerHigh,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(0.06),
+                      color: AppColors.black.withOpacity(isDark ? 0.0 : 0.06),
                       blurRadius: 12,
                       offset: const Offset(0, -4),
                     ),
@@ -409,8 +412,10 @@ class InventoryFilterSheet extends StatelessWidget {
     );
   }
 
-  Widget _statusCard(InventoryFilterProvider p,
+  Widget _statusCard(BuildContext context, InventoryFilterProvider p,
       String key, String label, IconData icon, Color color) {
+    final isDark   = Theme.of(context).brightness == Brightness.dark;
+    final cs       = Theme.of(context).colorScheme;
     final selected = p.statuses.contains(key);
     return GestureDetector(
       onTap: () => p.toggleStatus(key),
@@ -418,26 +423,28 @@ class InventoryFilterSheet extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.10) : AppColors.white,
+          color: selected
+              ? color.withOpacity(0.10)
+              : cs.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? color : AppColors.lightGrey,
+            color: selected ? color : cs.outline,
             width: selected ? 1.5 : 1,
           ),
           boxShadow: selected
               ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 3))]
-              : [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
+              : [BoxShadow(color: AppColors.black.withOpacity(isDark ? 0.0 : 0.04), blurRadius: 6, offset: const Offset(0, 2))],
         ),
         child: Column(
           children: [
-            Icon(icon, color: selected ? color : AppColors.warmGrey, size: 22),
+            Icon(icon, color: selected ? color : cs.onSurfaceVariant, size: 22),
             const SizedBox(height: 6),
             Text(label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: selected ? color : AppColors.warmGrey)),
+                    color: selected ? color : cs.onSurfaceVariant)),
           ],
         ),
       ),
@@ -445,20 +452,25 @@ class InventoryFilterSheet extends StatelessWidget {
   }
 
   Widget _filterChip({
+    required BuildContext context,
     required String label,
     required bool selected,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs     = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.goldDark.withOpacity(0.10) : AppColors.white,
+          color: selected
+              ? AppColors.goldDark.withOpacity(0.10)
+              : cs.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: selected ? AppColors.goldDark : AppColors.lightGrey,
+            color: selected ? AppColors.goldDark : cs.outline,
             width: selected ? 1.5 : 1,
           ),
           boxShadow: selected
@@ -476,15 +488,16 @@ class InventoryFilterSheet extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: selected ? AppColors.goldDark : AppColors.warmGrey)),
+                    color: selected ? AppColors.goldDark : cs.onSurfaceVariant)),
           ],
         ),
       ),
     );
   }
 
-  Widget _priceBox(String label, String value,
+  Widget _priceBox(BuildContext context, String label, String value,
       {CrossAxisAlignment align = CrossAxisAlignment.start}) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: align,
       children: [
@@ -492,32 +505,35 @@ class InventoryFilterSheet extends StatelessWidget {
             style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: AppColors.warmGrey,
+                color: cs.onSurfaceVariant,
                 letterSpacing: 1)),
         const SizedBox(height: 2),
         Text(value,
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.black)),
+                color: cs.onSurface)),
       ],
     );
   }
 
-  Widget _emptyChipHint(String msg) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.lightGrey.withOpacity(0.6)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.info_outline_rounded, size: 14, color: AppColors.warmGrey),
-            const SizedBox(width: 6),
-            Text(msg, style: TextStyle(color: AppColors.warmGrey, fontSize: 13)),
-          ],
-        ),
-      );
+  Widget _emptyChipHint(BuildContext context, String msg) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: cs.outline.withOpacity(0.6)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline_rounded, size: 14, color: cs.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(msg, style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+        ],
+      ),
+    );
+  }
 }

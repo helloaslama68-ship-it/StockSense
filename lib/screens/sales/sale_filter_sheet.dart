@@ -1,309 +1,527 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/colors.dart';
+
 import '../../core/app_styles.dart';
+import '../../core/colors.dart';
+import '../../core/utils/responsive.dart';
 import '../../providers/sale_filter_provider.dart';
-import '../../widgets/app_filter_chip.dart';
-import '../../widgets/app_section_label.dart';
-import '../../widgets/app_sheet_handle.dart';
 import '../../widgets/gold_button.dart';
 
-class SaleFilterSheet extends StatelessWidget {
-  const SaleFilterSheet({super.key});
-
-  static const _sortMeta = <SaleSortOption, (String, IconData)>{
-    SaleSortOption.newest:        ('Newest First',       Icons.arrow_downward_rounded),
-    SaleSortOption.oldest:        ('Oldest First',       Icons.arrow_upward_rounded),
-    SaleSortOption.amountHighLow: ('Amount: High → Low', Icons.trending_down_rounded),
-    SaleSortOption.amountLowHigh: ('Amount: Low → High', Icons.trending_up_rounded),
-  };
-
-  Future<void> _pickDateRange(BuildContext context, SaleFilterProvider p) async {
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      initialDateRange: p.draftDateRange,
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(
-            primary: AppColors.goldDark,
-            onPrimary: AppColors.white,
-            surface: AppColors.backgroundTop,
-          ),
-        ),
-        child: child!,
-      ),
-    );
-    if (picked != null) p.setDraftDateRange(picked);
-  }
+class SalesReportFilterSheet extends StatelessWidget {
+  const SalesReportFilterSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback(
-        (_) => context.read<SaleFilterProvider>().initDraft());
+    final r = Responsive.of(context);
+    final provider = context.watch<SaleFilterProvider>();
 
-    return Consumer<SaleFilterProvider>(
-      builder: (context, p, _) {
-        final active = p.draftActiveCount;
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+          20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 32),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            //TOP BAR
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Icon(Icons.close_rounded,
+                      size: 22, color: Theme.of(context).colorScheme.onSurface),
+                ),
+                Text(
+                  'Filter Reports',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    provider.resetDraft();
+                  },
+                  child: const Text(
+                    'Reset',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.goldDark,
+                    ),
+                  ),
+                ),
+              ],
+            ),
 
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              const AppSheetHandle(),
-              const SizedBox(height: 4),
+            const SizedBox(height: 24),
 
-              // Header
-              Container(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            //  DATE RANGE
+            _SectionLabel(label: 'Date Range', r: r),
+            const SizedBox(height: 10),
+
+            // Presets grid
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 2.6,
+              children: [
+                _DatePreset(
+                  title: 'Today',
+                  subtitle: 'REAL-TIME',
+                  selected: provider.draftDateRange != null &&
+                      _isToday(provider.draftDateRange!),
+                  onTap: () => provider.setDraftDateRange(DateTimeRange(
+                    start: _startOfDay(DateTime.now()),
+                    end: _endOfDay(DateTime.now()),
+                  )),
+                  r: r,
+                ),
+                _DatePreset(
+                  title: 'Yesterday',
+                  subtitle: '24H HISTORY',
+                  selected: provider.draftDateRange != null &&
+                      _isYesterday(provider.draftDateRange!),
+                  onTap: () {
+                    final y =
+                        DateTime.now().subtract(const Duration(days: 1));
+                    provider.setDraftDateRange(DateTimeRange(
+                      start: _startOfDay(y),
+                      end: _endOfDay(y),
+                    ));
+                  },
+                  r: r,
+                ),
+                _DatePreset(
+                  title: 'Last 7 Days',
+                  subtitle: 'WEEKLY SCAN',
+                  selected: provider.draftDateRange != null &&
+                      _isLast7(provider.draftDateRange!),
+                  onTap: () => provider.setDraftDateRange(DateTimeRange(
+                    start: _startOfDay(
+                        DateTime.now().subtract(const Duration(days: 6))),
+                    end: _endOfDay(DateTime.now()),
+                  )),
+                  r: r,
+                ),
+                _DatePreset(
+                  title: 'Last 30 Days',
+                  subtitle: 'MONTHLY PEAK',
+                  selected: provider.draftDateRange != null &&
+                      _isLast30(provider.draftDateRange!),
+                  onTap: () => provider.setDraftDateRange(DateTimeRange(
+                    start: _startOfDay(
+                        DateTime.now().subtract(const Duration(days: 29))),
+                    end: _endOfDay(DateTime.now()),
+                  )),
+                  r: r,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // Custom range row
+            GestureDetector(
+              onTap: () async {
+                final picked = await showDateRangePicker(
+                  context: context,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                  initialDateRange: provider.draftDateRange,
+                  builder: (ctx, child) => Theme(
+                    data: Theme.of(ctx).copyWith(
+                      colorScheme: const ColorScheme.light(
+                          primary: AppColors.goldDark),
+                    ),
+                    child: child!,
+                  ),
+                );
+                if (picked != null) provider.setDraftDateRange(picked);
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                ),
                 child: Row(
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: appCardDecoration(radius: 10),
-                        child: const Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 16, color: AppColors.goldDark),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
+                    const Icon(Icons.calendar_month_rounded,
+                        size: 18, color: AppColors.goldDark),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: Row(
-                        children: [
-                           Text('Filters',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface)),
-                          if (active > 0) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.goldDark,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text('$active',
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.white,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                          ],
-                        ],
+                      child: Text(
+                        provider.draftDateRange != null &&
+                                !_isPreset(provider.draftDateRange!)
+                            ? '${formatShortDate(provider.draftDateRange!.start)} – ${formatShortDate(provider.draftDateRange!.end)}'
+                            : 'Custom Range',
+                        style: TextStyle(
+                          fontSize: r.sp(13),
+                          fontWeight: FontWeight.w600,
+                          color: provider.draftDateRange != null &&
+                                  !_isPreset(provider.draftDateRange!)
+                              ? Theme.of(context).colorScheme.onSurface
+                              : AppColors.warmGrey,
+                        ),
                       ),
                     ),
-                    if (active > 0)
-                      GestureDetector(
-                        onTap: p.resetDraft,
-                        child: const Text('Reset',
-                            style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.goldDark,
-                                fontWeight: FontWeight.w600)),
-                      ),
+                    const Icon(Icons.chevron_right_rounded,
+                        size: 18, color: AppColors.warmGrey),
                   ],
                 ),
               ),
+            ),
 
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      //  Sort
-                      const AppSectionLabel(label: 'SORT BY'),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8, runSpacing: 8,
-                        children: SaleSortOption.values.map((opt) {
-                          final (label, icon) = _sortMeta[opt]!;
-                          final isActive = p.draftSortBy == opt;
-                          return GestureDetector(
-                            onTap: () => p.setDraftSort(opt),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: isActive ? AppColors.goldDark : Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: isActive ? AppColors.goldDark : Theme.of(context).colorScheme.outline,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(icon, size: 14,
-                                      color: isActive ? AppColors.white : Theme.of(context).colorScheme.onSurface),
-                                  const SizedBox(width: 6),
-                                  Text(label,
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: isActive ? AppColors.white : Theme.of(context).colorScheme.onSurface)),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
+            const SizedBox(height: 24),
 
-                      const SizedBox(height: 20),
+            //  CHANNEL
+            _SectionLabel(label: 'Channel', r: r),
+            const SizedBox(height: 10),
 
-                      //  Channel
-                      const AppSectionLabel(label: 'CHANNEL'),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          AppFilterChip(label: 'All',      active: p.draftChannel == '',         onTap: () => p.setDraftChannel('')),
-                          AppFilterChip(label: 'In-Store', active: p.draftChannel == 'in-store', onTap: () => p.setDraftChannel('in-store')),
-                          AppFilterChip(label: 'Online',   active: p.draftChannel == 'online',   onTap: () => p.setDraftChannel('online')),
-                        ],
-                      ),
+            Row(
+              children: [
+                _ChannelChip(
+                  label: 'All',
+                  selected: provider.draftChannel.isEmpty,
+                  onTap: () => provider.setDraftChannel(''),
+                  r: r,
+                ),
+                const SizedBox(width: 8),
+                _ChannelChip(
+                  label: 'In-Store',
+                  selected: provider.draftChannel == 'in-store',
+                  onTap: () => provider.setDraftChannel('in-store'),
+                  r: r,
+                ),
+                const SizedBox(width: 8),
+                _ChannelChip(
+                  label: 'Online',
+                  selected: provider.draftChannel == 'online',
+                  onTap: () => provider.setDraftChannel('online'),
+                  r: r,
+                ),
+              ],
+            ),
 
-                      const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-                      // Customer search
-                      const AppSectionLabel(label: 'CUSTOMER'),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: p.draftCustomerCtrl,
-                        onChanged: p.setDraftCustomer,
-                        style: const TextStyle(fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: 'Search customer or receipt #…',
-                          hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.7), fontSize: 13),
-                          prefixIcon: const Icon(Icons.search_rounded, size: 18, color: AppColors.goldDark),
-                          suffixIcon: p.draftCustomerQuery.isNotEmpty
-                              ? GestureDetector(
-                                  onTap: () {
-                                    p.draftCustomerCtrl.clear();
-                                    p.setDraftCustomer('');
-                                  },
-                                  child: const Icon(Icons.close_rounded, size: 16, color: AppColors.grey),
-                                )
-                              : null,
-                          filled: true,
-                          fillColor: Theme.of(context).colorScheme.surface,
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: AppColors.goldDark, width: 1.5)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        ),
-                      ),
+            //  AMOUNT RANGE
+            _SectionLabel(label: 'Amount Range', r: r),
+            const SizedBox(height: 4),
 
-                      const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '₹${provider.draftAmountRange.start.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: r.sp(12),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.goldDark,
+                  ),
+                ),
+                Text(
+                  provider.draftAmountRange.end >=
+                          SaleFilterProvider.kMaxAmount
+                      ? '₹${SaleFilterProvider.kMaxAmount.toStringAsFixed(0)}+'
+                      : '₹${provider.draftAmountRange.end.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: r.sp(12),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.goldDark,
+                  ),
+                ),
+              ],
+            ),
 
-                      // Date Range
-                      const AppSectionLabel(label: 'DATE RANGE'),
-                      const SizedBox(height: 10),
-                      GestureDetector(
-                        onTap: () => _pickDateRange(context, p),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: p.draftDateRange != null ? AppColors.goldDark : Theme.of(context).colorScheme.outline,
-                              width: p.draftDateRange != null ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.date_range_rounded,
-                                  size: 18,
-                                  color: p.draftDateRange != null ? AppColors.goldDark : AppColors.grey),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  p.draftDateRange == null
-                                      ? 'Select date range'
-                                      : '${formatDate(p.draftDateRange!.start)}  →  ${formatDate(p.draftDateRange!.end)}',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: p.draftDateRange != null ? Theme.of(context).colorScheme.onSurface : AppColors.grey,
-                                    fontWeight: p.draftDateRange != null ? FontWeight.w600 : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                              if (p.draftDateRange != null)
-                                GestureDetector(
-                                  onTap: () => p.setDraftDateRange(null),
-                                  child: const Icon(Icons.close_rounded, size: 16, color: AppColors.grey),
-                                ),
-                            ],
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: AppColors.goldDark,
+                inactiveTrackColor: AppColors.goldDark.withOpacity(0.15),
+                thumbColor: AppColors.goldDark,
+                overlayColor: AppColors.goldDark.withOpacity(0.12),
+                rangeThumbShape:
+                    const RoundRangeSliderThumbShape(enabledThumbRadius: 10),
+              ),
+              child: RangeSlider(
+                values: provider.draftAmountRange,
+                min: 0,
+                max: SaleFilterProvider.kMaxAmount,
+                divisions: 100,
+                onChanged: (v) => provider.setDraftAmountRange(v),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // INSIGHT CARD
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.goldDark.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: AppColors.goldDark.withOpacity(0.2), width: 1),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.goldDark.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.bolt_rounded,
+                        size: 14, color: AppColors.goldDark),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'STOCKSENSE INSIGHT',
+                          style: TextStyle(
+                            fontSize: r.sp(9),
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.goldDark,
+                            letterSpacing: 1.0,
                           ),
                         ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Amount Range
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const AppSectionLabel(label: 'AMOUNT RANGE'),
-                          Text(
-                            p.draftAmountRange.end >= SaleFilterProvider.kMaxAmount
-                                ? '₹${p.draftAmountRange.start.toStringAsFixed(0)} – Any'
-                                : '₹${p.draftAmountRange.start.toStringAsFixed(0)} – ₹${p.draftAmountRange.end.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.goldDark,
-                                fontWeight: FontWeight.w600),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Narrowing your search improves dashboard performance by 26%.',
+                          style: TextStyle(
+                            fontSize: r.sp(12),
+                            color: AppColors.charcoalGrey,
+                            height: 1.4,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: AppColors.goldDark,
-                          inactiveTrackColor: AppColors.goldDark.withOpacity(0.15),
-                          thumbColor: AppColors.goldDark,
-                          overlayColor: AppColors.goldDark.withOpacity(0.12),
-                          rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 10),
                         ),
-                        child: RangeSlider(
-                          values: p.draftAmountRange,
-                          min: 0,
-                          max: SaleFilterProvider.kMaxAmount,
-                          divisions: 200,
-                          onChanged: p.setDraftAmountRange,
-                        ),
-                      ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-                      const SizedBox(height: 28),
+            const SizedBox(height: 20),
 
-                      GoldButton(
-                        label: active > 0 ? 'Apply Filters ($active)' : 'Apply',
-                        onPressed: () {
-                          p.applyDraft();
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                    ],
+            // APPLY
+            GoldButton(
+              label: 'Apply Filters',
+              icon: Icons.check_circle_outline_rounded,
+              onPressed: () {
+                provider.applyDraft();
+                Navigator.pop(context);
+              },
+            ),
+
+            const SizedBox(height: 12),
+
+            //  CLEAR
+            GestureDetector(
+              onTap: () {
+                provider.resetDraft();
+                provider.reset();
+                Navigator.pop(context);
+              },
+              child: Center(
+                child: Text(
+                  'Clear all preferences',
+                  style: TextStyle(
+                    fontSize: r.sp(12),
+                    color: AppColors.warmGrey,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // helpers
+  static DateTime _startOfDay(DateTime d) =>
+      DateTime(d.year, d.month, d.day);
+  static DateTime _endOfDay(DateTime d) =>
+      DateTime(d.year, d.month, d.day, 23, 59, 59);
+
+  static bool _isToday(DateTimeRange r) {
+    final t = DateTime.now();
+    return r.start.year == t.year &&
+        r.start.month == t.month &&
+        r.start.day == t.day &&
+        r.end.day == t.day &&
+        r.end.hour == 23;
+  }
+
+  static bool _isYesterday(DateTimeRange r) {
+    final y = DateTime.now().subtract(const Duration(days: 1));
+    return r.start.day == y.day &&
+        r.start.month == y.month &&
+        r.end.day == y.day;
+  }
+
+  static bool _isLast7(DateTimeRange r) {
+    final start =
+        _startOfDay(DateTime.now().subtract(const Duration(days: 6)));
+    return r.start.year == start.year &&
+        r.start.month == start.month &&
+        r.start.day == start.day;
+  }
+
+  static bool _isLast30(DateTimeRange r) {
+    final start =
+        _startOfDay(DateTime.now().subtract(const Duration(days: 29)));
+    return r.start.year == start.year &&
+        r.start.month == start.month &&
+        r.start.day == start.day;
+  }
+
+  static bool _isPreset(DateTimeRange r) =>
+      _isToday(r) || _isYesterday(r) || _isLast7(r) || _isLast30(r);
+}
+
+// DATE PRESET CHIP
+
+class _DatePreset extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+  final Responsive r;
+
+  const _DatePreset({
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+    required this.r,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.goldDark : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected
+                ? AppColors.goldDark
+                : Theme.of(context).colorScheme.outline,
+            width: 1.5,
           ),
-        );
-      },
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: r.sp(12),
+                fontWeight: FontWeight.w700,
+                color: selected ? AppColors.white : Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: r.sp(9),
+                fontWeight: FontWeight.w600,
+                color: selected
+                    ? AppColors.white.withOpacity(0.7)
+                    : AppColors.warmGrey,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// CHANNEL CHIP
+
+class _ChannelChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Responsive r;
+
+  const _ChannelChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.r,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.goldDark : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppColors.goldDark : Theme.of(context).colorScheme.outline,
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: r.sp(12),
+            fontWeight: FontWeight.w700,
+            color: selected ? AppColors.white : Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// SECTION LABEL
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  final Responsive r;
+
+  const _SectionLabel({required this.label, required this.r});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: r.sp(13),
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
     );
   }
 }

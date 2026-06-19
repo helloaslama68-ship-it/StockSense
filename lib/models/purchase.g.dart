@@ -1,10 +1,7 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+
 
 part of 'purchase.dart';
 
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
 
 class PurchaseAdapter extends TypeAdapter<Purchase> {
   @override

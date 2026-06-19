@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../models/product.dart';
 import '../../providers/product_provider.dart';
 import '../../widgets/product_badge.dart';
@@ -18,19 +19,6 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  String _formatDate(String iso) {
-    try {
-      final d = DateTime.parse(iso);
-      const m = [
-        'Jan','Feb','Mar','Apr','May','Jun',
-        'Jul','Aug','Sep','Oct','Nov','Dec'
-      ];
-      return '${d.day} ${m[d.month - 1]} ${d.year}';
-    } catch (_) {
-      return iso;
-    }
-  }
-
   Map<String, dynamic>? _getStatus(Product p) {
     if (p.expiryDate != null) {
       final expiry = DateTime.tryParse(p.expiryDate!);
@@ -385,12 +373,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             _DetailRow(
                                 icon: Icons.calendar_today_rounded,
                                 label: 'Expiry Date',
-                                value: _formatDate(product.expiryDate!),
+                                value: formatDateFromString(product.expiryDate!),
                                 valueColor: _expiryColor(product.expiryDate!)),
                           _DetailRow(
                               icon: Icons.access_time_rounded,
                               label: 'Added On',
-                              value: _formatDate(
+                              value: formatDateFromString(
                                   product.createdAt.toIso8601String())),
                         ],
                       ),

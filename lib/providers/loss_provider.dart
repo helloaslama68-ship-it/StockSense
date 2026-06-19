@@ -6,7 +6,7 @@ class LossProvider extends ChangeNotifier {
   final LossRepository _repo;
   LossProvider(this._repo);
 
-  // GETTERS 
+  // GETTERS
   List<InventoryLoss> get allLosses => _repo.getAll();
 
   List<InventoryLoss> get recentLosses => allLosses.take(5).toList();
@@ -20,23 +20,28 @@ class LossProvider extends ChangeNotifier {
   List<InventoryLoss> byReason(String reason) =>
       allLosses.where((l) => l.reason == reason).toList();
 
-  // ACTIONS 
+  // ACTIONS
   Future<void> addLoss({
     required String productId,
     required String productName,
-    required int quantity,
+    required double quantityDecimal,
     required double valuationLoss,
     required String reason,
     String? unit,
   }) async {
     await _repo.add(
-      productId:     productId,
-      productName:   productName,
-      quantity:      quantity,
-      valuationLoss: valuationLoss,
-      reason:        reason,
-      unit:          unit,
+      productId:       productId,
+      productName:     productName,
+      quantityDecimal: quantityDecimal,
+      valuationLoss:   valuationLoss,
+      reason:          reason,
+      unit:            unit,
     );
+    notifyListeners();
+  }
+
+  Future<void> updateLoss(InventoryLoss loss) async {
+    await _repo.update(loss);
     notifyListeners();
   }
 

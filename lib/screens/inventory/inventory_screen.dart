@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../models/product.dart';
 import '../../providers/product_provider.dart';
 import '../../widgets/empty_state.dart';
@@ -11,6 +12,7 @@ import 'add_product_screen.dart';
 import 'edit_product_screen.dart';
 import 'inventory_filter_sheet.dart';
 import 'product_details_screen.dart';
+import '../../widgets/app_confirm_dialog.dart';
 
 class InventoryScreen extends StatelessWidget {
   const InventoryScreen({super.key});
@@ -178,10 +180,10 @@ class _StatsStrip extends StatelessWidget {
               _StatItem(label: 'Total Value', value: '₹${_formatValue(totalValue)}', icon: Icons.account_balance_wallet_rounded),
               _divider(),
               _StatItem(label: 'Low Stock', value: '$lowStock', icon: Icons.warning_amber_rounded,
-                  valueColor: lowStock > 0 ? const Color(0xFFFFE082) : Colors.white),
+                  valueColor: lowStock > 0 ? const Color(0xFFFFE082) : AppColors.white),
               _divider(),
               _StatItem(label: 'Out of Stock', value: '$outOfStock', icon: Icons.remove_shopping_cart_rounded,
-                  valueColor: outOfStock > 0 ? const Color(0xFFFF8A80) : Colors.white),
+                  valueColor: outOfStock > 0 ? const Color(0xFFFF8A80) : AppColors.white),
             ],
           ),
         );
@@ -216,12 +218,12 @@ class _StatItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Icon(icon, size: 12, color: Colors.white.withOpacity(0.7)),
+            Icon(icon, size: 12, color: AppColors.white.withOpacity(0.7)),
             const SizedBox(width: 4),
             Text(label,
                 style: TextStyle(
                     fontSize: 10,
-                    color: Colors.white.withOpacity(0.7),
+                    color: AppColors.white.withOpacity(0.7),
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.3)),
           ]),
@@ -230,7 +232,7 @@ class _StatItem extends StatelessWidget {
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: valueColor ?? Colors.white,
+                  color: valueColor ?? AppColors.white,
                   letterSpacing: -0.3)),
         ],
       ),
@@ -256,7 +258,7 @@ class _SearchBar extends StatelessWidget {
               child: Container(
                 height: 46,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -269,7 +271,7 @@ class _SearchBar extends StatelessWidget {
                   onChanged: provider.setSearch,
                   style: TextStyle(
                       fontSize: 14,
-                      color: isDark ? Colors.white : AppColors.black,
+                      color: isDark ? AppColors.white : AppColors.black,
                       fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     hintText: 'Search products…',
@@ -293,7 +295,7 @@ class _SearchBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: provider.filter.isActive
                       ? AppColors.goldDark
-                      : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
+                      : (isDark ? const Color(0xFF1E1E1E) : AppColors.white),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -305,7 +307,7 @@ class _SearchBar extends StatelessWidget {
                   ],
                 ),
                 child: Icon(Icons.tune_rounded,
-                    color: provider.filter.isActive ? Colors.white : AppColors.goldDark,
+                    color: provider.filter.isActive ? AppColors.white : AppColors.goldDark,
                     size: 20),
               ),
             ),
@@ -377,7 +379,7 @@ class _ProductCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -458,7 +460,7 @@ class _ProductCard extends StatelessWidget {
                               color: AppColors.warmGrey.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: Text('Exp ${_formatDate(product.expiryDate!)}',
+                            child: Text('Exp ${formatShortDate(DateTime.parse(product.expiryDate!))}',
                                 style: TextStyle(fontSize: 10, color: AppColors.warmGrey, fontWeight: FontWeight.w500)),
                           ),
                         ],
@@ -508,7 +510,16 @@ class _ProductCard extends StatelessWidget {
                         _ActionBtn(
                           icon: Icons.delete_rounded,
                           color: AppColors.darkRed,
-                          onTap: () => context.read<ProductProvider>().deleteProduct(product.id),
+                          onTap: () async {
+                            final ok = await AppConfirmDialog.show(
+                              context,
+                              title: 'Delete Product',
+                              message: 'Remove "${product.name}" from inventory?',
+                            );
+                            if (ok && context.mounted) {
+                              context.read<ProductProvider>().deleteProduct(product.id);
+                            }
+                          },
                         ),
                       ]),
                     ],
@@ -536,13 +547,6 @@ class _ProductCard extends StatelessWidget {
     return null;
   }
 
-  String _formatDate(String iso) {
-    try {
-      final d = DateTime.parse(iso);
-      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return '${d.day} ${months[d.month - 1]}';
-    } catch (_) { return ''; }
-  }
 }
 
 // HELPERS & MICRO WIDGETS

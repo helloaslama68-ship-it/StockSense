@@ -60,13 +60,13 @@ class Onboarding3 extends StatelessWidget {
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 children: [
-                  const TextSpan(text: "Grow Your Business\n"),
+                  TextSpan(text: "Grow Your Business\n"),
                   TextSpan(
                     text: "Smarter",
                     style: TextStyle(color: AppColors.goldDark),

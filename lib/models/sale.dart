@@ -16,4 +16,7 @@ class Sale extends HiveObject {
   @HiveField(8) late int receiptNumber;
   @HiveField(9) late String status; // 'completed'  'pending'
   @HiveField(10) late String channel; // 'in-store' 'online'
+  @HiveField(11) late String paymentMode; // 'paid' | 'credit' | 'partial'
+  @HiveField(12) late double creditAmount;
+  @HiveField(13) late double paidAmount;
 }

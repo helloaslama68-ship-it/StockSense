@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 
-/// Transient form state for Add + Edit product screens.
-/// Register as non-persistent provider .
+
 /// Call [initFromProduct] when editing, [reset] when adding.
 class ProductFormProvider extends ChangeNotifier {
   // FIELDS 
@@ -18,7 +17,7 @@ class ProductFormProvider extends ChangeNotifier {
   void initFromProduct(Product p) {
     imagePath        = p.imagePath;
     selectedCategory = p.category;
-    selectedBrand    = p.brand; // ← CHANGED
+    selectedBrand    = p.brand; 
     expiry           = p.expiryDate != null
         ? DateTime.tryParse(p.expiryDate!)
         : null;

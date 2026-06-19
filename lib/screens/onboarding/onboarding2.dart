@@ -41,10 +41,10 @@ class Onboarding2 extends StatelessWidget {
               mainAxisSpacing: 15,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                _feature(Icons.warning, "LOW STOCK"),
-                _feature(Icons.event_busy, "EXPIRY\nTRACKING"),
-                _feature(Icons.qr_code, "QUICK SCAN"),
-                _feature(Icons.show_chart, "SMART\nPREDICTIONS"),
+                _feature(context, Icons.warning, "LOW STOCK"),
+                _feature(context, Icons.event_busy, "EXPIRY\nTRACKING"),
+                _feature(context, Icons.qr_code, "QUICK SCAN"),
+                _feature(context, Icons.show_chart, "SMART\nPREDICTIONS"),
               ],
             ),
 
@@ -110,7 +110,7 @@ class Onboarding2 extends StatelessWidget {
     );
   }
 
-  Widget _feature(IconData icon, String text) {
+  Widget _feature(BuildContext context, IconData icon, String text) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -130,10 +130,10 @@ class Onboarding2 extends StatelessWidget {
           Text(
             text,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: AppColors.black,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],

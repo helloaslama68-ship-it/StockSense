@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 
+enum SalePaymentMode { paid, credit, partial }
+
 class CartItem {
   final Product product;
   int quantity;
@@ -17,18 +19,41 @@ class SaleFormProvider extends ChangeNotifier {
   double _taxPercent = 0;
   String _customerName = '';
 
+  // Payment mode
+  SalePaymentMode _paymentMode = SalePaymentMode.paid;
+  double _paidAmount = 0;
+
   DateTime get saleDate => _saleDate;
   List<CartItem> get cart => List.unmodifiable(_cart);
   double get taxPercent => _taxPercent;
   String get customerName => _customerName;
+  SalePaymentMode get paymentMode => _paymentMode;
+  double get paidAmount => _paidAmount;
 
   double get subtotal    => _cart.fold(0, (s, i) => s + i.subtotal);
   double get taxAmount   => subtotal * _taxPercent / 100;
   double get totalAmount => subtotal + taxAmount;
+  double get creditAmount {
+    if (_paymentMode == SalePaymentMode.paid) return 0;
+    if (_paymentMode == SalePaymentMode.credit) return totalAmount;
+    return (totalAmount - _paidAmount).clamp(0, totalAmount);
+  }
 
   void setSaleDate(DateTime d) { _saleDate = d; notifyListeners(); }
   void setTaxPercent(double v) { _taxPercent = v.clamp(0, 100); notifyListeners(); }
   void setCustomerName(String v) { _customerName = v; }
+
+  void setPaymentMode(SalePaymentMode mode) {
+    _paymentMode = mode;
+    if (mode == SalePaymentMode.paid) _paidAmount = 0;
+    if (mode == SalePaymentMode.credit) _paidAmount = 0;
+    notifyListeners();
+  }
+
+  void setPaidAmount(double v) {
+    _paidAmount = v.clamp(0, totalAmount);
+    notifyListeners();
+  }
 
   void addOrIncrementProduct(Product product) {
     final i = _cart.indexWhere((c) => c.product.id == product.id);
@@ -54,6 +79,8 @@ class SaleFormProvider extends ChangeNotifier {
     _cart.clear();
     _taxPercent = 0;
     _customerName = '';
+    _paymentMode = SalePaymentMode.paid;
+    _paidAmount = 0;
     notifyListeners();
   }
 
@@ -84,7 +111,6 @@ class SaleFormProvider extends ChangeNotifier {
     _selectedProduct = null;
     notifyListeners();
   }
-
 
   void setSearchQueryOnly(String q) {
     _searchQuery = q;

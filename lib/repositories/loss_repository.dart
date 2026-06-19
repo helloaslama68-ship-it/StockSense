@@ -6,28 +6,33 @@ class LossRepository {
   final Box<InventoryLoss> _box = Hive.box<InventoryLoss>('losses');
   final _uuid = const Uuid();
 
-  //  READ 
+  // READ
   List<InventoryLoss> getAll() =>
       _box.values.toList()..sort((a, b) => b.loggedAt.compareTo(a.loggedAt));
 
-  //  WRITE 
+  // WRITE
   Future<void> add({
     required String productId,
     required String productName,
-    required int quantity,
+    required double quantityDecimal,
     required double valuationLoss,
     required String reason,
     String? unit,
   }) async {
     final loss = InventoryLoss()
-      ..id            = _uuid.v4()
-      ..productId     = productId
-      ..productName   = productName
-      ..quantity      = quantity
-      ..valuationLoss = valuationLoss
-      ..reason        = reason
-      ..unit          = unit
-      ..loggedAt      = DateTime.now();
+      ..id               = _uuid.v4()
+      ..productId        = productId
+      ..productName      = productName
+      ..quantity         = quantityDecimal.truncate() // legacy int field
+      ..quantityDecimal  = quantityDecimal
+      ..valuationLoss    = valuationLoss
+      ..reason           = reason
+      ..unit             = unit
+      ..loggedAt         = DateTime.now();
+    await _box.put(loss.id, loss);
+  }
+
+  Future<void> update(InventoryLoss loss) async {
     await _box.put(loss.id, loss);
   }
 

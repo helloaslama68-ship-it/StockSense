@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/app_styles.dart';
 import '../../core/colors.dart';
+import '../../models/inventory_loss.dart';
 import '../../providers/log_loss_form_provider.dart';
 import '../../providers/loss_provider.dart';
 import '../../providers/product_provider.dart';
@@ -11,7 +13,11 @@ import '../../widgets/app_filter_chip.dart';
 import '../../widgets/app_snack_bar.dart';
 
 class LogLossScreen extends StatefulWidget {
-  const LogLossScreen({super.key});
+  
+  final InventoryLoss? editLoss;
+  const LogLossScreen({super.key, this.editLoss});
+
+  bool get isEdit => editLoss != null;
 
   @override
   State<LogLossScreen> createState() => _LogLossScreenState();
@@ -21,13 +27,34 @@ class _LogLossScreenState extends State<LogLossScreen> {
   final _qtyCtrl   = TextEditingController();
   final _notesCtrl = TextEditingController();
 
-  static const _types = ['Damaged', 'Spoiled', 'Expired'];
+  static const _types = ['Damaged', 'Spoiled', 'Expired', 'Other'];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<LogLossFormProvider>().reset();
+      final p = context.read<LogLossFormProvider>();
+      if (widget.isEdit) {
+        // PRE-FILL for edit
+        final loss = widget.editLoss!;
+        final products = context.read<ProductProvider>().allProducts;
+        final prod = products.cast<dynamic>().firstWhere(
+          (p) => p.id == loss.productId,
+          orElse: () => null,
+        );
+        p.reset();
+        if (prod != null) p.setProduct(prod);
+        // Capitalise first letter to match _types list
+        final t = loss.reason.isEmpty ? 'Spoiled'
+            : loss.reason[0].toUpperCase() + loss.reason.substring(1);
+        p.setLossType(t);
+        p.setIncidentDate(loss.loggedAt);
+        _qtyCtrl.text = loss.qty == loss.qty.truncateToDouble()
+            ? loss.qty.toInt().toString()
+            : loss.qty.toStringAsFixed(2);
+      } else {
+        p.reset();
+      }
     });
   }
 
@@ -39,7 +66,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
   }
 
   double _totalLoss(LogLossFormProvider p) {
-    final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
+    final qty = double.tryParse(_qtyCtrl.text.trim()) ?? 0;
     return (p.selectedProduct?.costPrice ?? 0) * qty;
   }
 
@@ -56,18 +83,34 @@ class _LogLossScreenState extends State<LogLossScreen> {
   void _save(BuildContext context) {
     final p   = context.read<LogLossFormProvider>();
     if (p.selectedProduct == null)  { _snack('Select a product'); return; }
-    final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
+    final qty = double.tryParse(_qtyCtrl.text.trim()) ?? 0;
     if (qty <= 0)                   { _snack('Enter a valid quantity'); return; }
     if (p.incidentDate == null)     { _snack('Select date of incident'); return; }
 
-    context.read<LossProvider>().addLoss(
-      productId:     p.selectedProduct!.id,
-      productName:   p.selectedProduct!.name,
-      quantity:      qty,
-      valuationLoss: _totalLoss(p),
-      reason:        p.lossType.toLowerCase(),
-      unit:          p.selectedProduct!.unit,
-    );
+    final lossProvider = context.read<LossProvider>();
+
+    if (widget.isEdit) {
+      
+      final loss = widget.editLoss!
+        ..productId       = p.selectedProduct!.id
+        ..productName     = p.selectedProduct!.name
+        ..quantity        = qty.truncate()
+        ..quantityDecimal = qty
+        ..valuationLoss   = _totalLoss(p)
+        ..reason          = p.lossType.toLowerCase()
+        ..unit            = p.selectedProduct!.unit
+        ..loggedAt        = p.incidentDate!;
+      lossProvider.updateLoss(loss);
+    } else {
+      lossProvider.addLoss(
+        productId:       p.selectedProduct!.id,
+        productName:     p.selectedProduct!.name,
+        quantityDecimal: qty,
+        valuationLoss:   _totalLoss(p),
+        reason:          p.lossType.toLowerCase(),
+        unit:            p.selectedProduct!.unit,
+      );
+    }
 
     Navigator.pop(context);
   }
@@ -76,10 +119,16 @@ class _LogLossScreenState extends State<LogLossScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark   = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     final products = context.read<ProductProvider>().allProducts;
 
     return Consumer<LogLossFormProvider>(
       builder: (context, p, _) {
+        // Product image
+        final imgPath = p.selectedProduct?.imagePath;
+        final hasImg  = imgPath != null && imgPath.isNotEmpty;
+
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
@@ -87,7 +136,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
             elevation: 0,
             leading: const AppBackButton(),
             title: Text(
-              'Log Loss',
+              widget.isEdit ? 'Edit Loss Entry' : 'Log Loss',
               style: TextStyle(
                 color: AppColors.goldDark,
                 fontWeight: FontWeight.w700,
@@ -104,12 +153,29 @@ class _LogLossScreenState extends State<LogLossScreen> {
                 // HEADER
                 const Text('INVENTORY MANAGEMENT', style: appPageCategoryStyle),
                 const SizedBox(height: 4),
-                const Text('Record Discrepancy', style: appPageTitleStyle),
+                Text(
+                  widget.isEdit ? 'Edit Discrepancy' : 'Record Discrepancy',
+                  style: appPageTitleStyle,
+                ),
 
                 const SizedBox(height: 28),
 
+                // PRODUCT IMAGE PREVIEW 
+                if (hasImg) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.file(
+                      File(imgPath),
+                      height: 140,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 // PRODUCT NAME
-                const Text('Product Name', style: appFieldLabelStyle),
+                Text('Product Name', style: appFieldLabelStyle),
                 const SizedBox(height: 8),
                 Container(
                   decoration: appOutlineBoxDecoration(),
@@ -118,13 +184,20 @@ class _LogLossScreenState extends State<LogLossScreen> {
                     child: DropdownButton(
                       value: p.selectedProduct,
                       isExpanded: true,
-                      hint: const Text(
+                      dropdownColor: isDark ? AppColors.surfaceDark : AppColors.white,
+                      hint: Text(
                         'Select an item...',
-                        style: TextStyle(color: Color(0xFF888780), fontSize: 14),
+                        style: TextStyle(
+                          color: isDark ? AppColors.warmGrey : const Color(0xFF888780),
+                          fontSize: 14,
+                        ),
                       ),
                       items: products.map((prod) => DropdownMenuItem(
                         value: prod,
-                        child: Text(prod.name),
+                        child: Text(
+                          prod.name,
+                          style: TextStyle(color: onSurface),
+                        ),
                       )).toList(),
                       onChanged: (prod) => context.read<LogLossFormProvider>().setProduct(prod),
                       icon: Icon(Icons.keyboard_arrow_down_rounded,
@@ -143,16 +216,35 @@ class _LogLossScreenState extends State<LogLossScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Quantity Lost', style: appFieldLabelStyle),
+                          Text(
+                            p.selectedProduct?.unit != null
+                                ? 'Qty Lost (${p.selectedProduct!.unit})'
+                                : 'Quantity Lost',
+                            style: appFieldLabelStyle,
+                          ),
                           const SizedBox(height: 8),
                           ValueListenableBuilder<TextEditingValue>(
                             valueListenable: _qtyCtrl,
                             builder: (_, __, ___) => TextField(
                               controller: _qtyCtrl,
-                              keyboardType: TextInputType.number,
-                              decoration: appInputDeco('0'),
+                              // Allow decimal for weighted products
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              style: TextStyle(color: onSurface),
+                              decoration: appInputDeco(
+                                p.selectedProduct?.unit != null ? '0.25' : '0',
+                              ),
                             ),
                           ),
+                          if (p.selectedProduct?.unit != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tip: enter partial amounts e.g. 0.5 for half ${p.selectedProduct!.unit}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? AppColors.warmGrey : AppColors.charcoalGrey,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -161,7 +253,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Date of Incident', style: appFieldLabelStyle),
+                          Text('Date of Incident', style: appFieldLabelStyle),
                           const SizedBox(height: 8),
                           GestureDetector(
                             onTap: () => _pickDate(context),
@@ -177,7 +269,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
                                   fontSize: 14,
                                   color: p.incidentDate == null
                                       ? AppColors.warmGrey
-                                      : Theme.of(context).colorScheme.onSurface,
+                                      : onSurface,
                                 ),
                               ),
                             ),
@@ -191,25 +283,26 @@ class _LogLossScreenState extends State<LogLossScreen> {
                 const SizedBox(height: 20),
 
                 // LOSS TYPE
-                const Text('Loss Type', style: appFieldLabelStyle),
+                Text('Loss Type', style: appFieldLabelStyle),
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 8,
                   children: _types.map((t) => AppFilterChip(
                     label: t,
                     active: p.lossType == t,
                     onTap: () => context.read<LogLossFormProvider>().setLossType(t),
-                    margin: const EdgeInsets.only(right: 10),
                   )).toList(),
                 ),
 
                 const SizedBox(height: 20),
 
                 // NOTES
-                const Text('Notes', style: appFieldLabelStyle),
+                Text('Notes', style: appFieldLabelStyle),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _notesCtrl,
                   maxLines: 4,
+                  style: TextStyle(color: onSurface),
                   decoration: appInputDeco('Describe the reason for loss...'),
                 ),
 
@@ -232,7 +325,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
                               const SizedBox(height: 6),
                               Text(
                                 'Total Loss Amount: ₹${_totalLoss(p).toStringAsFixed(2)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.goldDark,
@@ -241,8 +334,9 @@ class _LogLossScreenState extends State<LogLossScreen> {
                             ],
                           ),
                         ),
-                        const Icon(Icons.account_balance_wallet_outlined,
-                            color: AppColors.warmSurface, size: 36),
+                        Icon(Icons.account_balance_wallet_outlined,
+                            color: isDark ? AppColors.warmGrey : AppColors.warmSurface,
+                            size: 36),
                       ],
                     ),
                   ),
@@ -256,11 +350,14 @@ class _LogLossScreenState extends State<LogLossScreen> {
                   height: 54,
                   child: ElevatedButton.icon(
                     onPressed: () => _save(context),
-                    icon: const Icon(Icons.save_rounded,
-                        color: AppColors.white, size: 18),
-                    label: const Text(
-                      'Save Loss Record',
-                      style: TextStyle(
+                    icon: Icon(
+                      widget.isEdit ? Icons.check_rounded : Icons.save_rounded,
+                      color: AppColors.white,
+                      size: 18,
+                    ),
+                    label: Text(
+                      widget.isEdit ? 'Save Changes' : 'Save Loss Record',
+                      style: const TextStyle(
                         color: AppColors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 16,

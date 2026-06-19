@@ -89,7 +89,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   void _showNotFound(String barcode) {
     showDialog(
       context: context,
-      barrierColor: Colors.black54,
+      barrierColor: AppColors.black,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -142,7 +142,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.goldDark,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
               elevation: 0,
@@ -242,7 +242,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.goldDark,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                   elevation: 0,
@@ -532,7 +532,7 @@ class _ProductCard extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
-          BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, -4))
+          BoxShadow(color: AppColors.black, blurRadius: 20, offset: Offset(0, -4))
         ],
       ),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -587,7 +587,7 @@ class _ProductCard extends StatelessWidget {
                       children: [
                         Icon(Icons.inventory_2_outlined,
                             size: 13,
-                            color: low ? AppColors.darkRed : Colors.grey),
+                            color: low ? AppColors.darkRed : AppColors.grey),
                         const SizedBox(width: 4),
                         Text('${product.quantity} Units in stock',
                             style: TextStyle(

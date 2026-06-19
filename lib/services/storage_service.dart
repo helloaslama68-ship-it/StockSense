@@ -1,8 +1,10 @@
 import 'package:hive/hive.dart';
 
-// Product and Sale models used for clearing stored data
+// Models used for clearing stored data
 import '../models/product.dart';
 import '../models/sale.dart';
+import '../models/customer.dart';
+import '../models/credit_transaction.dart';
 
 class StorageService {
 
@@ -94,8 +96,8 @@ class StorageService {
     await Hive.box<Sale>('sales').clear();
 
     // Clear customer credit data
-    await Hive.box('customers').clear();
-    await Hive.box('credit_transactions').clear();
+    await Hive.box<Customer>('customers').clear();
+    await Hive.box<CreditTransaction>('credit_transactions').clear();
 
     // Remove profile image
     _box.delete('profileImage');

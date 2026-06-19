@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../core/app_styles.dart';
 import '../../providers/customer_provider.dart';
+import '../../models/credit_transaction.dart';
 import '../../widgets/app_back_button.dart';
 
 class CreditReportScreen extends StatelessWidget {
@@ -17,21 +18,22 @@ class CreditReportScreen extends StatelessWidget {
     final provider = context.watch<CustomerProvider>();
     final customers = provider.customers;
 
-    final totalGiven = customers.fold<double>(
-      0,
-      (s, c) => s + c.amountDue,
-    );
+    // Sum all credit transactions ever issued
+    final allTxns = customers.expand((c) => provider.transactionsFor(c.id)).toList();
 
-    final totalCollected = customers.fold<double>(
-      0,
-      (s, c) {
-        final balance = provider.computeBalance(c.id, c.amountDue);
-        return s + (c.amountDue - balance);
-      },
-    );
+    // totalGiven = initial amountDue on each customer + additional credit txns added later
+    final initialDueTotal = customers.fold<double>(0, (s, c) => s + c.amountDue);
+    final additionalCreditTxns = allTxns
+        .where((t) => t.type == TransactionType.credit)
+        .fold<double>(0, (s, t) => s + t.amount);
+    final totalGiven = initialDueTotal + additionalCreditTxns;
+
+    final totalCollected = allTxns
+        .where((t) => t.type == TransactionType.payment)
+        .fold<double>(0, (s, t) => s + t.amount);
 
     final recoveryRate =
-        totalGiven > 0 ? (totalCollected / totalGiven * 100) : 0.0;
+        totalGiven > 0 ? (totalCollected / totalGiven * 100).clamp(0.0, 100.0) : 0.0;
 
     final activeBalances = customers
         .where((c) => provider.computeBalance(c.id, c.amountDue) > 0)
@@ -199,12 +201,15 @@ class CreditReportScreen extends StatelessWidget {
                                   color: AppColors.white,
                                 ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  '${recoveryRate.toStringAsFixed(1)}% Recovery Rate',
-                                  style: const TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.white,
+                                Flexible(
+                                  child: Text(
+                                    '${recoveryRate.toStringAsFixed(1)}% Recovery Rate',
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.white,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
@@ -275,9 +280,9 @@ class CreditReportScreen extends StatelessWidget {
 
   _CreditTag _resolveTag(customer, double balance) {
     if (balance <= 0) return _CreditTag.none;
-    if (customer.status.index == 0) return _CreditTag.criticalLimit;
-    if (customer.statusIndex == 2) return _CreditTag.overdue;
-    return _CreditTag.currentBalance;
+    if (customer.statusIndex == 0) return _CreditTag.criticalLimit; // highDue
+    if (customer.statusIndex == 1) return _CreditTag.overdue;       // pending
+    return _CreditTag.currentBalance;                                // noDue with balance
   }
 
   String _formatAmount(double v) {
@@ -294,14 +299,14 @@ class CreditReportScreen extends StatelessWidget {
 
   String _addCommas(String n) {
     if (n.length <= 3) return n;
-    final result = StringBuffer();
-    int count = 0;
-    for (int i = n.length - 1; i >= 0; i--) {
-      if (count > 0 && count % 3 == 0) result.write(',');
-      result.write(n[i]);
-      count++;
+    final last3 = n.substring(n.length - 3);
+    final rest = n.substring(0, n.length - 3);
+    final buf = StringBuffer();
+    for (int i = 0; i < rest.length; i++) {
+      if (i > 0 && (rest.length - i) % 2 == 0) buf.write(',');
+      buf.write(rest[i]);
     }
-    return result.toString().split('').reversed.join();
+    return '${buf.toString()},$last3';
   }
 }
 
@@ -374,7 +379,7 @@ class _CustomerCreditRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  // nearBlack was hardcoded — use default theme text
+                  
                 ),
               ),
               if (lastPaymentDate != null) ...[

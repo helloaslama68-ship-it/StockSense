@@ -6,9 +6,13 @@ import '../../core/utils/responsive.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/sale_form_provider.dart';
 import '../../providers/sale_provider.dart';
+import '../../providers/customer_provider.dart';
 import '../../models/product.dart';
+import '../../models/customer.dart';
+import '../../models/credit_transaction.dart';
 import '../scanner/scanner_screen.dart';
 import '../sales/sale_details_screen.dart';
+import '../credit/customer_detail_screen.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/app_snack_bar.dart';
 
@@ -55,19 +59,87 @@ class _SaleScreenBody extends StatelessWidget {
       AppSnackBar.error(context, 'Add at least one item');
       return;
     }
+    if ((form.paymentMode == SalePaymentMode.credit || form.paymentMode == SalePaymentMode.partial) &&
+        form.customerName.trim().isEmpty) {
+      AppSnackBar.error(context, 'Enter customer name for credit sale');
+      return;
+    }
+    if (form.paymentMode == SalePaymentMode.partial && form.paidAmount <= 0) {
+      AppSnackBar.error(context, 'Enter amount paid');
+      return;
+    }
+
     final saleProvider = context.read<SaleProvider>();
-    final customerCtrl = form.customerName;
+    final customerProvider = context.read<CustomerProvider>();
+
     try {
       final sale = await saleProvider.recordCartSale(
         cart: form.cart,
         taxPercent: form.taxPercent,
-        customerName: customerCtrl,
+        customerName: form.customerName,
+        status: form.paymentMode == SalePaymentMode.paid ? 'completed' : 'credit',
+        paymentMode: form.paymentMode.name,
+        creditAmount: form.creditAmount,
+        paidAmount: form.paidAmount,
       );
+
       if (!context.mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => SaleDetailsScreen(sale: sale)),
-      );
+
+      // Handle credit / partial
+      if (form.paymentMode == SalePaymentMode.credit || form.paymentMode == SalePaymentMode.partial) {
+        final creditAmt = form.creditAmount;
+        // Reuse existing customer by name, or create new
+        final existing = customerProvider.findByName(form.customerName.trim());
+        final custId = existing?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
+        final Customer customer;
+        if (existing != null) {
+          customer = existing;
+        } else {
+          customer = Customer.create(
+            id: custId,
+            name: form.customerName.trim(),
+            phone: '',
+            amountDue: creditAmt,
+            status: CreditStatus.pending,
+          );
+          await customerProvider.add(customer);
+        }
+
+        // If partial — record initial payment transaction
+        if (form.paymentMode == SalePaymentMode.partial && form.paidAmount > 0) {
+          final payTxn = CreditTransaction.create(
+            id: '${custId}_pay_${sale.receiptNumber}',
+            customerId: custId,
+            type: TransactionType.payment,
+            amount: form.paidAmount,
+            date: DateTime.now(),
+            notes: 'Partial payment at sale #${sale.receiptNumber}',
+          );
+          await customerProvider.addTransaction(payTxn);
+        }
+
+        // Credit transaction for the owed amount
+        final creditTxn = CreditTransaction.create(
+          id: '${custId}_credit_${sale.receiptNumber}',
+          customerId: custId,
+          type: TransactionType.credit,
+          amount: creditAmt,
+          date: DateTime.now(),
+          notes: 'Sale #${sale.receiptNumber}',
+        );
+        await customerProvider.addTransaction(creditTxn);
+
+        if (!context.mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => CustomerDetailScreen(customer: customer)),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => SaleDetailsScreen(sale: sale)),
+        );
+      }
     } catch (e) {
       if (!context.mounted) return;
       AppSnackBar.error(context, 'Failed to save sale');
@@ -130,7 +202,7 @@ class _SaleScreenBody extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // CUSTOMER + DATE 
+                      // CUSTOMER + DATE
                       Container(
                         padding: AppSpacing.cardPad,
                         decoration: BoxDecoration(
@@ -176,7 +248,7 @@ class _SaleScreenBody extends StatelessWidget {
 
                       AppSpacing.vLg,
 
-                      // ADD ITEM BUTTON 
+                      // ADD ITEM BUTTON
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -197,7 +269,7 @@ class _SaleScreenBody extends StatelessWidget {
 
                       AppSpacing.vLg,
 
-                      // CART 
+                      // CART
                       if (p.cart.isNotEmpty) ...[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -281,6 +353,11 @@ class _SaleScreenBody extends StatelessWidget {
                         ),
                       ),
 
+                      AppSpacing.vLg,
+
+                      // PAYMENT MODE SELECTOR
+                      _PaymentModeSelector(r: r),
+
                       AppSpacing.vXl,
 
                       // COMPLETE SALE
@@ -289,7 +366,7 @@ class _SaleScreenBody extends StatelessWidget {
                         height: 52,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.goldDark,
+                            backgroundColor: _completeBtnColor(p.paymentMode),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             elevation: 0,
                           ),
@@ -297,7 +374,7 @@ class _SaleScreenBody extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('COMPLETE SALE', style: TextStyle(
+                              Text(_completeBtnLabel(p.paymentMode), style: TextStyle(
                                 color: AppColors.white, fontWeight: FontWeight.bold,
                                 fontSize: r.sp(15), letterSpacing: 1,
                               )),
@@ -317,9 +394,211 @@ class _SaleScreenBody extends StatelessWidget {
       ),
     );
   }
+
+  Color _completeBtnColor(SalePaymentMode mode) {
+    switch (mode) {
+      case SalePaymentMode.paid: return AppColors.goldDark;
+      case SalePaymentMode.credit: return AppColors.darkRed2;
+      case SalePaymentMode.partial: return AppColors.royalBlue;
+    }
+  }
+
+  String _completeBtnLabel(SalePaymentMode mode) {
+    switch (mode) {
+      case SalePaymentMode.paid: return 'COMPLETE SALE';
+      case SalePaymentMode.credit: return 'ADD TO CREDIT';
+      case SalePaymentMode.partial: return 'RECORD PARTIAL PAYMENT';
+    }
+  }
 }
 
-// CART TILE 
+// PAYMENT MODE SELECTOR
+
+class _PaymentModeSelector extends StatelessWidget {
+  final Responsive r;
+  const _PaymentModeSelector({required this.r});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.watch<SaleFormProvider>();
+
+    return Container(
+      padding: AppSpacing.cardPad,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('PAYMENT METHOD', style: TextStyle(
+            fontSize: r.sp(10), letterSpacing: 1.2, color: AppColors.grey, fontWeight: FontWeight.w700,
+          )),
+          AppSpacing.vMd,
+          Row(
+            children: [
+              _ModeChip(
+                label: 'Paid',
+                icon: Icons.check_circle_rounded,
+                color: AppColors.goldDark,
+                selected: p.paymentMode == SalePaymentMode.paid,
+                onTap: () => p.setPaymentMode(SalePaymentMode.paid),
+                r: r,
+              ),
+              AppSpacing.hSm,
+              _ModeChip(
+                label: 'Credit',
+                icon: Icons.credit_card_rounded,
+                color: AppColors.darkRed2,
+                selected: p.paymentMode == SalePaymentMode.credit,
+                onTap: () => p.setPaymentMode(SalePaymentMode.credit),
+                r: r,
+              ),
+              AppSpacing.hSm,
+              _ModeChip(
+                label: 'Partial',
+                icon: Icons.pie_chart_rounded,
+                color: AppColors.royalBlue,
+                selected: p.paymentMode == SalePaymentMode.partial,
+                onTap: () => p.setPaymentMode(SalePaymentMode.partial),
+                r: r,
+              ),
+            ],
+          ),
+
+          // Partial amount input
+          if (p.paymentMode == SalePaymentMode.partial) ...[
+            AppSpacing.vMd,
+            Divider(color: AppColors.lightGrey),
+            AppSpacing.vMd,
+            Text('AMOUNT PAID NOW', style: TextStyle(
+              fontSize: r.sp(10), letterSpacing: 1.2, color: AppColors.grey, fontWeight: FontWeight.w700,
+            )),
+            AppSpacing.vSm,
+            _PartialAmountField(total: p.totalAmount, r: r),
+            AppSpacing.vSm,
+            if (p.paidAmount > 0)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Remaining credit', style: TextStyle(fontSize: r.sp(12), color: AppColors.darkRed2)),
+                  Text('₹${p.creditAmount.toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.bold, color: AppColors.darkRed2)),
+                ],
+              ),
+          ],
+
+          // Credit note
+          if (p.paymentMode == SalePaymentMode.credit) ...[
+            AppSpacing.vMd,
+            Divider(color: AppColors.lightGrey),
+            AppSpacing.vSm,
+            Row(children: [
+              Icon(Icons.info_outline_rounded, size: 14, color: AppColors.darkRed2),
+              AppSpacing.hXs,
+              Expanded(child: Text(
+                'Full amount will be added to customer credit. Customer name is required.',
+                style: TextStyle(fontSize: r.sp(11), color: AppColors.darkRed2),
+              )),
+            ]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+  final Responsive r;
+  const _ModeChip({required this.label, required this.icon, required this.color, required this.selected, required this.onTap, required this.r});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? color : color.withOpacity(0.07),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: selected ? color : color.withOpacity(0.2), width: 1.5),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 20, color: selected ? AppColors.white : color),
+              const SizedBox(height: 4),
+              Text(label, style: TextStyle(
+                fontSize: r.sp(11), fontWeight: FontWeight.bold,
+                color: selected ? AppColors.white : color,
+              )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PartialAmountField extends StatefulWidget {
+  final double total;
+  final Responsive r;
+  const _PartialAmountField({required this.total, required this.r});
+
+  @override
+  State<_PartialAmountField> createState() => _PartialAmountFieldState();
+}
+
+class _PartialAmountFieldState extends State<_PartialAmountField> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.read<SaleFormProvider>();
+    return TextField(
+      controller: _ctrl,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      onChanged: (v) => p.setPaidAmount(double.tryParse(v) ?? 0),
+      decoration: InputDecoration(
+        hintText: '0.00',
+        hintStyle: TextStyle(color: AppColors.grey, fontSize: widget.r.sp(13)),
+        prefixText: '₹ ',
+        prefixStyle: TextStyle(fontSize: widget.r.sp(14), fontWeight: FontWeight.w600, color: AppColors.royalBlue),
+        suffixText: 'of ₹${widget.total.toStringAsFixed(2)}',
+        suffixStyle: TextStyle(fontSize: widget.r.sp(11), color: AppColors.grey),
+        filled: true,
+        fillColor: AppColors.paleBlue.withOpacity(0.4),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.royalBlue, width: 1.5),
+        ),
+        contentPadding: AppSpacing.inputPad,
+      ),
+    );
+  }
+}
+
+// CART TILE
 
 class _CartTile extends StatelessWidget {
   final int index;
@@ -389,7 +668,7 @@ class _CartTile extends StatelessWidget {
   }
 }
 
-// QTY BUTTON 
+// QTY BUTTON
 
 class _QtyBtn extends StatelessWidget {
   final IconData icon;
@@ -402,7 +681,7 @@ class _QtyBtn extends StatelessWidget {
     child: Container(
       width: 28, height: 28,
       decoration: BoxDecoration(
-        color: AppColors.lightGrey.withOpacity(0.5),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurface),
@@ -410,7 +689,7 @@ class _QtyBtn extends StatelessWidget {
   );
 }
 
-// TOTAL ROW 
+// TOTAL ROW
 
 class _TotalRow extends StatelessWidget {
   final String label, value;
@@ -427,7 +706,7 @@ class _TotalRow extends StatelessWidget {
   );
 }
 
-// PRODUCT PICKER SHEET 
+// PRODUCT PICKER SHEET
 
 class _ProductPickerSheet extends StatefulWidget {
   final List<Product> products;
@@ -471,7 +750,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
             children: [
               Container(
                 width: 40, height: 4,
-                decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.outlineVariant, borderRadius: BorderRadius.circular(10)),
               ),
               AppSpacing.vLg,
               Row(
@@ -486,7 +765,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     onTap: () { p.resetPicker(); Navigator.pop(context); },
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(color: AppColors.grey, shape: BoxShape.circle),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, shape: BoxShape.circle),
                       child: const Icon(Icons.close_rounded, size: 18),
                     ),
                   ),
@@ -495,12 +774,12 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
 
               AppSpacing.vXl,
 
-              //BARCODE SCAN 
+              //BARCODE SCAN
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
-                  color: AppColors.grey,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(
@@ -538,7 +817,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: AppColors.goldDark.withOpacity(0.3)),
                         ),
@@ -576,8 +855,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                   hintText: 'Enter product name',
                   hintStyle: TextStyle(color: AppColors.grey, fontSize: r.sp(13)),
                   filled: true,
-                  fillColor: AppColors.grey,
-                  prefixIcon: const Icon(Icons.edit_outlined, size: 20),
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   suffixIcon: p.selectedProduct != null
                       ? const Icon(Icons.check_circle_rounded, color: AppColors.successGreen, size: 20)
                       : null,
@@ -606,7 +884,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     Text('QUANTITY', style: TextStyle(fontSize: r.sp(10), color: AppColors.grey, fontWeight: FontWeight.w600)),
                     AppSpacing.vSm,
                     Container(
-                      decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(10)),
                       child: Row(children: [
                         IconButton(onPressed: p.decrementPickerQty, icon: const Icon(Icons.remove, size: 18), padding: EdgeInsets.zero),
                         Expanded(child: Text('${p.pickerQuantity}', textAlign: TextAlign.center,
@@ -624,7 +902,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     AppSpacing.vSm,
                     Container(
                       padding: AppSpacing.inputPad,
-                      decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(10)),
                       child: Text(
                         p.selectedProduct != null ? '₹ ${p.selectedProduct!.sellingPrice.toStringAsFixed(2)}' : '₹ 0.00',
                         style: TextStyle(
@@ -643,13 +921,13 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(color: AppColors.black, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.inverseSurface, borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('CALCULATED TOTAL', style: TextStyle(fontSize: r.sp(9), color: AppColors.white, letterSpacing: 1)),
-                      Text('inclusive of all taxes', style: TextStyle(fontSize: r.sp(9), color: AppColors.white)),
+                      Text('CALCULATED TOTAL', style: TextStyle(fontSize: r.sp(9), color: Theme.of(context).colorScheme.onInverseSurface, letterSpacing: 1)),
+                      Text('inclusive of all taxes', style: TextStyle(fontSize: r.sp(9), color: Theme.of(context).colorScheme.onInverseSurface)),
                     ]),
                     Text('₹${p.calculatedTotal.toStringAsFixed(2)}',
                         style: TextStyle(fontSize: r.sp(20), fontWeight: FontWeight.bold, color: AppColors.goldDark)),

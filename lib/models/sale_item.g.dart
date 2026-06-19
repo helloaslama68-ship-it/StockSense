@@ -1,10 +1,8 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+
 
 part of 'sale_item.dart';
 
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
+
 
 class SaleItemAdapter extends TypeAdapter<SaleItem> {
   @override

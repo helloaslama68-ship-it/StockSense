@@ -46,7 +46,7 @@ class AppColors {
   static const Color grey = Colors.grey;
   static const Color lightGrey = Color(0xFFE0E0E0);
   static const Color warmGrey = Color(0xFFA8A29E);
-  static const Color charcoalGrey = Color(0xFF888780); // unified (was 0xFF888580)
+  static const Color charcoalGrey = Color(0xFF888780); 
   static const Color mutedGrey = Color(0xFFBBBAB6);
   static const Color midGrey = Color(0xFFAAAAAA);
   static const Color darkGrey = Color(0xFF444444);

@@ -12,6 +12,10 @@ class InvoicePdfService {
   static const _grey = PdfColor.fromInt(0xFF9E9E9E);
   static const _lightGrey = PdfColor.fromInt(0xFFEEEEEE);
   static const _green = PdfColor.fromInt(0xFF119C1A);
+  static const _red = PdfColor.fromInt(0xFFB00020);
+  static const _redTint = PdfColor.fromInt(0xFFFDE8EC);
+  static const _greenTint = PdfColor.fromInt(0xFFE8F5E9);
+  static const _greyTint = PdfColor.fromInt(0xFFF5F5F5);
 
   static Future<void> downloadInvoice(Sale sale) async {
     final pdf = pw.Document();
@@ -35,7 +39,7 @@ class InvoicePdfService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // ── Header band
+              // Header band
               pw.Container(
                 width: double.infinity,
                 padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -94,7 +98,7 @@ class InvoicePdfService {
 
               pw.SizedBox(height: 24),
 
-              // ── Customer + status row
+              // Customer + status row
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -116,9 +120,9 @@ class InvoicePdfService {
                   ),
                   pw.Row(
                     children: [
-                      _badge(sale.status.toUpperCase(), _green, fontSemiBold),
+                      _badge(sale.status.toUpperCase(), _green, _greenTint, fontSemiBold),
                       pw.SizedBox(width: 8),
-                      _badge(sale.channel.toUpperCase(), _grey, fontSemiBold),
+                      _badge(sale.channel.toUpperCase(), _grey, _greyTint, fontSemiBold),
                     ],
                   ),
                 ],
@@ -128,7 +132,7 @@ class InvoicePdfService {
               pw.Divider(color: _lightGrey),
               pw.SizedBox(height: 12),
 
-              // ── Items table header
+              //  Items table header
               pw.Container(
                 padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: pw.BoxDecoration(
@@ -147,7 +151,7 @@ class InvoicePdfService {
 
               pw.SizedBox(height: 6),
 
-              // ── Items
+              //  Items
               ...sale.items.asMap().entries.map((e) {
                 final i = e.value;
                 final isEven = e.key.isEven;
@@ -182,7 +186,7 @@ class InvoicePdfService {
               pw.Divider(color: _lightGrey),
               pw.SizedBox(height: 12),
 
-              // ── Totals
+              //  Totals
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.end,
                 children: [
@@ -203,6 +207,27 @@ class InvoicePdfService {
                             pw.Text('₹${sale.totalAmount.toStringAsFixed(2)}', style: pw.TextStyle(font: fontBold, fontSize: 18, color: _gold)),
                           ],
                         ),
+                        if (sale.paymentMode == 'partial' && sale.paidAmount > 0) ...[
+                          pw.SizedBox(height: 6),
+                          _totalRow('Paid Now', '₹${sale.paidAmount.toStringAsFixed(2)}', fontSemiBold, _green),
+                        ],
+                        if ((sale.paymentMode == 'credit' || sale.paymentMode == 'partial') && sale.creditAmount > 0) ...[
+                          pw.SizedBox(height: 6),
+                          pw.Container(
+                            padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: pw.BoxDecoration(
+                              color: _redTint,
+                              borderRadius: pw.BorderRadius.circular(6),
+                            ),
+                            child: pw.Row(
+                              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                              children: [
+                                pw.Text('CREDIT DUE', style: pw.TextStyle(font: fontBold, fontSize: 11, color: _red, letterSpacing: 0.5)),
+                                pw.Text('₹${sale.creditAmount.toStringAsFixed(2)}', style: pw.TextStyle(font: fontBold, fontSize: 14, color: _red)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -211,7 +236,7 @@ class InvoicePdfService {
 
               pw.Spacer(),
 
-              // ── Footer
+              // Footer
               pw.Divider(color: _lightGrey),
               pw.SizedBox(height: 8),
               pw.Center(
@@ -232,11 +257,11 @@ class InvoicePdfService {
     );
   }
 
-  static pw.Widget _badge(String label, PdfColor color, pw.Font font) {
+  static pw.Widget _badge(String label, PdfColor color, PdfColor tint, pw.Font font) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: pw.BoxDecoration(
-        color: PdfColor(color.red, color.green, color.blue, 0.12),
+        color: tint,
         borderRadius: pw.BorderRadius.circular(4),
       ),
       child: pw.Text(label, style: pw.TextStyle(font: font, fontSize: 9, color: color)),

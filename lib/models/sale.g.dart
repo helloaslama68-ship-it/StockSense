@@ -1,10 +1,8 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+
 
 part of 'sale.dart';
 
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
+
 
 class SaleAdapter extends TypeAdapter<Sale> {
   @override
@@ -27,13 +25,16 @@ class SaleAdapter extends TypeAdapter<Sale> {
       ..saleDate = fields[7] as DateTime
       ..receiptNumber = fields[8] as int
       ..status = fields[9] as String
-      ..channel = fields[10] as String;
+      ..channel = fields[10] as String
+      ..paymentMode = fields[11] as String? ?? 'paid'
+      ..creditAmount = fields[12] as double? ?? 0.0
+      ..paidAmount = fields[13] as double? ?? 0.0;
   }
 
   @override
   void write(BinaryWriter writer, Sale obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -55,7 +56,13 @@ class SaleAdapter extends TypeAdapter<Sale> {
       ..writeByte(9)
       ..write(obj.status)
       ..writeByte(10)
-      ..write(obj.channel);
+      ..write(obj.channel)
+      ..writeByte(11)
+      ..write(obj.paymentMode)
+      ..writeByte(12)
+      ..write(obj.creditAmount)
+      ..writeByte(13)
+      ..write(obj.paidAmount);
   }
 
   @override

@@ -55,7 +55,7 @@ class Onboarding1 extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: AppColors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -72,13 +72,13 @@ class Onboarding1 extends StatelessWidget {
               padding: EdgeInsets.all(10),
 
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: Theme.of(context).colorScheme.surface,
 
                 borderRadius: BorderRadius.circular(20),
 
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black,
+                    color: AppColors.black.withOpacity(0.15),
                     blurRadius: 15,
                   ),
                 ],
@@ -114,7 +114,7 @@ class Onboarding1 extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
 
                 children: [

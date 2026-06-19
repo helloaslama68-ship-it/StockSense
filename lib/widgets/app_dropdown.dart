@@ -17,24 +17,27 @@ class AppDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-          color: AppColors.white,
+          color: cs.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(12)),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           hint: Text(hint,
-              style: TextStyle(color: AppColors.grey, fontSize: 14)),
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14)),
           isExpanded: true,
+          dropdownColor: cs.surfaceContainerHigh,
           icon: Icon(Icons.keyboard_arrow_down_rounded,
-              color: AppColors.grey),
+              color: cs.onSurfaceVariant),
+          style: TextStyle(color: cs.onSurface, fontSize: 14),
           items: items
               .map((item) => DropdownMenuItem(
                   value: item,
                   child: Text(item,
-                      style: const TextStyle(fontSize: 14))))
+                      style: TextStyle(fontSize: 14, color: cs.onSurface))))
               .toList(),
           onChanged: onChanged,
         ),
@@ -55,13 +58,13 @@ class AppDropdownEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: cs.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
               color: AppColors.goldDark.withOpacity(0.3), width: 1),
@@ -72,8 +75,7 @@ class AppDropdownEmpty extends StatelessWidget {
                 color: AppColors.goldDark, size: 16),
             const SizedBox(width: 8),
             Text(message,
-                style:
-                    TextStyle(color: AppColors.grey, fontSize: 13)),
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
           ],
         ),
       ),

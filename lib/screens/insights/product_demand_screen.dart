@@ -108,7 +108,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
     final trendUp = _trendPercent >= 0;
 
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
           // top bar
@@ -120,7 +120,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: AppColors.white, size: 20),
+                        color: null, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -142,7 +142,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
             child: Container(
               margin: const EdgeInsets.only(top: 16),
               decoration: BoxDecoration(
-                color: AppColors.backgroundTop,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(24)),
               ),
@@ -286,6 +286,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
                                     painter: _ChartPainter(
                                       data: _last7Days,
                                       lineColor: AppColors.goldDark,
+                                      dotCenterColor: Theme.of(context).colorScheme.surface,
                                     ),
                                   ),
                           ),
@@ -425,7 +426,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: dark ? AppColors.black : Theme.of(context).colorScheme.surface,
+      color: dark ? Theme.of(context).colorScheme.inverseSurface : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -434,7 +435,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
           Text(label,
               style: TextStyle(
                   fontSize: 9,
-                  color: dark ? AppColors.white : AppColors.grey,
+                  color: dark ? Theme.of(context).colorScheme.onInverseSurface : AppColors.grey,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.8)),
           const SizedBox(height: 6),
@@ -442,11 +443,11 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
               style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: dark ? AppColors.white : Theme.of(context).colorScheme.onSurface)),
+                  color: dark ? Theme.of(context).colorScheme.onInverseSurface : Theme.of(context).colorScheme.onSurface)),
           Text(unit,
               style: TextStyle(
                   fontSize: 11,
-                  color: dark ? AppColors.white : AppColors.grey)),
+                  color: dark ? Theme.of(context).colorScheme.onInverseSurface : AppColors.grey)),
         ],
       ),
     );
@@ -481,8 +482,9 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
 class _ChartPainter extends CustomPainter {
   final List<double> data;
   final Color lineColor;
+  final Color dotCenterColor;
 
-  _ChartPainter({required this.data, required this.lineColor});
+  _ChartPainter({required this.data, required this.lineColor, required this.dotCenterColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -541,10 +543,10 @@ class _ChartPainter extends CustomPainter {
     canvas.drawCircle(
       Offset(lastX, lastY),
       3,
-      Paint()..color = AppColors.white,
+      Paint()..color = dotCenterColor,
     );
   }
 
   @override
-  bool shouldRepaint(_ChartPainter old) => old.data != data;
+  bool shouldRepaint(_ChartPainter old) => old.data != data || old.dotCenterColor != dotCenterColor;
 }

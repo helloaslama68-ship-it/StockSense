@@ -8,7 +8,7 @@ import '../../models/sale.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/empty_state.dart';
 import 'sale_details_screen.dart';
-import 'sale_filter_sheet.dart';
+import '../reports/sales_report_filter_sheet.dart';
 
 class SaleHistoryScreen extends StatelessWidget {
   const SaleHistoryScreen({super.key});
@@ -20,7 +20,7 @@ class SaleHistoryScreen extends StatelessWidget {
       backgroundColor: AppColors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<SaleFilterProvider>(),
-        child: const SaleFilterSheet(),
+        child: const SalesReportFilterSheet(),
       ),
     );
   }
@@ -55,7 +55,7 @@ class SaleHistoryScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ── HEADER
+            // HEADER
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
@@ -122,7 +122,7 @@ class SaleHistoryScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── PERFORMANCE CARD
+                    // PERFORMANCE CARD
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),

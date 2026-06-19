@@ -171,9 +171,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
               color: AppColors.goldDark, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Edit Product',
+        title: Text('Edit Product',
             style: TextStyle(
-                color: AppColors.black,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: 18)),
         centerTitle: true,

@@ -4,6 +4,7 @@ import '../../core/colors.dart';
 import '../../core/app_styles.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/app_confirm_dialog.dart';
+import '../../widgets/app_filter_chip.dart';
 import '../../widgets/empty_state.dart';
 import '../../providers/customer_provider.dart';
 import '../../models/customer.dart';
@@ -44,13 +45,15 @@ class CustomersScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const _SearchBar(),
+                    const SizedBox(height: 12),
+                    const _FilterRow(),
                     const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: appCardDecoration(radius: 14),
+                            decoration: appCardDecoration(radius: 14, context: context),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -120,6 +123,39 @@ class CustomersScreen extends StatelessWidget {
   }
 }
 
+// Filter Row 
+
+class _FilterRow extends StatelessWidget {
+  const _FilterRow();
+
+  static const _labels = {
+    'All': 'All',
+    'highDue': 'High Due',
+    'pending': 'Pending',
+    'noDue': 'No Due',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final cp = context.watch<CustomerProvider>();
+    return SizedBox(
+      height: 36,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: CustomerProvider.statusFilters.map((key) {
+          return AppFilterChip(
+            label: _labels[key] ?? key,
+            active: cp.statusFilter == key,
+            onTap: () => cp.setStatusFilter(key),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+// Search Bar
+
 class _SearchBar extends StatefulWidget {
   const _SearchBar();
 
@@ -139,7 +175,7 @@ class _SearchBarState extends State<_SearchBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: appCardDecoration(radius: 12),
+      decoration: appCardDecoration(radius: 12, context: context),
       child: TextField(
         controller: _ctrl,
         onChanged: (v) => context.read<CustomerProvider>().setQuery(v),
@@ -154,6 +190,8 @@ class _SearchBarState extends State<_SearchBar> {
     );
   }
 }
+
+// List 
 
 class _CustomerList extends StatelessWidget {
   const _CustomerList();
@@ -171,6 +209,8 @@ class _CustomerList extends StatelessWidget {
     return Column(children: filtered.map((c) => _CustomerTile(c)).toList());
   }
 }
+
+//  Tile
 
 class _CustomerTile extends StatelessWidget {
   final Customer c;
@@ -205,108 +245,108 @@ class _CustomerTile extends StatelessWidget {
   }
 
   @override
-Widget build(BuildContext context) {
-  final color = _statusColor(c.status);
-  final balance = context.watch<CustomerProvider>().computeBalance(c.id, c.amountDue);
+  Widget build(BuildContext context) {
+    final color = _statusColor(c.status);
+    final balance = context.watch<CustomerProvider>().computeBalance(c.id, c.amountDue);
 
-  return GestureDetector(
-    onTap: () => Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CustomerDetailScreen(customer: c),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CustomerDetailScreen(customer: c),
+        ),
       ),
-    ),
-    child: Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: appCardDecoration(radius: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: appCardDecoration(radius: 14, context: context),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(c.name,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.phone_rounded, size: 12, color: AppColors.grey),
+                      const SizedBox(width: 4),
+                      Text(c.phone,
+                          style: TextStyle(fontSize: 12, color: AppColors.grey)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(c.name,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.onSurface)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6)),
+                  child: Text(_statusLabel(c.status),
+                      style: TextStyle(
+                          fontSize: 9,
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5)),
+                ),
                 const SizedBox(height: 4),
+                Text(
+                  '₹${balance.toStringAsFixed(2)}',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: balance == 0 ? AppColors.darkGreen : color),
+                ),
+                const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.phone_rounded, size: 12, color: AppColors.grey),
-                    const SizedBox(width: 4),
-                    Text(c.phone,
-                        style: TextStyle(fontSize: 12, color: AppColors.grey)),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddCustomerScreen(existing: c),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                            color: AppColors.goldDark.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Icon(Icons.edit_rounded,
+                            size: 14, color: AppColors.goldDark),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => _confirmDelete(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                            color: AppColors.darkRed.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Icon(Icons.delete_rounded,
+                            size: 14, color: AppColors.darkRed),
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6)),
-                child: Text(_statusLabel(c.status),
-                    style: TextStyle(
-                        fontSize: 9,
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5)),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '₹${balance.toStringAsFixed(2)}',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: balance == 0 ? AppColors.darkGreen : color),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AddCustomerScreen(existing: c),
-                      ),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                          color: AppColors.goldDark.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Icon(Icons.edit_rounded,
-                          size: 14, color: AppColors.goldDark),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => _confirmDelete(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                          color: AppColors.darkRed.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Icon(Icons.delete_rounded,
-                          size: 14, color: AppColors.darkRed),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

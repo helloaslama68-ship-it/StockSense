@@ -11,7 +11,6 @@ import '../../widgets/empty_state.dart';
 
 
 // STOCK RECOMMENDATION SCREEN 
-// suggestions ignore StockRecommendationProvider
 
 class StockRecommendationScreen extends StatelessWidget {
   const StockRecommendationScreen({super.key});

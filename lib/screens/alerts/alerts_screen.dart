@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../models/product.dart';
 import '../../providers/alert_provider.dart';
+import '../../providers/customer_provider.dart';
+import '../../models/customer.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/gold_button.dart';
 
@@ -39,7 +41,17 @@ class AlertsScreen extends StatelessWidget {
             }
 
             if (current == 'High Due') {
-              cards.add(const _CreditCard(name: 'Rahul', amount: '₹2,000 pending'));
+              final customerProvider = context.watch<CustomerProvider>();
+              final highDue = customerProvider.customers
+                  .where((c) => c.status == CreditStatus.highDue)
+                  .toList();
+              highDue.sort((a, b) =>
+                  customerProvider.computeBalance(b.id, b.amountDue)
+                      .compareTo(customerProvider.computeBalance(a.id, a.amountDue)));
+              for (final c in highDue) {
+                final balance = customerProvider.computeBalance(c.id, c.amountDue);
+                cards.add(_CreditCard(name: c.name, amount: balance));
+              }
             }
 
             return Column(
@@ -256,7 +268,7 @@ class _ExpiryCard extends StatelessWidget {
 
 class _CreditCard extends StatelessWidget {
   final String name;
-  final String amount;
+  final double amount;
   const _CreditCard({required this.name, required this.amount});
 
   @override
@@ -286,7 +298,7 @@ class _CreditCard extends StatelessWidget {
           Row(children: [
             Icon(Icons.account_balance_wallet_rounded, color: AppColors.grey, size: 14),
             const SizedBox(width: 6),
-            Text(amount, style: TextStyle(fontSize: 13, color: AppColors.grey)),
+            Text('₹${amount.toStringAsFixed(0)} pending', style: TextStyle(fontSize: 13, color: AppColors.grey)),
           ]),
           Icon(Icons.chevron_right_rounded, color: AppColors.grey, size: 20),
         ]),

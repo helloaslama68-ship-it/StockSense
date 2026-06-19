@@ -9,7 +9,7 @@ class SaleProvider extends ChangeNotifier {
   final Box<Sale> _box = Hive.box<Sale>('sales');
   final _uuid = const Uuid();
 
-  // MIGRATION: wipe box if old schema detected (no items field)
+  
   SaleProvider() {
     _migrateIfNeeded();
   }
@@ -51,9 +51,11 @@ class SaleProvider extends ChangeNotifier {
   }
 
   String get salesChangeLabel {
+    final today = todaySalesTotal;
     final yesterday = yesterdaySalesTotal;
-    if (yesterday == 0) return '+0% vs yesterday';
-    final change = ((todaySalesTotal - yesterday) / yesterday) * 100;
+    if (yesterday == 0 && today == 0) return 'No sales yet today';
+    if (yesterday == 0) return 'New sales today';
+    final change = ((today - yesterday) / yesterday) * 100;
     final sign = change >= 0 ? '+' : '';
     return '$sign${change.toStringAsFixed(0)}% vs yesterday';
   }
@@ -77,6 +79,9 @@ class SaleProvider extends ChangeNotifier {
     required String? customerName,
     String status = 'completed',
     String channel = 'in-store',
+    String paymentMode = 'paid',
+    double creditAmount = 0.0,
+    double paidAmount = 0.0,
   }) async {
     final items = cart.map((c) {
       final item = SaleItem()
@@ -103,7 +108,10 @@ class SaleProvider extends ChangeNotifier {
       ..saleDate = DateTime.now()
       ..receiptNumber = _nextReceiptNumber
       ..status = status
-      ..channel = channel;
+      ..channel = channel
+      ..paymentMode = paymentMode
+      ..creditAmount = creditAmount
+      ..paidAmount = paidAmount;
 
     await _box.put(sale.id, sale);
     notifyListeners();

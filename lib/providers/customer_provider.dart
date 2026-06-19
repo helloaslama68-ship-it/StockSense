@@ -9,6 +9,11 @@ class CustomerProvider extends ChangeNotifier {
       Hive.box<CreditTransaction>('credit_transactions');
 
   String _query = '';
+  String _statusFilter = 'All';
+
+  static const List<String> statusFilters = ['All', 'highDue', 'pending', 'noDue'];
+
+  String get statusFilter => _statusFilter;
 
   List<Customer> get customers => _customerBox.values.toList();
 
@@ -29,16 +34,56 @@ class CustomerProvider extends ChangeNotifier {
   }
 
   List<Customer> get filtered {
-    if (_query.isEmpty) return customers;
-    final q = _query.toLowerCase();
-    return customers
-        .where((c) => c.name.toLowerCase().contains(q) || c.phone.contains(q))
-        .toList();
+    var list = customers;
+    if (_query.isNotEmpty) {
+      final q = _query.toLowerCase();
+      list = list.where((c) => c.name.toLowerCase().contains(q) || c.phone.contains(q)).toList();
+    }
+    if (_statusFilter != 'All') {
+      list = list.where((c) => _statusKey(c.status) == _statusFilter).toList();
+    }
+    list.sort((a, b) {
+      final ai = _statusOrder(a.status);
+      final bi = _statusOrder(b.status);
+      if (ai != bi) return ai.compareTo(bi);
+      return computeBalance(b.id, b.amountDue).compareTo(computeBalance(a.id, a.amountDue));
+    });
+    return list;
+  }
+
+  String _statusKey(CreditStatus s) {
+    switch (s) {
+      case CreditStatus.highDue: return 'highDue';
+      case CreditStatus.pending: return 'pending';
+      case CreditStatus.noDue:   return 'noDue';
+    }
+  }
+
+  int _statusOrder(CreditStatus s) {
+    switch (s) {
+      case CreditStatus.highDue: return 0;
+      case CreditStatus.pending: return 1;
+      case CreditStatus.noDue:   return 2;
+    }
   }
 
   void setQuery(String q) {
     _query = q;
     notifyListeners();
+  }
+
+  void setStatusFilter(String f) {
+    _statusFilter = f;
+    notifyListeners();
+  }
+
+  Customer? findByName(String name) {
+    final n = name.trim().toLowerCase();
+    try {
+      return customers.firstWhere((c) => c.name.trim().toLowerCase() == n);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> add(Customer c) async {

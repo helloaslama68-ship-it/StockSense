@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../models/purchase_record.dart';
 import '../../providers/purchase_filter_provider.dart';
 import '../../providers/purchase_provider.dart';
@@ -411,14 +412,6 @@ class _PurchaseTile extends StatelessWidget {
     required this.cardColor,
   });
 
-  String _formatDate(DateTime dt) {
-    const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${months[dt.month]} ${dt.day.toString().padLeft(2, '0')}, ${dt.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     const isPaid = true;
@@ -468,7 +461,7 @@ class _PurchaseTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${_formatDate(purchase.purchaseDate)}  •  Inv ${purchase.invoiceId}',
+                  '${formatDate(purchase.purchaseDate)}  •  Inv ${purchase.invoiceId}',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.warmGrey,
