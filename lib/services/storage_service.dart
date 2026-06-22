@@ -5,6 +5,8 @@ import '../models/product.dart';
 import '../models/sale.dart';
 import '../models/customer.dart';
 import '../models/credit_transaction.dart';
+import '../models/inventory_loss.dart';
+import '../models/purchase_record.dart';
 
 class StorageService {
 
@@ -73,7 +75,6 @@ class StorageService {
 
   // LOGOUT
   
-
   void logout() {
 
     // User becomes logged out
@@ -84,9 +85,9 @@ class StorageService {
   }
 
   
-  // CLEAR USER DATA
+  // CLEAR USER DATA — called when a NEW account is created on this device.
+  // Wipes ALL user-specific data so the new user starts completely fresh.
   
-
   Future<void> clearAllUserData() async {
 
     // Clear inventory products
@@ -94,6 +95,12 @@ class StorageService {
 
     // Clear sales records
     await Hive.box<Sale>('sales').clear();
+
+    // Clear purchase records (was missing — caused new users to see old purchases)
+    await Hive.box<PurchaseRecord>('purchase_records').clear();
+
+    // Clear inventory losses (was missing — caused new users to see old losses)
+    await Hive.box<InventoryLoss>('losses').clear();
 
     // Clear customer credit data
     await Hive.box<Customer>('customers').clear();

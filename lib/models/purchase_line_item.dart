@@ -1,9 +1,23 @@
-class PurchaseLineItem {
-  String productName;
+import 'package:hive/hive.dart';
+
+part 'purchase_line_item.g.dart';
+
+@HiveType(typeId: 9)
+class PurchaseLineItem extends HiveObject {
+  @HiveField(0)
+  late String productName;
+
+  @HiveField(1)
   String? imagePath;
-  double costPrice;
-  int quantity;
-  String unit;
+
+  @HiveField(2)
+  late double costPrice;
+
+  @HiveField(3)
+  late int quantity;
+
+  @HiveField(4)
+  late String unit;
 
   PurchaseLineItem({
     required this.productName,

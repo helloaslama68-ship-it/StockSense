@@ -1,15 +1,36 @@
+import 'package:hive/hive.dart';
 import 'purchase_line_item.dart';
 
-class PurchaseRecord {
-  final String id;
-  final String productName;
-  final String supplierName;
-  final int quantityPurchased;
-  final double totalAmount;
-  final double taxPercent;
-  final DateTime purchaseDate;
-  final String? imagePath;
-  final List<PurchaseLineItem> lineItems;
+part 'purchase_record.g.dart';
+
+@HiveType(typeId: 8)
+class PurchaseRecord extends HiveObject {
+  @HiveField(0)
+  late String id;
+
+  @HiveField(1)
+  late String productName;
+
+  @HiveField(2)
+  late String supplierName;
+
+  @HiveField(3)
+  late int quantityPurchased;
+
+  @HiveField(4)
+  late double totalAmount;
+
+  @HiveField(5)
+  double taxPercent;
+
+  @HiveField(6)
+  late DateTime purchaseDate;
+
+  @HiveField(7)
+  String? imagePath;
+
+  @HiveField(8)
+  List<PurchaseLineItem> lineItems;
 
   PurchaseRecord({
     required this.id,
