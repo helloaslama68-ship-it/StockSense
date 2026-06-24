@@ -7,8 +7,11 @@ import '../../screens/scanner/scanner_screen.dart';
 ///   BarcodeField(controller: _barcodeCtrl)
 class BarcodeField extends StatelessWidget {
   final TextEditingController controller;
+  /// Override the default scan behaviour (e.g. to fill multiple fields).
+  /// If null, the default behaviour returns only the barcode string.
+  final VoidCallback? onScanTap;
 
-  const BarcodeField({super.key, required this.controller});
+  const BarcodeField({super.key, required this.controller, this.onScanTap});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,7 @@ class BarcodeField extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () async {
+            onTap: onScanTap ?? () async {
               final code = await Navigator.push<String>(
                 context,
                 MaterialPageRoute(

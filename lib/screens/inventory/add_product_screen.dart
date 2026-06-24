@@ -10,6 +10,8 @@ import '../../widgets/app_dropdown.dart';
 import '../../widgets/gold_button.dart';
 import '../../widgets/expiry_date_picker.dart';
 import '../../widgets/barcode_field.dart';
+import '../../models/product.dart';
+import '../scanner/scanner_screen.dart';
 import '../../widgets/product_image_picker.dart';
 import '../../widgets/app_snack_bar.dart';
 import '../../widgets/app_card.dart';
@@ -73,6 +75,53 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Future<void> _goManageBrands() async {
     await Navigator.push(context,
         MaterialPageRoute(builder: (_) => const ManageBrandsScreen()));
+  }
+
+  /// Open scanner in product-fill mode.
+  /// If a known product is scanned → fill all fields from it.
+  /// If unknown barcode → fill barcode field only.
+  Future<void> _fillFromScan() async {
+    final result = await Navigator.push<dynamic>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ScannerScreen(returnProductIfFound: true),
+      ),
+    );
+    if (result == null || !mounted) return;
+
+    if (result is Product) {
+      // Known product — pre-fill everything
+      _nameCtrl.text      = result.name;
+      _costCtrl.text      = result.costPrice.toString();
+      _sellCtrl.text      = result.sellingPrice.toString();
+      _qtyCtrl.text       = result.quantity.toString();
+      _thresholdCtrl.text = result.lowStockThreshold.toString();
+      _barcodeCtrl.text   = result.barcode ?? '';
+
+      // Parse unit string e.g. "500 ml" → qty "500", unit "ml"
+      if (result.unit != null) {
+        final parts = result.unit!.trim().split(' ');
+        if (parts.length == 2) {
+          _unitQtyCtrl.text = parts[0];
+          setState(() => _selectedUnit = _kUnits.contains(parts[1]) ? parts[1] : null);
+        } else {
+          setState(() => _selectedUnit = _kUnits.contains(result.unit) ? result.unit : null);
+        }
+      }
+
+      final form = context.read<ProductFormProvider>();
+      form.setCategory(result.category);
+      form.setBrand(result.brand);
+      if (result.expiryDate != null) {
+        form.setExpiry(DateTime.tryParse(result.expiryDate!));
+      }
+      if (result.imagePath != null) {
+        form.setImagePath(result.imagePath);
+      }
+    } else if (result is String) {
+      // Unknown barcode — fill barcode field only
+      _barcodeCtrl.text = result;
+    }
   }
 
   Future<void> _submit() async {
@@ -396,7 +445,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   ),
                   const SizedBox(height: 14),
                   AppFieldLabel('BARCODE NUMBER'),
-                  BarcodeField(controller: _barcodeCtrl),
+                  // Tap the barcode icon to scan — fills ALL fields if product found
+                  BarcodeField(
+                    controller: _barcodeCtrl,
+                    onScanTap: _fillFromScan,
+                  ),
                 ],
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../models/enums.dart';
 import '../models/sale.dart';
 import '../core/app_styles.dart';
 
@@ -120,9 +121,9 @@ class InvoicePdfService {
                   ),
                   pw.Row(
                     children: [
-                      _badge(sale.status.toUpperCase(), _green, _greenTint, fontSemiBold),
+                      _badge(sale.saleStatus.value.toUpperCase(), _green, _greenTint, fontSemiBold),
                       pw.SizedBox(width: 8),
-                      _badge(sale.channel.toUpperCase(), _grey, _greyTint, fontSemiBold),
+                      _badge(sale.saleChannel.label.toUpperCase(), _grey, _greyTint, fontSemiBold),
                     ],
                   ),
                 ],
@@ -207,11 +208,11 @@ class InvoicePdfService {
                             pw.Text('₹${sale.totalAmount.toStringAsFixed(2)}', style: pw.TextStyle(font: fontBold, fontSize: 18, color: _gold)),
                           ],
                         ),
-                        if (sale.paymentMode == 'partial' && sale.paidAmount > 0) ...[
+                        if (sale.paymentModeEnum == SalePaymentMode.partial && sale.paidAmount > 0) ...[
                           pw.SizedBox(height: 6),
                           _totalRow('Paid Now', '₹${sale.paidAmount.toStringAsFixed(2)}', fontSemiBold, _green),
                         ],
-                        if ((sale.paymentMode == 'credit' || sale.paymentMode == 'partial') && sale.creditAmount > 0) ...[
+                        if ((sale.paymentModeEnum == SalePaymentMode.credit || sale.paymentModeEnum == SalePaymentMode.partial) && sale.creditAmount > 0) ...[
                           pw.SizedBox(height: 6),
                           pw.Container(
                             padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../core/app_styles.dart';
 import '../../core/utils/responsive.dart';
+import '../../models/enums.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/sale_form_provider.dart';
 import '../../providers/sale_provider.dart';
@@ -77,7 +78,9 @@ class _SaleScreenBody extends StatelessWidget {
         cart: form.cart,
         taxPercent: form.taxPercent,
         customerName: form.customerName,
-        status: form.paymentMode == SalePaymentMode.paid ? 'completed' : 'credit',
+        status: (form.paymentMode == SalePaymentMode.paid
+            ? SaleStatus.completed
+            : SaleStatus.credit).value,
         paymentMode: form.paymentMode.name,
         creditAmount: form.creditAmount,
         paidAmount: form.paidAmount,

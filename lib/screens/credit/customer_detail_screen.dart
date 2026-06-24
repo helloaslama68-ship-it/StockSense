@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../core/app_styles.dart';
 import '../../models/credit_transaction.dart';
+import '../../models/enums.dart';
 import '../../models/sale.dart';
 import '../../providers/customer_detail_provider.dart';
 import '../../providers/customer_provider.dart';
@@ -301,7 +302,7 @@ class _ActivityItem {
       date: s.saleDate,
       amount: '+₹${s.totalAmount.toStringAsFixed(2)}',
       amountColor: AppColors.darkRed,
-      badge: s.status == 'pending' ? 'PENDING' : null,
+      badge: s.saleStatus == SaleStatus.pending ? 'PENDING' : null,
     );
   }
 

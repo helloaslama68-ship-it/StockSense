@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'enums.dart';
 import 'sale_item.dart';
 
 part 'sale.g.dart';
@@ -14,9 +15,21 @@ class Sale extends HiveObject {
   @HiveField(6) late double totalAmount;
   @HiveField(7) late DateTime saleDate;
   @HiveField(8) late int receiptNumber;
-  @HiveField(9) late String status; // 'completed'  'pending'
-  @HiveField(10) late String channel; // 'in-store' 'online'
-  @HiveField(11) late String paymentMode; // 'paid' | 'credit' | 'partial'
+  @HiveField(9) late String status; // SaleStatus.value — 'completed' | 'credit' | 'pending'
+  @HiveField(10) late String channel; // SaleChannel.value — 'in-store' | 'online'
+  @HiveField(11) late String paymentMode; // SalePaymentMode.name — 'paid' | 'credit' | 'partial'
   @HiveField(12) late double creditAmount;
   @HiveField(13) late double paidAmount;
+
+  // Typed accessors — use these in new code instead of raw strings.
+  SaleChannel get saleChannel => SaleChannelX.fromValue(channel);
+  set saleChannel(SaleChannel c) => channel = c.value;
+
+  SaleStatus get saleStatus => SaleStatusX.fromValue(status);
+  set saleStatus(SaleStatus s) => status = s.value;
+
+  SalePaymentMode get paymentModeEnum =>
+      SalePaymentMode.values.firstWhere((e) => e.name == paymentMode,
+          orElse: () => SalePaymentMode.paid);
+  set paymentModeEnum(SalePaymentMode m) => paymentMode = m.name;
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../core/app_styles.dart';
+import '../../models/enums.dart';
 import '../../providers/sale_provider.dart';
 import '../../providers/sale_filter_provider.dart';
 import '../../models/sale.dart';
@@ -312,17 +313,17 @@ class SaleHistoryScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: s.channel == 'online'
+                          color: s.saleChannel == SaleChannel.online
                               ? AppColors.blue.withOpacity(0.1)
                               : AppColors.goldDark.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          s.channel == 'online' ? 'Online' : 'In-Store',
+                          s.saleChannel.label,
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
-                            color: s.channel == 'online'
+                            color: s.saleChannel == SaleChannel.online
                                 ? AppColors.blue
                                 : AppColors.goldDark,
                           ),
@@ -363,10 +364,10 @@ class _ActiveFilterChips extends StatelessWidget {
       chips.add(_chip('Customer: ${provider.customerQuery}',
           () => provider.setCustomerQuery('')));
     }
-    if (provider.channel.isNotEmpty) {
+    if (provider.channel != null) {
       chips.add(_chip(
-          provider.channel == 'online' ? 'Online' : 'In-Store',
-          () => provider.setChannel('')));
+          provider.channel!.label,
+          () => provider.setChannel(null)));
     }
     if (provider.dateRange != null) {
       final r = provider.dateRange!;

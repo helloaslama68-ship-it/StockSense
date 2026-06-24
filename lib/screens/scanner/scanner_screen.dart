@@ -12,7 +12,13 @@ import '../sales/sale_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
   final bool returnBarcodeOnly;
-  const ScannerScreen({Key? key, this.returnBarcodeOnly = false}) : super(key: key);
+  /// When true: if product found → pop(Product); if not found → pop(barcode string).
+  final bool returnProductIfFound;
+  const ScannerScreen({
+    Key? key,
+    this.returnBarcodeOnly = false,
+    this.returnProductIfFound = false,
+  }) : super(key: key);
 
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
@@ -67,9 +73,18 @@ class _ScannerScreenState extends State<ScannerScreen>
     final product = context.read<ProductProvider>().getByBarcode(code);
 
     if (product != null) {
+      if (widget.returnProductIfFound) {
+        Navigator.pop(context, product);
+        return;
+      }
       scannerP.onProductFound(product);
       _cardCtrl.forward();
     } else {
+      if (widget.returnProductIfFound) {
+        // No match — return the raw barcode so the form can at least fill it
+        Navigator.pop(context, code);
+        return;
+      }
       _showNotFound(code);
     }
   }

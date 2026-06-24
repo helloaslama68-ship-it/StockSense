@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/colors.dart';
+import '../../core/utils/responsive.dart';
 import '../../widgets/onboarding_widgets.dart';
 import '../auth/create_account.dart';
 
@@ -10,118 +11,126 @@ class Onboarding3 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final r = Responsive.of(context);
+    final h = MediaQuery.sizeOf(context).height;
+
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-
-            const SizedBox(height: 35),
-
-            Column(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: r.pageHPad, vertical: 20),
+            child: Column(
               children: [
+                // Logo
                 Image.asset('assets/images/logo.png', width: 50),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   "StockSense",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: AppColors.black,
+                    fontSize: r.sp(16),
+                    color: cs.onSurface,
                   ),
                 ),
-              ],
-            ),
 
-            const SizedBox(height: 60),
+                SizedBox(height: h * 0.05),
 
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(color: AppColors.black, blurRadius: 15),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: Image.asset(
-                  'assets/images/onboarding3.png',
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 35),
-
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                children: [
-                  TextSpan(text: "Grow Your Business\n"),
-                  TextSpan(
-                    text: "Smarter",
-                    style: TextStyle(color: AppColors.goldDark),
+                // Illustration
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: cs.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: cs.shadow.withOpacity(0.15),
+                        blurRadius: 15,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Text(
-              "Track sales performance, monitor stock\n"
-              "movements, and make smarter business\n"
-              "decisions with real-time insights.",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppColors.grey),
-            ),
-
-            const Spacer(),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                OnboardingDot(active: false),
-                OnboardingDot(active: false),
-                OnboardingDot(active: true),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                BackButtonText(
-                  onTap: () => controller.previousPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeIn,
-                  ),
-                ),
-                SizedBox(
-                  width: 160,  // slightly wider for "GET STARTED" text
-                  child: GradientButton(
-                    text: 'GET STARTED',
-                    onTap: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => CreateAccount()),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: Image.asset(
+                      'assets/images/onboarding3.png',
+                      height: h * 0.25,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
+
+                SizedBox(height: h * 0.04),
+
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: r.sp(20),
+                      fontWeight: FontWeight.bold,
+                      color: cs.onSurface,
+                    ),
+                    children: [
+                      const TextSpan(text: "Grow Your Business\n"),
+                      TextSpan(
+                        text: "Smarter",
+                        style: const TextStyle(color: AppColors.goldDark),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Text(
+                  "Track sales performance, monitor stock\n"
+                  "movements, and make smarter business\n"
+                  "decisions with real-time insights.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: r.sp(13), color: cs.onSurface.withOpacity(0.6)),
+                ),
+
+                SizedBox(height: h * 0.05),
+
+                // Dots
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    OnboardingDot(active: false),
+                    OnboardingDot(active: false),
+                    OnboardingDot(active: true),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    BackButtonText(
+                      onTap: () => controller.previousPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeIn,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 160,
+                      child: GradientButton(
+                        text: 'GET STARTED',
+                        onTap: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => CreateAccount()),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
               ],
             ),
-
-            const SizedBox(height: 20),
-          ],
+          ),
         ),
       ),
     );

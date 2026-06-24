@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../providers/profile_provider.dart';
 import '../home/home_screen.dart';
-import '../onboarding/onboarding_main.dart';
+import 'create_account.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onTap: () {
                             context.read<ProfileProvider>().logout();
                             Navigator.pushReplacement(context,
-                                MaterialPageRoute(builder: (_) => OnboardingMain()));
+                                MaterialPageRoute(builder: (_) => CreateAccount()));
                           },
                           child: RichText(
                             text: const TextSpan(

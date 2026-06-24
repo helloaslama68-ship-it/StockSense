@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_styles.dart';
 import '../../core/colors.dart';
 import '../../core/utils/responsive.dart';
+import '../../models/enums.dart';
 import '../../providers/sale_filter_provider.dart';
 import '../../widgets/gold_button.dart';
 
@@ -194,22 +195,22 @@ class SalesReportFilterSheet extends StatelessWidget {
               children: [
                 _ChannelChip(
                   label: 'All',
-                  selected: provider.draftChannel.isEmpty,
-                  onTap: () => provider.setDraftChannel(''),
+                  selected: provider.draftChannel == null,
+                  onTap: () => provider.setDraftChannel(null),
                   r: r,
                 ),
                 const SizedBox(width: 8),
                 _ChannelChip(
                   label: 'In-Store',
-                  selected: provider.draftChannel == 'in-store',
-                  onTap: () => provider.setDraftChannel('in-store'),
+                  selected: provider.draftChannel == SaleChannel.inStore,
+                  onTap: () => provider.setDraftChannel(SaleChannel.inStore),
                   r: r,
                 ),
                 const SizedBox(width: 8),
                 _ChannelChip(
                   label: 'Online',
-                  selected: provider.draftChannel == 'online',
-                  onTap: () => provider.setDraftChannel('online'),
+                  selected: provider.draftChannel == SaleChannel.online,
+                  onTap: () => provider.setDraftChannel(SaleChannel.online),
                   r: r,
                 ),
               ],

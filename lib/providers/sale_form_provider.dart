@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/enums.dart';
 import '../models/product.dart';
-
-enum SalePaymentMode { paid, credit, partial }
 
 class CartItem {
   final Product product;

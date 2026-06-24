@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/enums.dart';
 import '../models/sale.dart';
 
 enum SaleSortOption {
@@ -28,21 +29,21 @@ class SaleFilterProvider extends ChangeNotifier {
   DateTimeRange? _dateRange;
   double _minAmount = 0;
   double _maxAmount = kMaxAmount;
-  String _channel = ''; // '' = all, 'in-store', 'online'
+  SaleChannel? _channel; // null = all
 
   SaleSortOption get sortBy => _sortBy;
   String get customerQuery => _customerQuery;
   DateTimeRange? get dateRange => _dateRange;
   double get minAmount => _minAmount;
   double get maxAmount => _maxAmount;
-  String get channel => _channel;
+  SaleChannel? get channel => _channel;
 
   //  draft
   SaleSortOption draftSortBy = SaleSortOption.newest;
   String draftCustomerQuery = '';
   DateTimeRange? draftDateRange;
   RangeValues draftAmountRange = const RangeValues(0, kMaxAmount);
-  String draftChannel = '';
+  SaleChannel? draftChannel; // null = all
   TextEditingController draftCustomerCtrl = TextEditingController();
 
   void initDraft() {
@@ -59,7 +60,7 @@ class SaleFilterProvider extends ChangeNotifier {
   void setDraftCustomer(String q) { draftCustomerQuery = q; notifyListeners(); }
   void setDraftDateRange(DateTimeRange? r) { draftDateRange = r; notifyListeners(); }
   void setDraftAmountRange(RangeValues v) { draftAmountRange = v; notifyListeners(); }
-  void setDraftChannel(String c) { draftChannel = c; notifyListeners(); }
+  void setDraftChannel(SaleChannel? c) { draftChannel = c; notifyListeners(); }
 
   void resetDraft() {
     draftSortBy = SaleSortOption.newest;
@@ -67,7 +68,7 @@ class SaleFilterProvider extends ChangeNotifier {
     draftCustomerCtrl.clear();
     draftDateRange = null;
     draftAmountRange = const RangeValues(0, kMaxAmount);
-    draftChannel = '';
+    draftChannel = null;
     notifyListeners();
   }
 
@@ -87,7 +88,7 @@ class SaleFilterProvider extends ChangeNotifier {
     if (draftCustomerQuery.isNotEmpty) c++;
     if (draftDateRange != null) c++;
     if (draftAmountRange.start != 0 || draftAmountRange.end != kMaxAmount) c++;
-    if (draftChannel.isNotEmpty) c++;
+    if (draftChannel != null) c++;
     return c;
   }
 
@@ -97,7 +98,7 @@ class SaleFilterProvider extends ChangeNotifier {
     if (_customerQuery.isNotEmpty) c++;
     if (_dateRange != null) c++;
     if (_minAmount != 0 || _maxAmount != kMaxAmount) c++;
-    if (_channel.isNotEmpty) c++;
+    if (_channel != null) c++;
     return c;
   }
 
@@ -105,7 +106,7 @@ class SaleFilterProvider extends ChangeNotifier {
   void setCustomerQuery(String q) { _customerQuery = q; notifyListeners(); }
   void setDateRange(DateTimeRange? r) { _dateRange = r; notifyListeners(); }
   void setAmountRange(double min, double max) { _minAmount = min; _maxAmount = max; notifyListeners(); }
-  void setChannel(String c) { _channel = c; notifyListeners(); }
+  void setChannel(SaleChannel? c) { _channel = c; notifyListeners(); }
 
   void reset() {
     _sortBy = SaleSortOption.newest;
@@ -113,7 +114,7 @@ class SaleFilterProvider extends ChangeNotifier {
     _dateRange = null;
     _minAmount = 0;
     _maxAmount = kMaxAmount;
-    _channel = '';
+    _channel = null;
     notifyListeners();
   }
 
@@ -136,7 +137,7 @@ class SaleFilterProvider extends ChangeNotifier {
         if (d.isBefore(_dateRange!.start) || d.isAfter(endOfDay)) return false;
       }
       if (s.totalAmount < _minAmount || s.totalAmount > _maxAmount) return false;
-      if (_channel.isNotEmpty && s.channel != _channel) return false;
+      if (_channel != null && s.saleChannel != _channel) return false;
       return true;
     }).toList();
 

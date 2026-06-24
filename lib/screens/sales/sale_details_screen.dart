@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../core/app_styles.dart';
+import '../../models/enums.dart';
 import '../../models/sale.dart';
 import '../../providers/sale_provider.dart';
 import '../../services/invoice_pdf_service.dart';
@@ -163,9 +164,9 @@ class SaleDetailsScreen extends StatelessWidget {
                           ]),
                           const SizedBox(height: 10),
                           Row(children: [
-                            _StatusBadge(label: sale.status.toUpperCase(), color: AppColors.darkGreen),
+                            _StatusBadge(label: sale.saleStatus.value.toUpperCase(), color: AppColors.darkGreen),
                             const SizedBox(width: 8),
-                            _StatusBadge(label: sale.channel.toUpperCase(), color: AppColors.grey),
+                            _StatusBadge(label: sale.saleChannel.label.toUpperCase(), color: AppColors.grey),
                           ]),
                         ],
                       ),

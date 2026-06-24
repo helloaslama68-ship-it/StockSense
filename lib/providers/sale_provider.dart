@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import '../models/enums.dart';
 import '../models/sale.dart';
 import '../models/sale_item.dart';
 import '../providers/sale_form_provider.dart';
@@ -78,8 +79,8 @@ class SaleProvider extends ChangeNotifier {
     required double taxPercent,
     required String? customerName,
     String status = 'completed',
-    String channel = 'in-store',
-    String paymentMode = 'paid',
+    String channel = 'in-store',  // prefer SaleChannel.inStore.value at call sites
+    String paymentMode = 'paid',  // prefer SalePaymentMode.paid.name at call sites
     double creditAmount = 0.0,
     double paidAmount = 0.0,
   }) async {
