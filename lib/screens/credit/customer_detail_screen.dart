@@ -180,7 +180,7 @@ class _ActivityList extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.watch<CustomerDetailProvider>();
 
-    // Build combined list — keep reference to original CreditTransaction
+    
     final txnItems = p.transactions
         .map((t) => (item: _ActivityItem.fromTransaction(t), txn: t))
         .toList();
@@ -217,7 +217,7 @@ class _ActivityList extends StatelessWidget {
           isLast: isLast,
         );
 
-        // Only CreditTransaction rows are editable
+        
         if (txn == null) return row;
 
         return GestureDetector(

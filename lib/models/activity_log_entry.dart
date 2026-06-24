@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'activity_log_entry.g.dart';
 
-/// Source of the logged activity — which module it came from.
+/// Source of the logged activity 
 enum ActivityType { product, sale, loss, credit }
 
 extension ActivityTypeX on ActivityType {
@@ -29,8 +29,8 @@ extension ActivityTypeX on ActivityType {
 @HiveType(typeId: 10)
 class ActivityLogEntry extends HiveObject {
   @HiveField(0) late String id;
-  @HiveField(1) late String type;     // ActivityType.value
-  @HiveField(2) late String action;   // 'deleted' (room to grow later)
+  @HiveField(1) late String type;     
+  @HiveField(2) late String action;  
   @HiveField(3) late String title;
   @HiveField(4) late String subtitle;
   @HiveField(5) late DateTime timestamp;

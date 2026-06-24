@@ -23,7 +23,7 @@ class LossRepository {
       ..id               = _uuid.v4()
       ..productId        = productId
       ..productName      = productName
-      ..quantity         = quantityDecimal.truncate() // legacy int field
+      ..quantity         = quantityDecimal.truncate() 
       ..quantityDecimal  = quantityDecimal
       ..valuationLoss    = valuationLoss
       ..reason           = reason

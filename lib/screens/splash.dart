@@ -51,13 +51,13 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
       body: Stack(
         children: [
 
-          // GRADIENT BACKGROUND — dark
+          // GRADIENT BACKGROUND 
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [const Color(0xFF121212), const Color(0xFF1A1A1A)]
+                    ? [AppColors.backgroundDark, AppColors.nearBlack]
                     : [AppColors.backgroundTop, AppColors.backgroundBottom],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,

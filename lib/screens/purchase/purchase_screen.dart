@@ -550,7 +550,7 @@ class _PurchaseListBody extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<PurchaseFilterProvider>(),
         child: const _PurchaseFilterSheet(),

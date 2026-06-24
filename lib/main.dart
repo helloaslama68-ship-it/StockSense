@@ -63,7 +63,7 @@ void main() async {
   if (!Hive.isBoxOpen('appBox')) await Hive.openBox('appBox');
   if (!Hive.isBoxOpen('settings')) await Hive.openBox('settings');
 
-  // Register adapters (typeIds 0-7 unchanged; 8 = PurchaseRecord, 9 = PurchaseLineItem)
+  
   if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(ProductAdapter());
   if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SaleAdapter());
   if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(SaleItemAdapter());
@@ -71,16 +71,13 @@ void main() async {
   if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(InventoryLossAdapter());
   if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(CustomerAdapter());
   if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(CreditTransactionAdapter());
-  // NEW: PurchaseLineItem must be registered BEFORE PurchaseRecord (it's a field type)
   if (!Hive.isAdapterRegistered(9)) Hive.registerAdapter(PurchaseLineItemAdapter());
   if (!Hive.isAdapterRegistered(8)) Hive.registerAdapter(PurchaseRecordAdapter());
-  // NEW: activity log (records delete events so Home feed can show them after the record is gone)
   if (!Hive.isAdapterRegistered(10)) Hive.registerAdapter(ActivityLogEntryAdapter());
 
   if (!Hive.isBoxOpen('products')) await Hive.openBox<Product>('products');
   if (!Hive.isBoxOpen('sales')) await Hive.openBox<Sale>('sales');
   if (!Hive.isBoxOpen('purchases')) await Hive.openBox<Purchase>('purchases');
-  // NEW: persisted purchase records box (replaces in-memory list in PurchaseProvider)
   if (!Hive.isBoxOpen('purchase_records')) await Hive.openBox<PurchaseRecord>('purchase_records');
   if (!Hive.isBoxOpen('losses')) await Hive.openBox<InventoryLoss>('losses');
   if (!Hive.isBoxOpen('customers')) await Hive.openBox<Customer>('customers');
@@ -113,7 +110,7 @@ void main() async {
           create: (_) => ProductRepository(),
         ),
 
-        // SETTINGS — must be before Alert/Notification so proxy can depend on it
+        
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
 
         // PROVIDERS
@@ -140,7 +137,7 @@ void main() async {
 
         ChangeNotifierProvider(create: (_) => SaleProvider()),
 
-        // ALERT — wired to SettingsProvider
+        
         ChangeNotifierProxyProvider<SettingsProvider, AlertProvider>(
           create: (_) => AlertProvider(),
           update: (_, settings, prev) => (prev ?? AlertProvider())..update(settings),
@@ -151,7 +148,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProductFormProvider()),
         ChangeNotifierProvider(create: (_) => LossProvider(LossRepository())),
 
-        // NOTIFICATION — wired to ProductProvider, SaleProvider, SettingsProvider
+        
         ChangeNotifierProxyProvider4<NotificationRepository, ProductProvider, SaleProvider, SettingsProvider, NotificationProvider>(
           create: (ctx) => NotificationProvider(
             ctx.read<NotificationRepository>(),

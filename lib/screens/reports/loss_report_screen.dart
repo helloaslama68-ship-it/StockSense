@@ -252,7 +252,7 @@ class LossReportScreen extends StatelessWidget {
   }
 
   Widget _entriesList(List<InventoryLoss> losses) {
-    // show most recent first, cap at visible list
+    // show most recent first
     final sorted = [...losses]
       ..sort((a, b) => b.loggedAt.compareTo(a.loggedAt));
 

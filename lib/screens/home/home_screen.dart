@@ -676,7 +676,7 @@ class _DashboardBody extends StatelessWidget {
 
               Consumer5<SaleProvider, LossProvider, PurchaseProvider, ProductProvider, ActivityLogProvider>(
                 builder: (_, sales, losses, purchases, products, activityLog, __) {
-                  // Build combined list sorted newest first, take 3
+                  
                   final List<_RecentItem> recent = [];
                   for (final s in sales.allSales) {
                     recent.add(_RecentItem(
@@ -730,8 +730,7 @@ class _DashboardBody extends StatelessWidget {
                       date: p.createdAt,
                     ));
                   }
-                  // Deleted items — record itself is gone, so these only
-                  // come from the persisted activity log.
+                  
                   for (final e in activityLog.allEntries) {
                     recent.add(_RecentItem(
                       icon: Icons.delete_forever_rounded,
@@ -1105,7 +1104,7 @@ class _IconBtn extends StatelessWidget {
   }
 }
 
-// RECENT ACTIVITY HELPERS — time formatting via formatRelativeTime in app_styles.dart
+// RECENT ACTIVITY HELPERS — time formatting through formatRelativeTime in app_styles.dart
 
 class _RecentItem {
   final IconData icon;

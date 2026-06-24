@@ -79,8 +79,8 @@ class SaleProvider extends ChangeNotifier {
     required double taxPercent,
     required String? customerName,
     String status = 'completed',
-    String channel = 'in-store',  // prefer SaleChannel.inStore.value at call sites
-    String paymentMode = 'paid',  // prefer SalePaymentMode.paid.name at call sites
+    String channel = 'in-store',  
+    String paymentMode = 'paid', 
     double creditAmount = 0.0,
     double paidAmount = 0.0,
   }) async {

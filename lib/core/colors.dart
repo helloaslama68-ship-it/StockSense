@@ -20,6 +20,7 @@ class AppColors {
   static const Color goldMid = Color(0xFFB07D1A);
   static const Color goldLight = Color(0xFFE3A018);
   static const Color brownGold = Color(0xFF854F0B);
+  static const Color amber= Color(0xFFFFE082);
 
   
   // BACKGROUND COLORS

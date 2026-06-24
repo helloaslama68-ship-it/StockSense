@@ -323,9 +323,9 @@ class _LossTile extends StatelessWidget {
     final onSurface = Theme.of(context).colorScheme.onSurface;
     final subColor  = isDark ? AppColors.warmGrey : AppColors.charcoalGrey;
 
-    // dark-mode badge: lighten bg, slightly lighten color
+    // dark-mode badge
     final badgeBg    = isDark ? m.color.withOpacity(0.18) : m.bg;
-    final badgeColor = isDark ? Color.lerp(m.color, Colors.white, 0.3)! : m.color;
+    final badgeColor = isDark ? Color.lerp(m.color, AppColors.white, 0.3)! : m.color;
 
     return GestureDetector(
       onTap: () => Navigator.push(

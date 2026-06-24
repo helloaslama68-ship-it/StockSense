@@ -163,8 +163,7 @@ class AllActivityScreen extends StatelessWidget {
       ));
     }
 
-    // Deleted items — record itself is gone, so these only come from the
-    // persisted activity log.
+    
     for (final e in deletedEntries) {
       items.add(_ActivityItem(
         icon: Icons.delete_forever_rounded,

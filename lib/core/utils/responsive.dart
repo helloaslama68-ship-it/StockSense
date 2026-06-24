@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../colors.dart';
-
+//device categories used for responsive layouts
 enum ScreenSize { phone, tablet, desktop }
 
 class Responsive {
@@ -150,7 +150,7 @@ class AppText {
     fontSize: r.sp(10), color: AppColors.charcoalGrey,
   );
 }
-
+//root shell that loads either the mobile or desktop layout
 class AppShell extends StatelessWidget {
   final List<Widget> screens;
   final List<_ShellDest> destinations;
@@ -169,7 +169,7 @@ class AppShell extends StatelessWidget {
         : _MobileShell(screens: screens, destinations: destinations);
   }
 }
-
+//navigation item model for the application shell
 class _ShellDest {
   final IconData icon;
   final IconData activeIcon;
@@ -262,7 +262,7 @@ class _AppBottomNav extends StatelessWidget {
     );
   }
 }
-
+//desktop application shell with bottom navigation
 class _DesktopShell extends StatelessWidget {
   final List<Widget> screens;
   final List<_ShellDest> destinations;
@@ -290,7 +290,7 @@ class _DesktopShell extends StatelessWidget {
     );
   }
 }
-
+//desktop sidebar navigation menu 
 class _SideRail extends StatelessWidget {
   final int current;
   final List<_ShellDest> destinations;

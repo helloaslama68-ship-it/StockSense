@@ -10,7 +10,7 @@ class Customer extends HiveObject {
   @HiveField(1) late String name;
   @HiveField(2) late String phone;
   @HiveField(3) late double amountDue;
-  @HiveField(4) late int statusIndex; // CreditStatus.index
+  @HiveField(4) late int statusIndex; 
 
   CreditStatus get status => CreditStatus.values[statusIndex];
   set status(CreditStatus s) => statusIndex = s.index;

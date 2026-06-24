@@ -1,4 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+
 
 part of 'purchase_line_item.dart';
 

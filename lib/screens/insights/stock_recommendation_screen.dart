@@ -51,7 +51,7 @@ class StockRecommendationScreen extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text('Smart AI insights based on your recent sales velocity.',
+                Text('Smart insights based on your recent sales velocity.',
                     style: TextStyle(fontSize: 12, color: AppColors.grey)),
               ],
             ),

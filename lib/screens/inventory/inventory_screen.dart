@@ -167,7 +167,7 @@ class _StatsStrip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.goldDark, const Color(0xFFB87C1A)],
+              colors: [AppColors.goldDark, AppColors.goldMid],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -184,10 +184,10 @@ class _StatsStrip extends StatelessWidget {
               _StatItem(label: 'Total Value', value: '₹${formatCompact(totalValue)}', icon: Icons.account_balance_wallet_rounded),
               _divider(),
               _StatItem(label: 'Low Stock', value: '$lowStock', icon: Icons.warning_amber_rounded,
-                  valueColor: lowStock > 0 ? const Color(0xFFFFE082) : AppColors.white),
+                  valueColor: lowStock > 0 ? AppColors.amber : AppColors.white),
               _divider(),
               _StatItem(label: 'Out of Stock', value: '$outOfStock', icon: Icons.remove_shopping_cart_rounded,
-                  valueColor: outOfStock > 0 ? const Color(0xFFFF8A80) : AppColors.white),
+                  valueColor: outOfStock > 0 ? AppColors.redAccent: AppColors.white),
             ],
           ),
         );
@@ -198,7 +198,7 @@ class _StatsStrip extends StatelessWidget {
   Widget _divider() => Container(
         width: 1, height: 36,
         margin: const EdgeInsets.symmetric(horizontal: 12),
-        color: Colors.white.withOpacity(0.2),
+        color: AppColors.white.withOpacity(0.2),
       );
 }
 
@@ -256,7 +256,7 @@ class _SearchBar extends StatelessWidget {
               child: Container(
                 height: 46,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+                  color: isDark ? AppColors.cardDark : AppColors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -293,7 +293,7 @@ class _SearchBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: provider.filter.isActive
                       ? AppColors.goldDark
-                      : (isDark ? const Color(0xFF1E1E1E) : AppColors.white),
+                      : (isDark ? AppColors.cardDark: AppColors.white),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -379,7 +379,7 @@ class _ProductCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+          color: isDark ? AppColors.cardDark : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -423,7 +423,7 @@ class _ProductCard extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14.5,
                                 letterSpacing: -0.2,
-                                color: isDark ? Colors.white : Colors.black)),
+                                color: isDark ? AppColors.white : AppColors.black)),
                         if (showBrand || showUnit) ...[
                           const SizedBox(height: 4),
                           Row(children: [

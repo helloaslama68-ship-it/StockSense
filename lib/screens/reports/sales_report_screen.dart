@@ -388,7 +388,7 @@ class SalesReportScreen extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // VELOCITY CHART — switches with toggle
+                      // VELOCITY CHART 
                       if (period == ReportPeriod.daily)
                         Container(
                           padding: const EdgeInsets.all(20),

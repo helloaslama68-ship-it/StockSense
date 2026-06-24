@@ -39,7 +39,7 @@ class PurchaseFilterProvider extends ChangeNotifier {
   double get minAmount => _minAmount;
   double get maxAmount => _maxAmount;
 
-  // 
+  
   PurchaseSortOption draftSortBy = PurchaseSortOption.newest;
   String draftSupplierQuery = '';
   DateTimeRange? draftDateRange;

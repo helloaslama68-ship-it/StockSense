@@ -307,7 +307,7 @@ class _ProductDemandScreenState extends State<ProductDemandScreen> {
 
                     const SizedBox(height: 16),
 
-                    // alert banner — tappable if high demand
+                    // alert banner 
                     GestureDetector(
                       onTap: _isHighDemand
                           ? () => Navigator.push(

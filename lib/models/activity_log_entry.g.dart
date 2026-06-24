@@ -1,4 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND (hand-written to match generator output)
+
 
 part of 'activity_log_entry.dart';
 

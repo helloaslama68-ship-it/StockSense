@@ -8,6 +8,9 @@ import '../../models/customer.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/gold_button.dart';
 
+/// Displays system alerts including low stock,
+/// expiring products, and customers with high dues.
+/// Alerts can be filtered using category tabs.
 class AlertsScreen extends StatelessWidget {
   const AlertsScreen({super.key});
 

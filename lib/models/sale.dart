@@ -15,13 +15,13 @@ class Sale extends HiveObject {
   @HiveField(6) late double totalAmount;
   @HiveField(7) late DateTime saleDate;
   @HiveField(8) late int receiptNumber;
-  @HiveField(9) late String status; // SaleStatus.value — 'completed' | 'credit' | 'pending'
-  @HiveField(10) late String channel; // SaleChannel.value — 'in-store' | 'online'
-  @HiveField(11) late String paymentMode; // SalePaymentMode.name — 'paid' | 'credit' | 'partial'
+  @HiveField(9) late String status; 
+  @HiveField(10) late String channel; 
+  @HiveField(11) late String paymentMode; 
   @HiveField(12) late double creditAmount;
   @HiveField(13) late double paidAmount;
 
-  // Typed accessors — use these in new code instead of raw strings.
+  //returns the sale channel as enum
   SaleChannel get saleChannel => SaleChannelX.fromValue(channel);
   set saleChannel(SaleChannel c) => channel = c.value;
 

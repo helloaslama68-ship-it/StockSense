@@ -426,7 +426,7 @@ class LossDetailScreen extends StatelessWidget {
     }
   }
 
-  Color _lighten(Color c) => Color.lerp(c, Colors.white, 0.35)!;
+  Color _lighten(Color c) => Color.lerp(c, AppColors.white, 0.35)!;
 }
 
 // REUSABLE CARD

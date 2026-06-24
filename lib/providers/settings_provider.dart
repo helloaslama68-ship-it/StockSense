@@ -13,7 +13,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get creditDueAlerts =>
       _box.get('creditDueAlerts', defaultValue: false) as bool;
 
-  /// 'light' | 'dark' | 'system'
+  
   String get _themeModeKey =>
       _box.get('themeMode', defaultValue: 'system') as String;
 

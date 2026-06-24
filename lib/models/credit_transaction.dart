@@ -8,7 +8,7 @@ enum TransactionType { credit, payment }
 class CreditTransaction extends HiveObject {
   @HiveField(0) late String id;
   @HiveField(1) late String customerId;
-  @HiveField(2) late int typeIndex; // TransactionType.index
+  @HiveField(2) late int typeIndex; 
   @HiveField(3) late double amount;
   @HiveField(4) late DateTime date;
   @HiveField(5) String? notes;

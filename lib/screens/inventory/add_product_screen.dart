@@ -71,8 +71,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   /// Open scanner in product-fill mode.
-  /// If a known product is scanned → fill all fields from it.
-  /// If unknown barcode → fill barcode field only.
+  /// If a known product is scanned -fill all fields from it.
+  /// If unknown barcode -fill barcode field only.
   Future<void> _fillFromScan() async {
     final result = await Navigator.push<dynamic>(
       context,

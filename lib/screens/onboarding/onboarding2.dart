@@ -36,7 +36,7 @@ class Onboarding2 extends StatelessWidget {
 
                 SizedBox(height: h * 0.03),
 
-                // Feature grid — constrained height so it doesn't over-expand
+                
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,

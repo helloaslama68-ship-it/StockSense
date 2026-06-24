@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import '../../core/colors.dart';
 import '../../screens/scanner/scanner_screen.dart';
 
-/// Barcode input field with inline scanner button.
-/// Usage:
-///   BarcodeField(controller: _barcodeCtrl)
+
 class BarcodeField extends StatelessWidget {
   final TextEditingController controller;
-  /// Override the default scan behaviour (e.g. to fill multiple fields).
-  /// If null, the default behaviour returns only the barcode string.
+  
   final VoidCallback? onScanTap;
 
   const BarcodeField({super.key, required this.controller, this.onScanTap});

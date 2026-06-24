@@ -3,8 +3,7 @@ import 'package:hive/hive.dart';
 import '../models/purchase_record.dart';
 
 class PurchaseProvider with ChangeNotifier {
-  // Persisted to Hive — survives app restarts and is per-device.
-  // Cleared on new account creation via StorageService.clearAllUserData().
+  
   Box<PurchaseRecord> get _box => Hive.box<PurchaseRecord>('purchase_records');
 
   List<PurchaseRecord> get allPurchases => _box.values.toList()

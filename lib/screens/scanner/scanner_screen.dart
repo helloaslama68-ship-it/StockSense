@@ -12,7 +12,7 @@ import '../sales/sale_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
   final bool returnBarcodeOnly;
-  /// When true: if product found → pop(Product); if not found → pop(barcode string).
+  /// When true: if product found - pop(Product); if not found -pop(barcode string).
   final bool returnProductIfFound;
   const ScannerScreen({
     Key? key,
@@ -81,7 +81,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       _cardCtrl.forward();
     } else {
       if (widget.returnProductIfFound) {
-        // No match — return the raw barcode so the form can at least fill it
+        // No match — return the raw barcode so the form can fill it
         Navigator.pop(context, code);
         return;
       }

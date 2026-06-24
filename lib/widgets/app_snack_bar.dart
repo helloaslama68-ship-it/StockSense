@@ -17,8 +17,7 @@ class AppSnackBar {
     errorWith(ScaffoldMessenger.of(context), message);
   }
 
-  /// Use when context may be unmounted after a pop (e.g. delete-then-navigate
-  /// flows) — capture the messenger before popping, then call this.
+  /// Use when context may be unmounted after a pop (eg delete-then-navigateflows) — capture the messenger before popping, then call this.
   static void successWith(ScaffoldMessengerState messenger, String message) {
     _showOn(
       messenger,

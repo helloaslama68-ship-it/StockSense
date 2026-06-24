@@ -3,10 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/activity_log_entry.dart';
 
-/// Persisted log of destructive actions (deletes) across modules so the Home
-/// "Recent Activity" feed can still show them after the underlying record
-/// is gone. Live "created" events are derived directly from each module's
-/// provider — this only needs to cover events that outlive their record.
+
 class ActivityLogProvider extends ChangeNotifier {
   final Box<ActivityLogEntry> _box = Hive.box<ActivityLogEntry>('activity_log');
   static const _uuid = Uuid();

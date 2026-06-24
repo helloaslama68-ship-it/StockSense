@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'colors.dart';
 
-//  DATE HELPER
+//  date and time helpers,common functions used for formatting dates and time
 
 const List<String> kMonthNames = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
+//returns date and time in the format:jan1,2026
 String formatDate(DateTime d) =>
     '${kMonthNames[d.month - 1]} ${d.day}, ${d.year}';
-    String formatDateTime(DateTime d) {
+//returns date and time in the format:
+//jan1/2026 .10:30 Am
+  String formatDateTime(DateTime d) {
   final h = d.hour > 12 ? d.hour - 12 : (d.hour == 0 ? 12 : d.hour);
   final ampm = d.hour >= 12 ? 'PM' : 'AM';
   final min = d.minute.toString().padLeft(2, '0');
   return '${kMonthNames[d.month - 1]} ${d.day}, ${d.year} · $h:$min $ampm';
 }
-
+//returns date without year
+//eg-jan1
 String formatShortDate(DateTime d) =>
     '${kMonthNames[d.month - 1]} ${d.day}';
-
+//returns time in 12-hour format
+//eg-10:30 Am
 String formatTime(DateTime d) {
   final h = d.hour > 12 ? d.hour - 12 : (d.hour == 0 ? 12 : d.hour);
   final ampm = d.hour >= 12 ? 'PM' : 'AM';
@@ -27,8 +32,9 @@ String formatTime(DateTime d) {
   return '$h:$min $ampm';
 }
 
-// COMMON DECORATION HELPERS
+// COMMON DECORATION HELPERS-reusable decorations for text field and cards
 
+//automatically adapts to light and dark themes
 InputDecoration appInputDeco(String hint, {BuildContext? context}) {
   final isDark = context != null &&
       Theme.of(context).brightness == Brightness.dark;
@@ -53,8 +59,7 @@ InputDecoration appInputDeco(String hint, {BuildContext? context}) {
     );
 }
 
-/// Pass [context] for theme-aware card color (dark mode support).
-/// Falls back to white when context is null (legacy call sites).
+
 BoxDecoration appCardDecoration({double radius = 16, BuildContext? context}) {
   final isDark = context != null &&
       Theme.of(context).brightness == Brightness.dark;
@@ -88,10 +93,10 @@ Widget appTotalRow(String label, String value) => Row(
 
 // DATE HELPERS
 
-/// Parses ISO-8601 string and formats as "Jan 1, 2024".
+/// converts ISO-8601 string and formats to jan1,2026.
 String formatDateFromString(String iso) => formatDate(DateTime.parse(iso));
 
-/// Returns "January 2024" — used for audit period labels.
+/// Returns "January 2026" — used for audit period labels.
 String formatMonthYear(DateTime d) {
   const full = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -171,8 +176,7 @@ const List<String> kProductUnits = [
   'pack', 'bag', 'bottle',
   'strip', 'tablet',
 ];
-// COMPACT NUMBER FORMAT (Indian: K/L shorthand)
-/// e.g. 1500 → "1.5K", 150000 → "1.50 L", 999 → "999"
+// number formatting-formats large numbers using indian notation,eg-100000-1.00L
 String formatCompact(double v) {
   if (v >= 100000) return '${(v / 100000).toStringAsFixed(2)} L';
   if (v >= 1000) {
@@ -192,7 +196,7 @@ String formatCompact(double v) {
   return v.toStringAsFixed(0);
 }
 
-/// e.g. today → "3:45 PM", yesterday → "Yesterday", <7d → "2 days ago", else "12/6/2024"
+/// eg today - 3:45 PM, yesterday - Yesterday, <7d - 2 days ago, else 12/6/2026
 String formatRelativeTime(DateTime dt) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);

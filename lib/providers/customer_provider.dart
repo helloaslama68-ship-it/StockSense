@@ -14,7 +14,7 @@ class CustomerProvider extends ChangeNotifier {
 
   static const List<String> statusFilters = ['All', 'highDue', 'pending', 'noDue'];
 
-  // ── READ ──────────────────────────────────────────────────────────────────
+  
 
   List<Customer> get customers => _customers.values.toList();
 
@@ -71,7 +71,7 @@ class CustomerProvider extends ChangeNotifier {
     }
   }
 
-  // ── FILTERS ───────────────────────────────────────────────────────────────
+  
 
   void setQuery(String q) {
     _query = q;
@@ -83,7 +83,7 @@ class CustomerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── WRITE ─────────────────────────────────────────────────────────────────
+  
 
   Future<void> add(Customer customer) async {
     await _customers.put(customer.id, customer);

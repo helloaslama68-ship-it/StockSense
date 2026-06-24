@@ -1,16 +1,11 @@
-/// Central enum definitions for all domain constant values.
-/// Use these instead of raw strings for payment modes, channels, and statuses.
 
-// ---------------------------------------------------------------------------
-// Sale
-// ---------------------------------------------------------------------------
-
+//sale enum
 enum SalePaymentMode { paid, credit, partial }
 
 enum SaleChannel { inStore, online }
 
 extension SaleChannelX on SaleChannel {
-  /// Serialised value stored in Hive / sent over API.
+  
   String get value {
     switch (this) {
       case SaleChannel.inStore: return 'in-store';
@@ -18,7 +13,7 @@ extension SaleChannelX on SaleChannel {
     }
   }
 
-  /// Human-readable label for UI.
+  
   String get label {
     switch (this) {
       case SaleChannel.inStore: return 'In-Store';
