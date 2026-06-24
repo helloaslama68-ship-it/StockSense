@@ -9,6 +9,8 @@ import '../../services/invoice_pdf_service.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/app_snack_bar.dart';
 import '../../widgets/manage_widgets.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 
 class SaleDetailsScreen extends StatelessWidget {
   final Sale sale;
@@ -22,8 +24,14 @@ class SaleDetailsScreen extends StatelessWidget {
         message: 'This cannot be undone.',
         onConfirm: () async {
           Navigator.pop(context);
+          final receipt = sale.receiptNumber;
           await context.read<SaleProvider>().deleteSale(sale.id);
           if (!context.mounted) return;
+          context.read<ActivityLogProvider>().logDeleted(
+                type: ActivityType.sale,
+                title: 'Sale Deleted',
+                subtitle: 'Order #SL$receipt',
+              );
           Navigator.pop(context);
           AppSnackBar.success(context, 'Sale deleted');
         },

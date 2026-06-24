@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../core/utils/responsive.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/product_provider.dart';
@@ -13,6 +14,8 @@ import '../../providers/stock_recommendation_provider.dart';
 import '../../providers/loss_provider.dart';
 import '../../providers/purchase_provider.dart';
 import '../../widgets/activity_row.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_section_label.dart';
 import '../../widgets/gold_button.dart';
@@ -28,6 +31,7 @@ import '../notifications/notifications_screen.dart';
 import '../profile/profile_screen.dart';
 import '../purchase/purchase_list_screen.dart';
 import '../reports/reports_screen.dart';
+import '../reports/sales_report_screen.dart';
 import '../sales/sales_list_screen.dart';
 import '../scanner/scanner_screen.dart';
 import '../loss/loss_log_screen.dart';
@@ -670,8 +674,8 @@ class _DashboardBody extends StatelessWidget {
               ),
               AppSpacing.vMd,
 
-              Consumer3<SaleProvider, LossProvider, PurchaseProvider>(
-                builder: (_, sales, losses, purchases, __) {
+              Consumer5<SaleProvider, LossProvider, PurchaseProvider, ProductProvider, ActivityLogProvider>(
+                builder: (_, sales, losses, purchases, products, activityLog, __) {
                   // Build combined list sorted newest first, take 3
                   final List<_RecentItem> recent = [];
                   for (final s in sales.allSales) {
@@ -681,7 +685,7 @@ class _DashboardBody extends StatelessWidget {
                       iconColor: AppColors.blue,
                       title: 'Sales Transaction',
                       subtitle: 'Order #SL${s.receiptNumber} · ${s.items.length} ${s.items.length == 1 ? 'item' : 'items'}',
-                      time: _fmtTime(s.saleDate),
+                      time: formatRelativeTime(s.saleDate),
                       timeColor: AppColors.warmGrey,
                       date: s.saleDate,
                     ));
@@ -694,7 +698,7 @@ class _DashboardBody extends StatelessWidget {
                       iconColor: AppColors.darkRed,
                       title: 'Waste Logged',
                       subtitle: '${l.quantity}x ${l.productName} ($reason)',
-                      time: _fmtTime(l.loggedAt),
+                      time: formatRelativeTime(l.loggedAt),
                       timeColor: AppColors.darkRed,
                       badge: '-₹${l.valuationLoss.toStringAsFixed(0)}',
                       date: l.loggedAt,
@@ -707,9 +711,38 @@ class _DashboardBody extends StatelessWidget {
                       iconColor: AppColors.royalBlue,
                       title: 'Purchase Recorded',
                       subtitle: '${p.productName} · ${p.supplierName}',
-                      time: _fmtTime(p.purchaseDate),
+                      time: formatRelativeTime(p.purchaseDate),
                       timeColor: AppColors.warmGrey,
                       date: p.purchaseDate,
+                    ));
+                  }
+                  for (final p in products.allProducts) {
+                    recent.add(_RecentItem(
+                      icon: Icons.inventory_2_rounded,
+                      iconBg: AppColors.lightGreen,
+                      iconColor: AppColors.darkGreen,
+                      title: 'Product Added',
+                      subtitle: p.brand != null && p.brand!.isNotEmpty
+                          ? '${p.name} · ${p.brand}'
+                          : p.name,
+                      time: formatRelativeTime(p.createdAt),
+                      timeColor: AppColors.warmGrey,
+                      date: p.createdAt,
+                    ));
+                  }
+                  // Deleted items — record itself is gone, so these only
+                  // come from the persisted activity log.
+                  for (final e in activityLog.allEntries) {
+                    recent.add(_RecentItem(
+                      icon: Icons.delete_forever_rounded,
+                      iconBg: AppColors.lightRed,
+                      iconColor: AppColors.darkRed,
+                      title: e.title,
+                      subtitle: e.subtitle,
+                      time: formatRelativeTime(e.timestamp),
+                      timeColor: AppColors.darkRed,
+                      badge: e.badge,
+                      date: e.timestamp,
                     ));
                   }
                   recent.sort((a, b) => b.date.compareTo(a.date));
@@ -791,7 +824,10 @@ class _RevenueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<SaleProvider>(
-      builder: (_, s, __) => Container(
+      builder: (_, s, __) => GestureDetector(
+        onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const SalesReportScreen())),
+        child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -847,6 +883,7 @@ class _RevenueCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -996,9 +1033,33 @@ class _StatGrid extends StatelessWidget {
                         fontSize: r.sp(32), fontWeight: FontWeight.w800,
                         color: AppColors.goldDark, letterSpacing: -1,
                       )),
-                      Text('items expire\nnext 90 days', style: TextStyle(
-                        fontSize: r.sp(11), color: AppColors.goldDark.withOpacity(0.7), height: 1.3,
-                      )),
+                      Builder(builder: (_) {
+                        final expiring = p.expiringProducts;
+                        if (expiring.isEmpty) {
+                          return Text('no items\nexpiring soon', style: TextStyle(
+                            fontSize: r.sp(11), color: AppColors.goldDark.withOpacity(0.7), height: 1.3,
+                          ));
+                        }
+                        final now = DateTime.now();
+                        int? minDays;
+                        for (final prod in expiring) {
+                          if (prod.expiryDate == null) continue;
+                          final exp = DateTime.tryParse(prod.expiryDate!);
+                          if (exp == null) continue;
+                          final d = exp.difference(now).inDays;
+                          if (minDays == null || d < minDays) minDays = d;
+                        }
+                        final label = minDays == null
+                            ? 'expiring soon'
+                            : minDays <= 0
+                                ? 'already expired'
+                                : minDays == 1
+                                    ? 'soonest expires\nin 1 day'
+                                    : 'soonest expires\nin $minDays days';
+                        return Text(label, style: TextStyle(
+                          fontSize: r.sp(11), color: AppColors.goldDark.withOpacity(0.7), height: 1.3,
+                        ));
+                      }),
                     ],
                   ),
                   Positioned(
@@ -1044,24 +1105,7 @@ class _IconBtn extends StatelessWidget {
   }
 }
 
-// RECENT ACTIVITY HELPERS
-
-String _fmtTime(DateTime dt) {
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final yesterday = today.subtract(const Duration(days: 1));
-  final d = DateTime(dt.year, dt.month, dt.day);
-  if (d == today) {
-    final h = dt.hour;
-    final m = dt.minute.toString().padLeft(2, '0');
-    final period = h >= 12 ? 'PM' : 'AM';
-    final h12 = h % 12 == 0 ? 12 : h % 12;
-    return '$h12:$m $period';
-  }
-  if (d == yesterday) return 'Yesterday';
-  final diff = today.difference(d).inDays;
-  return diff < 7 ? '$diff days ago' : '${dt.day}/${dt.month}';
-}
+// RECENT ACTIVITY HELPERS — time formatting via formatRelativeTime in app_styles.dart
 
 class _RecentItem {
   final IconData icon;

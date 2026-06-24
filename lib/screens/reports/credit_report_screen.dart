@@ -113,7 +113,7 @@ class CreditReportScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '₹${_formatAmount(totalGiven)}',
+                            '₹${formatCompact(totalGiven)}',
                             style: TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w800,
@@ -173,7 +173,7 @@ class CreditReportScreen extends StatelessWidget {
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              '₹${_formatAmount(totalCollected)}',
+                              '₹${formatCompact(totalCollected)}',
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
@@ -279,38 +279,14 @@ class CreditReportScreen extends StatelessWidget {
   }
 
   _CreditTag _resolveTag(customer, double balance) {
-    if (balance <= 0) return _CreditTag.none;
-    if (customer.statusIndex == 0) return _CreditTag.criticalLimit; // highDue
-    if (customer.statusIndex == 1) return _CreditTag.overdue;       // pending
-    return _CreditTag.currentBalance;                                // noDue with balance
-  }
-
-  String _formatAmount(double v) {
-    if (v >= 1000) {
-      final s = v.toStringAsFixed(2);
-      final parts = s.split('.');
-      final intPart = parts[0];
-      final decPart = parts[1];
-      final formatted = _addCommas(intPart);
-      return '$formatted.$decPart';
-    }
-    return v.toStringAsFixed(2);
-  }
-
-  String _addCommas(String n) {
-    if (n.length <= 3) return n;
-    final last3 = n.substring(n.length - 3);
-    final rest = n.substring(0, n.length - 3);
-    final buf = StringBuffer();
-    for (int i = 0; i < rest.length; i++) {
-      if (i > 0 && (rest.length - i) % 2 == 0) buf.write(',');
-      buf.write(rest[i]);
-    }
-    return '${buf.toString()},$last3';
+    if (balance <= 0) return _CreditTag.settled;
+    if (customer.statusIndex == 0) return _CreditTag.criticalLimit;
+    if (customer.statusIndex == 1) return _CreditTag.overdue;
+    return _CreditTag.currentBalance;
   }
 }
 
-enum _CreditTag { overdue, currentBalance, criticalLimit, none }
+enum _CreditTag { overdue, currentBalance, criticalLimit, settled, none }
 
 class _CustomerCreditRow extends StatelessWidget {
   final String name;
@@ -331,7 +307,7 @@ class _CustomerCreditRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (balance <= 0 && tag == _CreditTag.none) return const SizedBox.shrink();
+    if (tag == _CreditTag.none) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -408,7 +384,7 @@ class _CustomerCreditRow extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '₹${_fmt(balance)}',
+                '₹${formatCompact(balance)}',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -429,6 +405,8 @@ class _CustomerCreditRow extends StatelessWidget {
         return 'CRITICAL LIMIT';
       case _CreditTag.currentBalance:
         return 'CURRENT BALANCE';
+      case _CreditTag.settled:
+        return 'SETTLED';
       case _CreditTag.none:
         return '';
     }
@@ -442,16 +420,13 @@ class _CustomerCreditRow extends StatelessWidget {
         return AppColors.darkRed;
       case _CreditTag.currentBalance:
         return AppColors.grey;
+      case _CreditTag.settled:
+        return AppColors.darkGreen;
       case _CreditTag.none:
         return AppColors.grey;
     }
   }
 
-  String _fmt(double v) {
-    final s = v.toStringAsFixed(2);
-    final parts = s.split('.');
-    return '${parts[0]}.${parts[1]}';
-  }
 }
 
 class _Bar extends StatelessWidget {

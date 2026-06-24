@@ -10,43 +10,53 @@ class AppSnackBar {
   AppSnackBar._();
 
   static void success(BuildContext context, String message) {
-    _show(
-      context,
+    successWith(ScaffoldMessenger.of(context), message);
+  }
+
+  static void error(BuildContext context, String message) {
+    errorWith(ScaffoldMessenger.of(context), message);
+  }
+
+  /// Use when context may be unmounted after a pop (e.g. delete-then-navigate
+  /// flows) — capture the messenger before popping, then call this.
+  static void successWith(ScaffoldMessengerState messenger, String message) {
+    _showOn(
+      messenger,
       message: message,
       icon: Icons.check_circle_rounded,
       backgroundColor: AppColors.darkGreen,
     );
   }
 
-  static void error(BuildContext context, String message) {
-    _show(
-      context,
+  static void errorWith(ScaffoldMessengerState messenger, String message) {
+    _showOn(
+      messenger,
       message: message,
       icon: Icons.error_rounded,
       backgroundColor: AppColors.darkRed,
     );
   }
 
-  static void _show(
-    BuildContext context, {
+  static void _showOn(
+    ScaffoldMessengerState messenger, {
     required String message,
     required IconData icon,
     required Color backgroundColor,
   }) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.showSnackBar(
       SnackBar(
         content: Row(
           children: [
             Icon(icon, color: AppColors.white, size: 18),
             const SizedBox(width: 10),
-           Expanded(
-  child: Text(
-    message,
-    style: const TextStyle(
-      color: AppColors.white,
-    ),
-  ),
-),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: AppColors.white,
+                ),
+              ),
+            ),
           ],
         ),
         backgroundColor: backgroundColor,

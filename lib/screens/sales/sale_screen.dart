@@ -69,6 +69,12 @@ class _SaleScreenBody extends StatelessWidget {
       AppSnackBar.error(context, 'Enter amount paid');
       return;
     }
+    if (form.paymentMode == SalePaymentMode.partial &&
+        form.paidAmount >= form.totalAmount) {
+      AppSnackBar.error(
+          context, 'Partial amount must be less than total. Use "Paid" for full payment');
+      return;
+    }
 
     final saleProvider = context.read<SaleProvider>();
     final customerProvider = context.read<CustomerProvider>();

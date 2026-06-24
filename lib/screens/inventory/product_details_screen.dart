@@ -8,6 +8,9 @@ import '../../models/product.dart';
 import '../../providers/product_provider.dart';
 import '../../widgets/product_badge.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/app_snack_bar.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 import 'edit_product_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -58,9 +61,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           ),
           TextButton(
             onPressed: () {
+              final messenger = ScaffoldMessenger.of(context);
+              final name = p.name;
               context.read<ProductProvider>().deleteProduct(p.id);
+              context.read<ActivityLogProvider>().logDeleted(
+                    type: ActivityType.product,
+                    title: 'Product Deleted',
+                    subtitle: name,
+                  );
               Navigator.pop(context);
               Navigator.pop(context);
+              AppSnackBar.successWith(messenger, '$name deleted');
             },
             child: const Text('Delete',
                 style: TextStyle(

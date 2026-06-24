@@ -7,6 +7,7 @@ import '../models/customer.dart';
 import '../models/credit_transaction.dart';
 import '../models/inventory_loss.dart';
 import '../models/purchase_record.dart';
+import '../models/activity_log_entry.dart';
 
 class StorageService {
 
@@ -105,6 +106,9 @@ class StorageService {
     // Clear customer credit data
     await Hive.box<Customer>('customers').clear();
     await Hive.box<CreditTransaction>('credit_transactions').clear();
+
+    // Clear activity log (deleted-item history)
+    await Hive.box<ActivityLogEntry>('activity_log').clear();
 
     // Remove profile image
     _box.delete('profileImage');

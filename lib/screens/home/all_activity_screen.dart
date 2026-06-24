@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colors.dart';
+import '../../core/app_styles.dart';
 import '../../core/utils/responsive.dart';
 import '../../models/sale.dart';
 import '../../models/inventory_loss.dart';
 import '../../models/purchase_record.dart';
+import '../../models/product.dart';
 import '../../providers/sale_provider.dart';
 import '../../providers/loss_provider.dart';
 import '../../providers/purchase_provider.dart';
+import '../../providers/product_provider.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 import '../../widgets/activity_row.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/app_card.dart';
@@ -38,12 +43,14 @@ class AllActivityScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Consumer3<SaleProvider, LossProvider, PurchaseProvider>(
-        builder: (_, sales, losses, purchases, __) {
+      body: Consumer5<SaleProvider, LossProvider, PurchaseProvider, ProductProvider, ActivityLogProvider>(
+        builder: (_, sales, losses, purchases, products, activityLog, __) {
           final items = _buildActivityItems(
             sales.allSales,
             losses.allLosses,
             purchases.allPurchases,
+            products.allProducts,
+            activityLog.allEntries,
           );
 
           if (items.isEmpty) {
@@ -89,6 +96,8 @@ class AllActivityScreen extends StatelessWidget {
     List<Sale> sales,
     List<InventoryLoss> losses,
     List<PurchaseRecord> purchases,
+    List<Product> products,
+    List<ActivityLogEntry> deletedEntries,
   ) {
     final List<_ActivityItem> items = [];
 
@@ -101,7 +110,7 @@ class AllActivityScreen extends StatelessWidget {
         iconColor: AppColors.blue,
         title: 'Sales Transaction',
         subtitle: 'Order #SL${s.receiptNumber} · $itemCount ${itemCount == 1 ? 'item' : 'items'}',
-        time: _formatTime(s.saleDate),
+        time: formatRelativeTime(s.saleDate),
         timeColor: AppColors.warmGrey,
         badge: '₹${s.totalAmount.toStringAsFixed(0)}',
         sortDate: s.saleDate,
@@ -116,7 +125,7 @@ class AllActivityScreen extends StatelessWidget {
         iconColor: AppColors.darkRed,
         title: 'Waste Logged',
         subtitle: '${l.quantity}x ${l.productName} (${_capitalise(l.reason)})',
-        time: _formatTime(l.loggedAt),
+        time: formatRelativeTime(l.loggedAt),
         timeColor: AppColors.darkRed,
         badge: '-₹${l.valuationLoss.toStringAsFixed(0)}',
         sortDate: l.loggedAt,
@@ -131,35 +140,48 @@ class AllActivityScreen extends StatelessWidget {
         iconColor: AppColors.royalBlue,
         title: 'Purchase Recorded',
         subtitle: '${p.productName} · ${p.supplierName}',
-        time: _formatTime(p.purchaseDate),
+        time: formatRelativeTime(p.purchaseDate),
         timeColor: AppColors.warmGrey,
         badge: '₹${p.totalAmount.toStringAsFixed(0)}',
         sortDate: p.purchaseDate,
       ));
     }
 
+    // Products
+    for (final p in products) {
+      items.add(_ActivityItem(
+        icon: Icons.inventory_2_rounded,
+        iconBg: AppColors.lightGreen,
+        iconColor: AppColors.darkGreen,
+        title: 'Product Added',
+        subtitle: p.brand != null && p.brand!.isNotEmpty
+            ? '${p.name} · ${p.brand}'
+            : p.name,
+        time: formatRelativeTime(p.createdAt),
+        timeColor: AppColors.warmGrey,
+        sortDate: p.createdAt,
+      ));
+    }
+
+    // Deleted items — record itself is gone, so these only come from the
+    // persisted activity log.
+    for (final e in deletedEntries) {
+      items.add(_ActivityItem(
+        icon: Icons.delete_forever_rounded,
+        iconBg: AppColors.lightRed,
+        iconColor: AppColors.darkRed,
+        title: e.title,
+        subtitle: e.subtitle,
+        time: formatRelativeTime(e.timestamp),
+        timeColor: AppColors.darkRed,
+        badge: e.badge,
+        sortDate: e.timestamp,
+      ));
+    }
+
     // Sort newest first
     items.sort((a, b) => b.sortDate.compareTo(a.sortDate));
     return items;
-  }
-
-  String _formatTime(DateTime dt) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final d = DateTime(dt.year, dt.month, dt.day);
-
-    if (d == today) {
-      final h = dt.hour;
-      final m = dt.minute.toString().padLeft(2, '0');
-      final period = h >= 12 ? 'PM' : 'AM';
-      final h12 = h % 12 == 0 ? 12 : h % 12;
-      return '$h12:$m $period';
-    }
-    if (d == yesterday) return 'Yesterday';
-    final diff = today.difference(d).inDays;
-    if (diff < 7) return '$diff days ago';
-    return '${dt.day}/${dt.month}/${dt.year}';
   }
 
   String _capitalise(String s) =>

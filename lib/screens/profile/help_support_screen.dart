@@ -12,7 +12,7 @@ class HelpSupportScreen extends StatefulWidget {
 
 class _HelpSupportScreenState extends State<HelpSupportScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  final ValueNotifier<String> _searchQuery = ValueNotifier('');
 
   final List<_FaqItem> _faqs = const [
     _FaqItem(
@@ -42,9 +42,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     ),
   ];
 
-  List<_FaqItem> get _filtered {
-    if (_searchQuery.isEmpty) return _faqs;
-    final q = _searchQuery.toLowerCase();
+  List<_FaqItem> _filtered(String query) {
+    if (query.isEmpty) return _faqs;
+    final q = query.toLowerCase();
     return _faqs
         .where((f) =>
             f.question.toLowerCase().contains(q) ||
@@ -55,6 +55,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchQuery.dispose();
     super.dispose();
   }
 
@@ -64,150 +65,148 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     final bg = Theme.of(context).scaffoldBackgroundColor;
     final textPrimary = isDark ? AppColors.white : AppColors.black;
     final textSecondary = isDark ? AppColors.warmGrey : AppColors.grey;
-    final cardColor = isDark ? AppColors.surfaceDark: AppColors.white;
+    final cardColor = isDark ? AppColors.surfaceDark : AppColors.white;
 
-    return Scaffold(
-      backgroundColor: bg,
-      appBar: AppBar(
-        backgroundColor: bg,
-        elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.only(left: 12),
-          child: Center(child: AppBackButton()),
-        ),
-        title: Text(
-          'Help & Support',
-          style: TextStyle(
-            color: AppColors.goldDark,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? AppColors.white38 : AppColors.lightGrey,
-                ),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (v) => setState(() => _searchQuery = v),
-                style: TextStyle(color: textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: 'Search help topics...',
-                  hintStyle: TextStyle(color: textSecondary, fontSize: 14),
-                  prefixIcon:
-                      Icon(Icons.search, color: textSecondary, size: 20),
-                  border: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                ),
+    return ValueListenableBuilder<String>(
+      valueListenable: _searchQuery,
+      builder: (context, query, _) {
+        final filtered = _filtered(query);
+        return Scaffold(
+          backgroundColor: bg,
+          appBar: AppBar(
+            backgroundColor: bg,
+            elevation: 0,
+            leading: const Padding(
+              padding: EdgeInsets.only(left: 12),
+              child: Center(child: AppBackButton()),
+            ),
+            title: Text(
+              'Help & Support',
+              style: TextStyle(
+                color: AppColors.goldDark,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
             ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Common Questions',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: textPrimary,
+          body: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? AppColors.white38 : AppColors.lightGrey,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  if (_filtered.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 32),
-                      child: Center(
-                        child: Text(
-                          'No results for "$_searchQuery"',
-                          style: TextStyle(color: textSecondary, fontSize: 14),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (v) => _searchQuery.value = v,
+                    style: TextStyle(color: textPrimary, fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: 'Search help topics...',
+                      hintStyle: TextStyle(color: textSecondary, fontSize: 14),
+                      prefixIcon: Icon(Icons.search, color: textSecondary, size: 20),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Common Questions',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: textPrimary,
                         ),
                       ),
-                    )
-                  else
-                    Container(
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color:
-                              isDark ? AppColors.white38 : AppColors.lightGrey,
+                      const SizedBox(height: 12),
+                      if (filtered.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 32),
+                          child: Center(
+                            child: Text(
+                              'No results for "$query"',
+                              style: TextStyle(color: textSecondary, fontSize: 14),
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark ? AppColors.white38 : AppColors.lightGrey,
+                            ),
+                          ),
+                          child: Column(
+                            children: filtered.asMap().entries.map((entry) {
+                              final i = entry.key;
+                              final item = entry.value;
+                              final isLast = i == filtered.length - 1;
+                              return Column(
+                                children: [
+                                  _FaqTile(
+                                    item: item,
+                                    textPrimary: textPrimary,
+                                    textSecondary: textSecondary,
+                                  ),
+                                  if (!isLast)
+                                    Divider(
+                                      height: 1,
+                                      color: isDark ? AppColors.white38 : AppColors.lightGrey,
+                                      indent: 16,
+                                      endIndent: 16,
+                                    ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        children: _filtered.asMap().entries.map((entry) {
-                          final i = entry.key;
-                          final item = entry.value;
-                          final isLast = i == _filtered.length - 1;
-                          return Column(
-                            children: [
-                              _FaqTile(
-                                item: item,
-                                textPrimary: textPrimary,
-                                textSecondary: textSecondary,
+                      const SizedBox(height: 40),
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              'STOCKSENSE V2.4.1',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: textSecondary,
+                                letterSpacing: 1.2,
                               ),
-                              if (!isLast)
-                                Divider(
-                                  height: 1,
-                                  color: isDark
-                                      ? AppColors.white38
-                                      : AppColors.lightGrey,
-                                  indent: 16,
-                                  endIndent: 16,
-                                ),
-                            ],
-                          );
-                        }).toList(),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Handcrafted by StockSense Dev Team',
+                              style: TextStyle(fontSize: 11, color: textSecondary),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  const SizedBox(height: 40),
-                  Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          'STOCKSENSE V2.4.1',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: textSecondary,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Handcrafted by StockSense Dev Team',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
-class _FaqTile extends StatefulWidget {
+class _FaqTile extends StatelessWidget {
   final _FaqItem item;
   final Color textPrimary;
   final Color textSecondary;
@@ -219,55 +218,52 @@ class _FaqTile extends StatefulWidget {
   });
 
   @override
-  State<_FaqTile> createState() => _FaqTileState();
-}
-
-class _FaqTileState extends State<_FaqTile> {
-  bool _expanded = false;
-
-  @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => setState(() => _expanded = !_expanded),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.item.question,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: widget.textPrimary,
+    final expanded = ValueNotifier<bool>(false);
+    return ValueListenableBuilder<bool>(
+      valueListenable: expanded,
+      builder: (_, isExpanded, __) => InkWell(
+        onTap: () => expanded.value = !expanded.value,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.question,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                Icon(
-                  _expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                  color: widget.textSecondary,
-                  size: 20,
+                  Icon(
+                    isExpanded
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: textSecondary,
+                    size: 20,
+                  ),
+                ],
+              ),
+              if (isExpanded) ...[
+                const SizedBox(height: 10),
+                Text(
+                  item.answer,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: textSecondary,
+                    height: 1.5,
+                  ),
                 ),
               ],
-            ),
-            if (_expanded) ...[
-              const SizedBox(height: 10),
-              Text(
-                widget.item.answer,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: widget.textSecondary,
-                  height: 1.5,
-                ),
-              ),
             ],
-          ],
+          ),
         ),
       ),
     );

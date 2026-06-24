@@ -5,6 +5,8 @@ import '../../models/product.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/inventory_provider.dart';
 import '../../providers/product_form_provider.dart';
+import '../../providers/product_unit_provider.dart';
+import '../../core/app_styles.dart';
 import '../../widgets/app_input_field.dart';
 import '../../widgets/app_section_label.dart';
 import '../../widgets/app_dropdown.dart';
@@ -14,16 +16,10 @@ import '../../widgets/barcode_field.dart';
 import '../../widgets/product_image_picker.dart';
 import '../../widgets/app_snack_bar.dart';
 import '../../widgets/app_card.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 import 'manage_brands_screen.dart';
 import 'manage_categories_screen.dart';
-
-const List<String> _kUnits = [
-  'kg', 'g', 'mg',
-  'litre', 'ml',
-  'pcs', 'box', 'dozen',
-  'pack', 'bag', 'bottle',
-  'strip', 'tablet',
-];
 
 class EditProductScreen extends StatefulWidget {
   final Product product;
@@ -44,8 +40,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final _unitQtyCtrl   = TextEditingController();
   late final TextEditingController _barcodeCtrl;
 
-  String? _selectedUnit;
-
   @override
   void initState() {
     super.initState();
@@ -58,11 +52,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
     _barcodeCtrl   = TextEditingController(text: p.barcode ?? '');
 
     final parts = (p.unit ?? '').split(' ');
-    _selectedUnit     = parts.length == 2 && _kUnits.contains(parts[1]) ? parts[1] : null;
+    final parsedUnit = parts.length == 2 && kProductUnits.contains(parts[1]) ? parts[1] : null;
     _unitQtyCtrl.text = parts.length == 2 ? parts[0] : '';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductFormProvider>().initFromProduct(p);
+      context.read<ProductUnitProvider>().setUnit(parsedUnit);
     });
   }
 
@@ -96,6 +91,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final form = context.read<ProductFormProvider>();
+    final unitProv = context.read<ProductUnitProvider>();
     form.setLoading(true);
     try {
       final p             = widget.product;
@@ -109,9 +105,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
       p.expiryDate        = form.expiry?.toIso8601String();
       p.barcode           = _barcodeCtrl.text.trim().isEmpty
                                 ? null : _barcodeCtrl.text.trim();
-      p.unit              = (_selectedUnit != null && _unitQtyCtrl.text.trim().isNotEmpty)
-                                ? '${_unitQtyCtrl.text.trim()} $_selectedUnit'
-                                : _selectedUnit;
+      p.unit              = (unitProv.selectedUnit != null && _unitQtyCtrl.text.trim().isNotEmpty)
+                                ? '${_unitQtyCtrl.text.trim()} ${unitProv.selectedUnit}'
+                                : unitProv.selectedUnit;
       p.imagePath         = form.imagePath ?? p.imagePath;
       await context.read<ProductProvider>().updateProduct(p);
       if (mounted) {
@@ -148,8 +144,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
       ),
     );
     if (confirm == true && mounted) {
+      final name = widget.product.name;
+      final messenger = ScaffoldMessenger.of(context);
       await context.read<ProductProvider>().deleteProduct(widget.product.id);
-      if (mounted) Navigator.pop(context, true);
+      context.read<ActivityLogProvider>().logDeleted(
+            type: ActivityType.product,
+            title: 'Product Deleted',
+            subtitle: name,
+          );
+      if (mounted) {
+        Navigator.pop(context, true);
+        AppSnackBar.successWith(messenger, '$name deleted');
+      }
     }
   }
 
@@ -157,6 +163,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   @override
   Widget build(BuildContext context) {
     final form       = context.watch<ProductFormProvider>();
+    final unitProv   = context.watch<ProductUnitProvider>();
     final inv        = context.watch<InventoryProvider>();
     final categories = inv.categories;
     final brands     = inv.brands;
@@ -399,11 +406,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: AppDropdown(
-                          value: _selectedUnit,
+                          value: unitProv.selectedUnit,
                           hint: 'Select unit',
-                          items: _kUnits,
+                          items: kProductUnits,
                           onChanged: (v) =>
-                              setState(() => _selectedUnit = v),
+                              context.read<ProductUnitProvider>().setUnit(v),
                         ),
                       ),
                     ],

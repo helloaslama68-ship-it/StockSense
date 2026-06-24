@@ -59,7 +59,9 @@ class _AddCustomerView extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                child: Column(
+                child: Form(
+                  key: context.read<CustomerFormProvider>().formKey,
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppCard(
@@ -73,6 +75,7 @@ class _AddCustomerView extends StatelessWidget {
                           AppInputField(
                             controller: context.read<CustomerFormProvider>().nameCtrl,
                             hint: 'John Doe',
+                            validator: context.read<CustomerFormProvider>().validateName,
                           ),
                           const SizedBox(height: 14),
                           const _FieldLabel('PHONE NUMBER'),
@@ -81,6 +84,7 @@ class _AddCustomerView extends StatelessWidget {
                             controller: context.read<CustomerFormProvider>().phoneCtrl,
                             hint: '00000 00000',
                             keyboard: TextInputType.phone,
+                            validator: context.read<CustomerFormProvider>().validatePhone,
                             prefix: Text('+91',
                                 style: TextStyle(
                                     fontSize: 14,
@@ -130,6 +134,7 @@ class _AddCustomerView extends StatelessWidget {
                             controller: context.read<CustomerFormProvider>().amountCtrl,
                             hint: '0.00',
                             keyboard: const TextInputType.numberWithOptions(decimal: true),
+                            validator: context.read<CustomerFormProvider>().validateAmount,
                             prefix: Text('₹',
                                 style: TextStyle(
                                     fontSize: 15,
@@ -155,6 +160,7 @@ class _AddCustomerView extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
             ),
@@ -260,6 +266,7 @@ class _SaveBar extends StatelessWidget {
         icon: Icons.arrow_forward_rounded,
         loading: p.loading,
         onPressed: () async {
+          final customerProvider = context.read<CustomerProvider>();
           final ok = await p.submit();
           if (!context.mounted) return;
           if (ok) {
@@ -275,15 +282,14 @@ class _SaveBar extends StatelessWidget {
                   : CreditStatus.noDue,
             );
             if (isEdit) {
-              await context.read<CustomerProvider>().update(customer);
+              await customerProvider.update(customer);
             } else {
-              await context.read<CustomerProvider>().add(customer);
+              await customerProvider.add(customer);
             }
+            if (!context.mounted) return;
             AppSnackBar.success(
                 context, isEdit ? 'Customer updated!' : 'Customer added!');
             Navigator.pop(context);
-          } else {
-            AppSnackBar.error(context, 'Please enter customer name.');
           }
         },
       ),

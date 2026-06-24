@@ -15,40 +15,67 @@ class SalesReportScreen extends StatelessWidget {
   const SalesReportScreen({super.key});
 
   void _openFilter(BuildContext context) {
-  context.read<SaleFilterProvider>().initDraft();
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: AppColors.transparent,
-    builder: (_) => ChangeNotifierProvider.value(
-      value: context.read<SaleFilterProvider>(),
-      child: const SalesReportFilterSheet(),
-    ),
-  );
-}
+    context.read<SaleFilterProvider>().initDraft();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.transparent,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: context.read<SaleFilterProvider>(),
+        child: const SalesReportFilterSheet(),
+      ),
+    );
+  }
 
   // group sales by day, sorted newest first
-  List<_DaySummary> _dailyBreakdown(List<Sale> sales) {
-    final map = <String, _DaySummary>{};
+  List<_PeriodSummary> _dailyBreakdown(List<Sale> sales) {
+    final map = <String, _PeriodSummary>{};
     for (final s in sales) {
       final key =
           '${s.saleDate.year}-${s.saleDate.month.toString().padLeft(2, '0')}-${s.saleDate.day.toString().padLeft(2, '0')}';
-      if (map.containsKey(key)) {
-        map[key] = _DaySummary(
-          date: map[key]!.date,
-          total: map[key]!.total + s.totalAmount,
-          txCount: map[key]!.txCount + 1,
+      final existing = map[key];
+      if (existing != null) {
+        map[key] = existing.copyWith(
+          total: existing.total + s.totalAmount,
+          txCount: existing.txCount + 1,
         );
       } else {
-        map[key] = _DaySummary(
-          date: DateTime(s.saleDate.year, s.saleDate.month, s.saleDate.day),
+        map[key] = _PeriodSummary(
+          sortKey: DateTime(s.saleDate.year, s.saleDate.month, s.saleDate.day),
+          primaryLabel: formatDate(
+              DateTime(s.saleDate.year, s.saleDate.month, s.saleDate.day)),
           total: s.totalAmount,
           txCount: 1,
         );
       }
     }
     final list = map.values.toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.sortKey.compareTo(a.sortKey));
+    return list;
+  }
+
+  // group sales by calendar month, sorted newest first
+  List<_PeriodSummary> _monthlyBreakdown(List<Sale> sales) {
+    final map = <String, _PeriodSummary>{};
+    for (final s in sales) {
+      final key = '${s.saleDate.year}-${s.saleDate.month.toString().padLeft(2, '0')}';
+      final existing = map[key];
+      if (existing != null) {
+        map[key] = existing.copyWith(
+          total: existing.total + s.totalAmount,
+          txCount: existing.txCount + 1,
+        );
+      } else {
+        map[key] = _PeriodSummary(
+          sortKey: DateTime(s.saleDate.year, s.saleDate.month, 1),
+          primaryLabel: _monthLabel(s.saleDate.year, s.saleDate.month),
+          total: s.totalAmount,
+          txCount: 1,
+        );
+      }
+    }
+    final list = map.values.toList()
+      ..sort((a, b) => b.sortKey.compareTo(a.sortKey));
     return list;
   }
 
@@ -66,6 +93,20 @@ class SalesReportScreen extends StatelessWidget {
     });
   }
 
+  // last 6 calendar months including current, oldest first
+  List<_MonthBar> _last6Months(List<Sale> sales) {
+    final now = DateTime.now();
+    return List.generate(6, (i) {
+      final monthIndex = now.month - (5 - i);
+      final year = now.year + ((monthIndex - 1) ~/ 12) - (monthIndex <= 0 ? 1 : 0);
+      final month = ((monthIndex - 1) % 12 + 12) % 12 + 1;
+      final total = sales
+          .where((s) => s.saleDate.year == year && s.saleDate.month == month)
+          .fold(0.0, (sum, s) => sum + s.totalAmount);
+      return _MonthBar(year: year, month: month, total: total);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
@@ -75,6 +116,7 @@ class SalesReportScreen extends StatelessWidget {
     final allSales = saleProvider.allSales;
     final filtered = filterProvider.apply(List.from(allSales));
     final filterCount = filterProvider.activeFilterCount;
+    final period = filterProvider.reportPeriod;
 
     final totalRevenue = filtered.fold(0.0, (s, e) => s + e.totalAmount);
     final txCount = filtered.length;
@@ -84,9 +126,13 @@ class SalesReportScreen extends StatelessWidget {
     final maxBar =
         bars.map((b) => b.total).fold(0.0, (a, b) => a > b ? a : b);
 
-    final dailyRows = _dailyBreakdown(filtered);
+    final monthBars = _last6Months(allSales);
+    final maxMonthBar =
+        monthBars.map((b) => b.total).fold(0.0, (a, b) => a > b ? a : b);
 
-    
+    final breakdownRows = period == ReportPeriod.daily
+        ? _dailyBreakdown(filtered)
+        : _monthlyBreakdown(filtered);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -249,7 +295,7 @@ class SalesReportScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              '₹${_formatAmount(totalRevenue)}',
+                              '₹${formatCompact(totalRevenue)}',
                               style: TextStyle(
                                 fontSize: r.sp(34),
                                 fontWeight: FontWeight.w800,
@@ -311,121 +357,30 @@ class SalesReportScreen extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // WEEKLY VELOCITY
+                      // PERIOD TOGGLE
                       Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: appCardDecoration(context: context),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
                           children: [
-                            Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Weekly Velocity',
-                                  style: TextStyle(
-                                    fontSize: r.sp(15),
-                                    fontWeight: FontWeight.w800,
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    letterSpacing: -0.3,
-                                  ),
-                                ),
-                                Text(
-                                  _weekRangeLabel(),
-                                  style: TextStyle(
-                                    fontSize: r.sp(10),
-                                    color: AppColors.warmGrey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Bar chart
-                            SizedBox(
-                              height: 120,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: bars.map((b) {
-                                  final frac = maxBar == 0
-                                      ? 0.05
-                                      : (b.total / maxBar).clamp(0.05, 1.0);
-                                  final isToday =
-                                      b.day.day == DateTime.now().day &&
-                                          b.day.month ==
-                                              DateTime.now().month &&
-                                          b.day.year == DateTime.now().year;
-                                  return Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          if (isToday)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 4),
-                                              child: Container(
-                                                width: 5,
-                                                height: 5,
-                                                decoration:
-                                                    const BoxDecoration(
-                                                  color: AppColors.goldDark,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                              ),
-                                            ),
-                                          AnimatedContainer(
-                                            duration: const Duration(
-                                                milliseconds: 400),
-                                            height: 90 * frac,
-                                            decoration: BoxDecoration(
-                                              color: isToday
-                                                  ? AppColors.goldDark
-                                                  : AppColors.goldDark
-                                                      .withOpacity(0.18),
-                                              borderRadius:
-                                                  const BorderRadius.vertical(
-                                                top: Radius.circular(6),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+                            Expanded(
+                              child: _PeriodTab(
+                                label: 'Daily',
+                                selected: period == ReportPeriod.daily,
+                                onTap: () => filterProvider.setReportPeriod(ReportPeriod.daily),
+                                r: r,
                               ),
                             ),
-
-                            const SizedBox(height: 8),
-
-                            // Day labels
-                            Row(
-                              children: bars.map((b) {
-                                final isToday =
-                                    b.day.day == DateTime.now().day &&
-                                        b.day.month == DateTime.now().month &&
-                                        b.day.year == DateTime.now().year;
-                                return Expanded(
-                                  child: Text(
-                                    _dayLabel(b.day),
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: r.sp(10),
-                                      fontWeight: isToday
-                                          ? FontWeight.w700
-                                          : FontWeight.w400,
-                                      color: isToday
-                                          ? AppColors.goldDark
-                                          : AppColors.warmGrey,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                            Expanded(
+                              child: _PeriodTab(
+                                label: 'Monthly',
+                                selected: period == ReportPeriod.monthly,
+                                onTap: () => filterProvider.setReportPeriod(ReportPeriod.monthly),
+                                r: r,
+                              ),
                             ),
                           ],
                         ),
@@ -433,27 +388,252 @@ class SalesReportScreen extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // DAILY BREAKDOWN
+                      // VELOCITY CHART — switches with toggle
+                      if (period == ReportPeriod.daily)
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: appCardDecoration(context: context),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Weekly Velocity',
+                                    style: TextStyle(
+                                      fontSize: r.sp(15),
+                                      fontWeight: FontWeight.w800,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  Text(
+                                    _weekRangeLabel(),
+                                    style: TextStyle(
+                                      fontSize: r.sp(10),
+                                      color: AppColors.warmGrey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+
+                              // Bar chart
+                              SizedBox(
+                                height: 120,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: bars.map((b) {
+                                    final frac = maxBar == 0
+                                        ? 0.05
+                                        : (b.total / maxBar).clamp(0.05, 1.0);
+                                    final isToday =
+                                        b.day.day == DateTime.now().day &&
+                                            b.day.month ==
+                                                DateTime.now().month &&
+                                            b.day.year == DateTime.now().year;
+                                    return Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            if (isToday)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 4),
+                                                child: Container(
+                                                  width: 5,
+                                                  height: 5,
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                    color: AppColors.goldDark,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                              ),
+                                            AnimatedContainer(
+                                              duration: const Duration(
+                                                  milliseconds: 400),
+                                              height: 90 * frac,
+                                              decoration: BoxDecoration(
+                                                color: isToday
+                                                    ? AppColors.goldDark
+                                                    : AppColors.goldDark
+                                                        .withOpacity(0.18),
+                                                borderRadius:
+                                                    const BorderRadius.vertical(
+                                                  top: Radius.circular(6),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              // Day labels
+                              Row(
+                                children: bars.map((b) {
+                                  final isToday =
+                                      b.day.day == DateTime.now().day &&
+                                          b.day.month == DateTime.now().month &&
+                                          b.day.year == DateTime.now().year;
+                                  return Expanded(
+                                    child: Text(
+                                      _dayLabel(b.day),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: r.sp(10),
+                                        fontWeight: isToday
+                                            ? FontWeight.w700
+                                            : FontWeight.w400,
+                                        color: isToday
+                                            ? AppColors.goldDark
+                                            : AppColors.warmGrey,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: appCardDecoration(context: context),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Monthly Velocity',
+                                style: TextStyle(
+                                  fontSize: r.sp(15),
+                                  fontWeight: FontWeight.w800,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              SizedBox(
+                                height: 120,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: monthBars.map((b) {
+                                    final frac = maxMonthBar == 0
+                                        ? 0.05
+                                        : (b.total / maxMonthBar)
+                                            .clamp(0.05, 1.0);
+                                    final isCurrent =
+                                        b.year == DateTime.now().year &&
+                                            b.month == DateTime.now().month;
+                                    return Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            if (isCurrent)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 4),
+                                                child: Container(
+                                                  width: 5,
+                                                  height: 5,
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                    color: AppColors.goldDark,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                              ),
+                                            AnimatedContainer(
+                                              duration: const Duration(
+                                                  milliseconds: 400),
+                                              height: 90 * frac,
+                                              decoration: BoxDecoration(
+                                                color: isCurrent
+                                                    ? AppColors.goldDark
+                                                    : AppColors.goldDark
+                                                        .withOpacity(0.18),
+                                                borderRadius:
+                                                    const BorderRadius.vertical(
+                                                  top: Radius.circular(6),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              Row(
+                                children: monthBars.map((b) {
+                                  final isCurrent =
+                                      b.year == DateTime.now().year &&
+                                          b.month == DateTime.now().month;
+                                  return Expanded(
+                                    child: Text(
+                                      _monthShortLabel(b.month),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: r.sp(10),
+                                        fontWeight: isCurrent
+                                            ? FontWeight.w700
+                                            : FontWeight.w400,
+                                        color: isCurrent
+                                            ? AppColors.goldDark
+                                            : AppColors.warmGrey,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      // BREAKDOWN
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-  'Daily Breakdown',
-  style: TextStyle(
-    fontSize: r.sp(15),
-    fontWeight: FontWeight.w800,
-    color: Theme.of(context).colorScheme.onSurface,
-    letterSpacing: -0.3,
-  ),
-),
-                          // Export PDF
-                         
+                            period == ReportPeriod.daily
+                                ? 'Daily Breakdown'
+                                : 'Monthly Breakdown',
+                            style: TextStyle(
+                              fontSize: r.sp(15),
+                              fontWeight: FontWeight.w800,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
                         ],
                       ),
 
                       const SizedBox(height: 12),
 
-                      if (dailyRows.isEmpty)
+                      if (breakdownRows.isEmpty)
                         const EmptyState(
                           icon: Icons.receipt_outlined,
                           title: 'No sales data',
@@ -463,19 +643,18 @@ class SalesReportScreen extends StatelessWidget {
                         Container(
                           decoration: appCardDecoration(context: context),
                           child: Column(
-                            children: List.generate(dailyRows.length, (i) {
-                              final row = dailyRows[i];
-                              // % change vs next row (which is the previous day)
+                            children: List.generate(breakdownRows.length, (i) {
+                              final row = breakdownRows[i];
+                              // % change vs next row (the previous period)
                               double? pct;
-                              if (i + 1 < dailyRows.length) {
-                                final prev = dailyRows[i + 1].total;
+                              if (i + 1 < breakdownRows.length) {
+                                final prev = breakdownRows[i + 1].total;
                                 if (prev > 0) {
-                                  pct =
-                                      ((row.total - prev) / prev) * 100;
+                                  pct = ((row.total - prev) / prev) * 100;
                                 }
                               }
-                              final isLast = i == dailyRows.length - 1;
-                              return _DailyRow(
+                              final isLast = i == breakdownRows.length - 1;
+                              return _BreakdownRow(
                                 summary: row,
                                 pct: pct,
                                 isLast: isLast,
@@ -495,27 +674,6 @@ class SalesReportScreen extends StatelessWidget {
     );
   }
 
-  String _formatAmount(double v) {
-    if (v >= 100000) {
-      return '${(v / 100000).toStringAsFixed(2)} L';
-    } else if (v >= 1000) {
-      final s = v.toStringAsFixed(0);
-      // Indian format: last 3 then groups of 2
-      if (s.length > 3) {
-        final last3 = s.substring(s.length - 3);
-        final rest = s.substring(0, s.length - 3);
-        final buf = StringBuffer();
-        for (int i = 0; i < rest.length; i++) {
-          if (i > 0 && (rest.length - i) % 2 == 0) buf.write(',');
-          buf.write(rest[i]);
-        }
-        return '${buf.toString()},$last3';
-      }
-      return s;
-    }
-    return v.toStringAsFixed(0);
-  }
-
   String _weekRangeLabel() {
     final today = DateTime.now();
     final start = today.subtract(const Duration(days: 6));
@@ -529,6 +687,61 @@ class SalesReportScreen extends StatelessWidget {
   String _dayLabel(DateTime d) {
     const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     return days[d.weekday - 1];
+  }
+
+  static const _monthNames = [
+    'January','February','March','April','May','June',
+    'July','August','September','October','November','December'
+  ];
+  static const _monthShort = [
+    'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
+  ];
+
+  static String _monthLabel(int year, int month) => '${_monthNames[month - 1]} $year';
+  static String _monthShortLabel(int month) => _monthShort[month - 1];
+}
+
+// PERIOD TOGGLE TAB
+
+class _PeriodTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Responsive r;
+
+  const _PeriodTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.r,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.goldDark
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: r.sp(12),
+            fontWeight: FontWeight.w700,
+            color: selected
+                ? AppColors.white
+                : Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -578,15 +791,15 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// DAILY ROW
+// BREAKDOWN ROW (used for both daily and monthly)
 
-class _DailyRow extends StatelessWidget {
-  final _DaySummary summary;
+class _BreakdownRow extends StatelessWidget {
+  final _PeriodSummary summary;
   final double? pct;
   final bool isLast;
   final Responsive r;
 
-  const _DailyRow({
+  const _BreakdownRow({
     required this.summary,
     required this.pct,
     required this.isLast,
@@ -618,7 +831,7 @@ class _DailyRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  formatDate(summary.date),
+                  summary.primaryLabel,
                   style: TextStyle(
                     fontSize: r.sp(13),
                     fontWeight: FontWeight.w700,
@@ -686,9 +899,30 @@ class _DayBar {
   _DayBar({required this.day, required this.total});
 }
 
-class _DaySummary {
-  final DateTime date;
+class _MonthBar {
+  final int year;
+  final int month;
+  final double total;
+  _MonthBar({required this.year, required this.month, required this.total});
+}
+
+class _PeriodSummary {
+  final DateTime sortKey;
+  final String primaryLabel;
   final double total;
   final int txCount;
-  _DaySummary({required this.date, required this.total, required this.txCount});
+
+  _PeriodSummary({
+    required this.sortKey,
+    required this.primaryLabel,
+    required this.total,
+    required this.txCount,
+  });
+
+  _PeriodSummary copyWith({double? total, int? txCount}) => _PeriodSummary(
+        sortKey: sortKey,
+        primaryLabel: primaryLabel,
+        total: total ?? this.total,
+        txCount: txCount ?? this.txCount,
+      );
 }

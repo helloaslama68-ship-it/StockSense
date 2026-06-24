@@ -5,6 +5,8 @@ import '../../core/app_styles.dart';
 import '../../core/colors.dart';
 import '../../models/inventory_loss.dart';
 import '../../providers/loss_provider.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 import '../../providers/product_provider.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/app_confirm_dialog.dart';
@@ -415,6 +417,11 @@ class LossDetailScreen extends StatelessWidget {
     );
     if (confirmed && context.mounted) {
       await context.read<LossProvider>().deleteLoss(loss.id);
+      context.read<ActivityLogProvider>().logDeleted(
+            type: ActivityType.loss,
+            title: 'Loss Entry Deleted',
+            subtitle: '${loss.qtyDisplay} · ${loss.productName}',
+          );
       if (context.mounted) Navigator.pop(context);
     }
   }

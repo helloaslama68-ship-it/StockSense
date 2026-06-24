@@ -10,29 +10,41 @@ import 'sale_screen.dart';
 import 'sale_details_screen.dart';
 import 'sale_history_screen.dart';
 
-class SalesListScreen extends StatefulWidget {
+class SalesListScreen extends StatelessWidget {
   const SalesListScreen({super.key});
 
   @override
-  State<SalesListScreen> createState() => _SalesListScreenState();
+  Widget build(BuildContext context) {
+    final _searchCtrl = TextEditingController();
+    final _query = ValueNotifier<String>('');
+    return _SalesListView(searchCtrl: _searchCtrl, query: _query);
+  }
 }
 
-class _SalesListScreenState extends State<SalesListScreen> {
-  final _searchCtrl = TextEditingController();
+class _SalesListView extends StatefulWidget {
+  final TextEditingController searchCtrl;
+  final ValueNotifier<String> query;
+  const _SalesListView({required this.searchCtrl, required this.query});
 
   @override
+  State<_SalesListView> createState() => _SalesListViewState();
+}
+
+class _SalesListViewState extends State<_SalesListView> {
+  @override
   void dispose() {
-    _searchCtrl.dispose();
+    widget.searchCtrl.dispose();
+    widget.query.dispose();
     super.dispose();
   }
 
-  List<Sale> _filtered(List<Sale> sales) {
-    final q = _searchCtrl.text.toLowerCase();
+  List<Sale> _filtered(List<Sale> sales, String q) {
     if (q.isEmpty) return sales;
+    final lq = q.toLowerCase();
     return sales.where((s) {
       final name = (s.customerName ?? '').toLowerCase();
       final receipt = s.receiptNumber.toString();
-      return name.contains(q) || receipt.contains(q);
+      return name.contains(lq) || receipt.contains(lq);
     }).toList();
   }
 
@@ -40,7 +52,10 @@ class _SalesListScreenState extends State<SalesListScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<SaleProvider>();
     final sales = provider.allSales;
-    final filtered = _filtered(sales);
+    return ValueListenableBuilder<String>(
+      valueListenable: widget.query,
+      builder: (context, q, _) {
+    final filtered = _filtered(sales, q);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -87,8 +102,8 @@ class _SalesListScreenState extends State<SalesListScreen> {
                     Container(
                       decoration: appCardDecoration(radius: 12),
                       child: TextField(
-                        controller: _searchCtrl,
-                        onChanged: (_) => setState(() {}),
+                        controller: widget.searchCtrl,
+                        onChanged: (v) => widget.query.value = v,
                         decoration: InputDecoration(
                           hintText: 'Search by customer or receipt #...',
                           hintStyle: TextStyle(color: AppColors.grey, fontSize: 13),
@@ -157,6 +172,8 @@ class _SalesListScreenState extends State<SalesListScreen> {
         icon: const Icon(Icons.add_rounded, color: AppColors.white),
         label: const Text('Add Sale', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold)),
       ),
+    );
+      },
     );
   }
 

@@ -6,6 +6,8 @@ import '../../core/colors.dart';
 import '../../models/inventory_loss.dart';
 import '../../providers/loss_filter_provider.dart';
 import '../../providers/loss_provider.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 import '../../providers/product_provider.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/app_card.dart';
@@ -211,8 +213,15 @@ class LossLogScreen extends StatelessWidget {
                               loss: filtered[i],
                               isLast: i == filtered.length - 1,
                               isDark: isDark,
-                              onDelete: () =>
-                                  context.read<LossProvider>().deleteLoss(filtered[i].id),
+                              onDelete: () {
+                                final loss = filtered[i];
+                                context.read<LossProvider>().deleteLoss(loss.id);
+                                context.read<ActivityLogProvider>().logDeleted(
+                                      type: ActivityType.loss,
+                                      title: 'Loss Entry Deleted',
+                                      subtitle: '${loss.qtyDisplay} · ${loss.productName}',
+                                    );
+                              },
                             );
                           }),
                         ),

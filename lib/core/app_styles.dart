@@ -29,10 +29,18 @@ String formatTime(DateTime d) {
 
 // COMMON DECORATION HELPERS
 
-InputDecoration appInputDeco(String hint) => InputDecoration(
+InputDecoration appInputDeco(String hint, {BuildContext? context}) {
+  final isDark = context != null &&
+      Theme.of(context).brightness == Brightness.dark;
+  return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: AppColors.lightGrey.withOpacity(0.3),
+      fillColor: isDark
+          ? AppColors.white.withOpacity(0.06)
+          : AppColors.lightGrey.withOpacity(0.3),
+      hintStyle: TextStyle(
+        color: isDark ? AppColors.grey : AppColors.grey,
+      ),
       border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none),
@@ -43,6 +51,7 @@ InputDecoration appInputDeco(String hint) => InputDecoration(
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
     );
+}
 
 /// Pass [context] for theme-aware card color (dark mode support).
 /// Falls back to white when context is null (legacy call sites).
@@ -154,3 +163,50 @@ const TextStyle appFieldLabelStyle = TextStyle(
 const List<String> kPurchaseUnits = [
   'units', 'kg', 'g', 'L', 'ml', 'pcs', 'boxes', 'bags', 'pack',
 ];
+
+const List<String> kProductUnits = [
+  'kg', 'g', 'mg',
+  'litre', 'ml',
+  'pcs', 'box', 'dozen',
+  'pack', 'bag', 'bottle',
+  'strip', 'tablet',
+];
+// COMPACT NUMBER FORMAT (Indian: K/L shorthand)
+/// e.g. 1500 → "1.5K", 150000 → "1.50 L", 999 → "999"
+String formatCompact(double v) {
+  if (v >= 100000) return '${(v / 100000).toStringAsFixed(2)} L';
+  if (v >= 1000) {
+    final s = v.toStringAsFixed(0);
+    if (s.length > 3) {
+      final last3 = s.substring(s.length - 3);
+      final rest = s.substring(0, s.length - 3);
+      final buf = StringBuffer();
+      for (int i = 0; i < rest.length; i++) {
+        if (i > 0 && (rest.length - i) % 2 == 0) buf.write(',');
+        buf.write(rest[i]);
+      }
+      return '${buf.toString()},$last3';
+    }
+    return s;
+  }
+  return v.toStringAsFixed(0);
+}
+
+/// e.g. today → "3:45 PM", yesterday → "Yesterday", <7d → "2 days ago", else "12/6/2024"
+String formatRelativeTime(DateTime dt) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = today.subtract(const Duration(days: 1));
+  final d = DateTime(dt.year, dt.month, dt.day);
+  if (d == today) {
+    final h = dt.hour;
+    final m = dt.minute.toString().padLeft(2, '0');
+    final period = h >= 12 ? 'PM' : 'AM';
+    final h12 = h % 12 == 0 ? 12 : h % 12;
+    return '$h12:$m $period';
+  }
+  if (d == yesterday) return 'Yesterday';
+  final diff = today.difference(d).inDays;
+  if (diff < 7) return '$diff days ago';
+  return '${dt.day}/${dt.month}/${dt.year}';
+}

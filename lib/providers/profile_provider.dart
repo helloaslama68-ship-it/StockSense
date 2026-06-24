@@ -162,21 +162,24 @@ class ProfileProvider extends ChangeNotifier {
     required String phone,
     required String address,
   }) {
-    _saving = true;           
-    notifyListeners();        
+    _saving = true;
+    notifyListeners();
+
+    // Always store with country code prefix so login comparison works
+    final fullPhone = phone.startsWith('+') ? phone : '$_selectedCode $phone';
 
     _auth.saveUserData(
       storeName: storeName,
       ownerName: ownerName,
-      phone: phone,
+      phone: fullPhone,
       address: address,
     );
     _storeName = storeName;
     _ownerName = ownerName;
-    _phone     = phone;
+    _phone     = fullPhone;
     _address   = address;
 
-    _saving = false;          
+    _saving = false;
     notifyListeners();
   }
 

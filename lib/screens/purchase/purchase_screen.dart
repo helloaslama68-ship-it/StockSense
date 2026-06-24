@@ -24,8 +24,15 @@ class PurchaseScreen extends StatelessWidget {
 
   Future<void> _pickDate(BuildContext context) async {
     final form = context.read<PurchaseFormProvider>();
+    final existing = form.purchaseDate;
     final picked = await appShowDatePicker(context);
-    if (picked != null) form.setDate(picked);
+    if (picked != null) {
+      final base = existing ?? DateTime.now();
+      form.setDate(DateTime(
+        picked.year, picked.month, picked.day,
+        base.hour, base.minute, base.second,
+      ));
+    }
   }
 
   void _addItem(BuildContext context) {
@@ -64,6 +71,10 @@ class PurchaseScreen extends StatelessWidget {
     final form = context.read<PurchaseFormProvider>();
     if (form.supplierName.trim().isEmpty) {
       AppSnackBar.error(context, 'Please enter supplier name');
+      return;
+    }
+    if (form.purchaseDate == null) {
+      AppSnackBar.error(context, 'Please select a purchase date');
       return;
     }
     if (form.items.isEmpty) {
@@ -1153,8 +1164,15 @@ class _AddItemSheetState extends State<_AddItemSheet> {
             keyboardType: isNumber
                 ? const TextInputType.numberWithOptions(decimal: true)
                 : TextInputType.text,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Required' : null,
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Required';
+              if (isNumber) {
+                final n = double.tryParse(v.trim());
+                if (n == null) return 'Enter a valid number';
+                if (n <= 0) return 'Must be greater than 0';
+              }
+              return null;
+            },
             decoration: appInputDeco(hint),
           ),
         ],

@@ -72,7 +72,6 @@ class ReportsScreen extends StatelessWidget {
               _FeaturedReportCard(
                 icon: Icons.point_of_sale_rounded,
                 title: 'Sales Report',
-                lastUpdated: '2h ago',
                 isDark: isDark,
                 onTap: () => Navigator.push(
                   context,
@@ -178,14 +177,12 @@ class ReportsScreen extends StatelessWidget {
 class _FeaturedReportCard extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String lastUpdated;
   final VoidCallback onTap;
   final bool isDark;
 
   const _FeaturedReportCard({
     required this.icon,
     required this.title,
-    required this.lastUpdated,
     required this.onTap,
     required this.isDark,
   });
@@ -236,16 +233,8 @@ class _FeaturedReportCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  'LAST UPDATED: $lastUpdated',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: AppColors.grey,
-                    letterSpacing: 0.5,
-                  ),
-                ),
                 GestureDetector(
                   onTap: onTap,
                   child: Text(

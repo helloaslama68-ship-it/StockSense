@@ -9,6 +9,8 @@ enum SaleSortOption {
   amountLowHigh,
 }
 
+enum ReportPeriod { daily, monthly }
+
 extension SaleSortLabel on SaleSortOption {
   String get label {
     switch (this) {
@@ -30,6 +32,7 @@ class SaleFilterProvider extends ChangeNotifier {
   double _minAmount = 0;
   double _maxAmount = kMaxAmount;
   SaleChannel? _channel; // null = all
+  ReportPeriod _reportPeriod = ReportPeriod.daily;
 
   SaleSortOption get sortBy => _sortBy;
   String get customerQuery => _customerQuery;
@@ -37,6 +40,7 @@ class SaleFilterProvider extends ChangeNotifier {
   double get minAmount => _minAmount;
   double get maxAmount => _maxAmount;
   SaleChannel? get channel => _channel;
+  ReportPeriod get reportPeriod => _reportPeriod;
 
   //  draft
   SaleSortOption draftSortBy = SaleSortOption.newest;
@@ -107,6 +111,7 @@ class SaleFilterProvider extends ChangeNotifier {
   void setDateRange(DateTimeRange? r) { _dateRange = r; notifyListeners(); }
   void setAmountRange(double min, double max) { _minAmount = min; _maxAmount = max; notifyListeners(); }
   void setChannel(SaleChannel? c) { _channel = c; notifyListeners(); }
+  void setReportPeriod(ReportPeriod p) { _reportPeriod = p; notifyListeners(); }
 
   void reset() {
     _sortBy = SaleSortOption.newest;
@@ -136,7 +141,8 @@ class SaleFilterProvider extends ChangeNotifier {
         );
         if (d.isBefore(_dateRange!.start) || d.isAfter(endOfDay)) return false;
       }
-      if (s.totalAmount < _minAmount || s.totalAmount > _maxAmount) return false;
+      if (s.totalAmount < _minAmount) return false;
+      if (_maxAmount < kMaxAmount && s.totalAmount > _maxAmount) return false;
       if (_channel != null && s.saleChannel != _channel) return false;
       return true;
     }).toList();

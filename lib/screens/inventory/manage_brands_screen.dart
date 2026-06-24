@@ -92,9 +92,9 @@ class _ManageBrandsScreenState extends State<ManageBrandsScreen> {
           padding: EdgeInsets.only(left: 12),
           child: Center(child: AppBackButton()),
         ),
-        title: const Text('Manage Brands',
+        title: Text('Manage Brands',
             style: TextStyle(
-                color: AppColors.black,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: 18)),
       ),
@@ -103,7 +103,7 @@ class _ManageBrandsScreenState extends State<ManageBrandsScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Container(
-              decoration: appCardDecoration(),
+              decoration: appCardDecoration(context: context),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,8 +115,9 @@ class _ManageBrandsScreenState extends State<ManageBrandsScreen> {
                       child: TextField(
                         controller: _ctrl,
                         textCapitalization: TextCapitalization.words,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         onSubmitted: (_) => _add(),
-                        decoration: appInputDeco('e.g. Amul, Nestlé, Britannia'),
+                        decoration: appInputDeco('e.g. Amul, Nestlé, Britannia', context: context),
                       ),
                     ),
                     const SizedBox(width: 10),

@@ -15,6 +15,7 @@ import 'models/inventory_loss.dart';
 import 'models/sale_item.dart';
 import 'models/customer.dart';
 import 'models/credit_transaction.dart';
+import 'models/activity_log_entry.dart';
 
 // Services
 import 'services/storage_service.dart';
@@ -52,6 +53,8 @@ import 'providers/purchase_filter_provider.dart';
 import 'providers/sale_filter_provider.dart';
 import 'providers/customer_provider.dart';
 import 'providers/stock_recommendation_provider.dart';
+import 'providers/stock_sort_provider.dart';
+import 'providers/activity_log_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,6 +74,8 @@ void main() async {
   // NEW: PurchaseLineItem must be registered BEFORE PurchaseRecord (it's a field type)
   if (!Hive.isAdapterRegistered(9)) Hive.registerAdapter(PurchaseLineItemAdapter());
   if (!Hive.isAdapterRegistered(8)) Hive.registerAdapter(PurchaseRecordAdapter());
+  // NEW: activity log (records delete events so Home feed can show them after the record is gone)
+  if (!Hive.isAdapterRegistered(10)) Hive.registerAdapter(ActivityLogEntryAdapter());
 
   if (!Hive.isBoxOpen('products')) await Hive.openBox<Product>('products');
   if (!Hive.isBoxOpen('sales')) await Hive.openBox<Sale>('sales');
@@ -80,6 +85,7 @@ void main() async {
   if (!Hive.isBoxOpen('losses')) await Hive.openBox<InventoryLoss>('losses');
   if (!Hive.isBoxOpen('customers')) await Hive.openBox<Customer>('customers');
   if (!Hive.isBoxOpen('credit_transactions')) await Hive.openBox<CreditTransaction>('credit_transactions');
+  if (!Hive.isBoxOpen('activity_log')) await Hive.openBox<ActivityLogEntry>('activity_log');
 
   runApp(
     MultiProvider(
@@ -166,7 +172,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CategorySearchProvider()),
         ChangeNotifierProvider(create: (_) => PurchaseFilterProvider()),
         ChangeNotifierProvider(create: (_) => SaleFilterProvider()),
+        ChangeNotifierProvider(create: (_) => StockSortProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
+        ChangeNotifierProvider(create: (_) => ActivityLogProvider()),
         ChangeNotifierProxyProvider2<ProductProvider, SaleProvider, StockRecommendationProvider>(
           create: (ctx) => StockRecommendationProvider(
             ctx.read<ProductProvider>(),

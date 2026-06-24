@@ -13,7 +13,6 @@ import '../../widgets/app_filter_chip.dart';
 import '../../widgets/app_snack_bar.dart';
 
 class LogLossScreen extends StatefulWidget {
-  
   final InventoryLoss? editLoss;
   const LogLossScreen({super.key, this.editLoss});
 
@@ -35,7 +34,6 @@ class _LogLossScreenState extends State<LogLossScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final p = context.read<LogLossFormProvider>();
       if (widget.isEdit) {
-        // PRE-FILL for edit
         final loss = widget.editLoss!;
         final products = context.read<ProductProvider>().allProducts;
         final prod = products.cast<dynamic>().firstWhere(
@@ -44,7 +42,6 @@ class _LogLossScreenState extends State<LogLossScreen> {
         );
         p.reset();
         if (prod != null) p.setProduct(prod);
-        // Capitalise first letter to match _types list
         final t = loss.reason.isEmpty ? 'Spoiled'
             : loss.reason[0].toUpperCase() + loss.reason.substring(1);
         p.setLossType(t);
@@ -84,13 +81,17 @@ class _LogLossScreenState extends State<LogLossScreen> {
     final p   = context.read<LogLossFormProvider>();
     if (p.selectedProduct == null)  { _snack('Select a product'); return; }
     final qty = double.tryParse(_qtyCtrl.text.trim()) ?? 0;
-    if (qty <= 0)                   { _snack('Enter a valid quantity'); return; }
+    if (qty <= 0)                   { _snack('Enter a valid quantity greater than 0'); return; }
     if (p.incidentDate == null)     { _snack('Select date of incident'); return; }
+    final available = p.selectedProduct!.quantity.toDouble();
+    if (qty > available) {
+      _snack('Loss quantity ($qty) exceeds available stock ($available)');
+      return;
+    }
 
     final lossProvider = context.read<LossProvider>();
 
     if (widget.isEdit) {
-      
       final loss = widget.editLoss!
         ..productId       = p.selectedProduct!.id
         ..productName     = p.selectedProduct!.name
@@ -119,13 +120,12 @@ class _LogLossScreenState extends State<LogLossScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark   = Theme.of(context).brightness == Brightness.dark;
+    final isDark    = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final products = context.read<ProductProvider>().allProducts;
+    final products  = context.read<ProductProvider>().allProducts;
 
     return Consumer<LogLossFormProvider>(
       builder: (context, p, _) {
-        // Product image
         final imgPath = p.selectedProduct?.imagePath;
         final hasImg  = imgPath != null && imgPath.isNotEmpty;
 
@@ -137,7 +137,7 @@ class _LogLossScreenState extends State<LogLossScreen> {
             leading: const AppBackButton(),
             title: Text(
               widget.isEdit ? 'Edit Loss Entry' : 'Log Loss',
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.goldDark,
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -151,16 +151,24 @@ class _LogLossScreenState extends State<LogLossScreen> {
               children: [
 
                 // HEADER
-                const Text('INVENTORY MANAGEMENT', style: appPageCategoryStyle),
+                Text('INVENTORY MANAGEMENT', style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.warmGrey : AppColors.charcoalGrey,
+                  letterSpacing: 1.4,
+                )),
                 const SizedBox(height: 4),
                 Text(
                   widget.isEdit ? 'Edit Discrepancy' : 'Record Discrepancy',
-                  style: appPageTitleStyle,
+                  style: TextStyle(
+                    fontSize: 26, fontWeight: FontWeight.w800,
+                    color: isDark ? AppColors.white : AppColors.nearBlack,
+                    letterSpacing: -0.5,
+                  ),
                 ),
 
                 const SizedBox(height: 28),
 
-                // PRODUCT IMAGE PREVIEW 
+                // PRODUCT IMAGE PREVIEW
                 if (hasImg) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(14),
@@ -175,10 +183,13 @@ class _LogLossScreenState extends State<LogLossScreen> {
                 ],
 
                 // PRODUCT NAME
-                Text('Product Name', style: appFieldLabelStyle),
+                Text('Product Name', style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.white : AppColors.nearBlack,
+                )),
                 const SizedBox(height: 8),
                 Container(
-                  decoration: appOutlineBoxDecoration(),
+                  decoration: appOutlineBoxDecoration(context: context),
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton(
@@ -194,14 +205,10 @@ class _LogLossScreenState extends State<LogLossScreen> {
                       ),
                       items: products.map((prod) => DropdownMenuItem(
                         value: prod,
-                        child: Text(
-                          prod.name,
-                          style: TextStyle(color: onSurface),
-                        ),
+                        child: Text(prod.name, style: TextStyle(color: onSurface)),
                       )).toList(),
                       onChanged: (prod) => context.read<LogLossFormProvider>().setProduct(prod),
-                      icon: Icon(Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.goldDark),
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.goldDark),
                     ),
                   ),
                 ),
@@ -220,18 +227,21 @@ class _LogLossScreenState extends State<LogLossScreen> {
                             p.selectedProduct?.unit != null
                                 ? 'Qty Lost (${p.selectedProduct!.unit})'
                                 : 'Quantity Lost',
-                            style: appFieldLabelStyle,
+                            style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.white : AppColors.nearBlack,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           ValueListenableBuilder<TextEditingValue>(
                             valueListenable: _qtyCtrl,
                             builder: (_, __, ___) => TextField(
                               controller: _qtyCtrl,
-                              // Allow decimal for weighted products
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               style: TextStyle(color: onSurface),
                               decoration: appInputDeco(
                                 p.selectedProduct?.unit != null ? '0.25' : '0',
+                                context: context,
                               ),
                             ),
                           ),
@@ -253,23 +263,23 @@ class _LogLossScreenState extends State<LogLossScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Date of Incident', style: appFieldLabelStyle),
+                          Text('Date of Incident', style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.white : AppColors.nearBlack,
+                          )),
                           const SizedBox(height: 8),
                           GestureDetector(
                             onTap: () => _pickDate(context),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 14),
-                              decoration: appOutlineBoxDecoration(),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                              decoration: appOutlineBoxDecoration(context: context),
                               child: Text(
                                 p.incidentDate == null
                                     ? 'mm/dd/yyyy'
                                     : '${p.incidentDate!.month.toString().padLeft(2, '0')}/${p.incidentDate!.day.toString().padLeft(2, '0')}/${p.incidentDate!.year}',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: p.incidentDate == null
-                                      ? AppColors.warmGrey
-                                      : onSurface,
+                                  color: p.incidentDate == null ? AppColors.warmGrey : onSurface,
                                 ),
                               ),
                             ),
@@ -283,7 +293,10 @@ class _LogLossScreenState extends State<LogLossScreen> {
                 const SizedBox(height: 20),
 
                 // LOSS TYPE
-                Text('Loss Type', style: appFieldLabelStyle),
+                Text('Loss Type', style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.white : AppColors.nearBlack,
+                )),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
@@ -297,13 +310,16 @@ class _LogLossScreenState extends State<LogLossScreen> {
                 const SizedBox(height: 20),
 
                 // NOTES
-                Text('Notes', style: appFieldLabelStyle),
+                Text('Notes', style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.white : AppColors.nearBlack,
+                )),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _notesCtrl,
                   maxLines: 4,
                   style: TextStyle(color: onSurface),
-                  decoration: appInputDeco('Describe the reason for loss...'),
+                  decoration: appInputDeco('Describe the reason for loss...', context: context),
                 ),
 
                 const SizedBox(height: 24),
@@ -314,14 +330,18 @@ class _LogLossScreenState extends State<LogLossScreen> {
                   builder: (_, __, ___) => Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
-                    decoration: appOutlineBoxDecoration(radius: 14),
+                    decoration: appOutlineBoxDecoration(radius: 14, context: context),
                     child: Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('FINANCIAL IMPACT', style: appPageCategoryStyle),
+                              Text('FINANCIAL IMPACT', style: TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.w700,
+                                color: isDark ? AppColors.warmGrey : AppColors.charcoalGrey,
+                                letterSpacing: 1.4,
+                              )),
                               const SizedBox(height: 6),
                               Text(
                                 'Total Loss Amount: ₹${_totalLoss(p).toStringAsFixed(2)}',

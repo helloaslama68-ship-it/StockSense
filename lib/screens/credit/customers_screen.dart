@@ -10,6 +10,8 @@ import '../../providers/customer_provider.dart';
 import '../../models/customer.dart';
 import 'add_customer_screen.dart';
 import '../../widgets/app_snack_bar.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 import 'customer_detail_screen.dart';
 
 class CustomersScreen extends StatelessWidget {
@@ -240,6 +242,11 @@ class _CustomerTile extends StatelessWidget {
     );
     if (confirmed && context.mounted) {
       await context.read<CustomerProvider>().remove(c.id);
+      context.read<ActivityLogProvider>().logDeleted(
+            type: ActivityType.credit,
+            title: 'Customer Deleted',
+            subtitle: c.name,
+          );
       AppSnackBar.success(context, '${c.name} deleted.');
     }
   }

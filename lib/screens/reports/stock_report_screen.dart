@@ -1,9 +1,11 @@
 import 'dart:io' as dart_io;
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 import '../../core/colors.dart';
 import '../../core/app_styles.dart';
 import '../../models/product.dart';
+import '../../providers/stock_sort_provider.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/product_badge.dart';
 
@@ -17,14 +19,9 @@ class StockReportScreen extends StatefulWidget {
 class _StockReportScreenState extends State<StockReportScreen> {
   final Box<Product> _box = Hive.box<Product>('products');
 
-  // 0 = by name, 1 = by stock asc, 2 = by stock desc, 3 = by value desc
-  int _sortIndex = 0;
-
-  static const _sortLabels = ['BY NAME', 'STOCK ↑', 'STOCK ↓', 'VALUE ↓'];
-
-  List<Product> get _sorted {
+  List<Product> _sorted(int sortIndex) {
     final all = _box.values.toList();
-    switch (_sortIndex) {
+    switch (sortIndex) {
       case 1:
         all.sort((a, b) => a.quantity.compareTo(b.quantity));
         break;
@@ -70,7 +67,8 @@ class _StockReportScreenState extends State<StockReportScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? AppColors.surfaceDark : AppColors.white;
-    final products = _sorted;
+    final sortProv = context.watch<StockSortProvider>();
+    final products = _sorted(sortProv.sortIndex);
     final alerts = _lowStockCount + _outOfStockCount;
 
     return Scaffold(
@@ -144,11 +142,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
                         ),
                         // SORT BUTTON
                         GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _sortIndex = (_sortIndex + 1) % _sortLabels.length;
-                            });
-                          },
+                          onTap: () => context.read<StockSortProvider>().next(),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 5),
@@ -164,7 +158,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
                               ],
                             ),
                             child: Text(
-                              'SORT ${_sortLabels[_sortIndex]}',
+                              'SORT ${sortProv.currentLabel}',
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,

@@ -178,27 +178,24 @@ class _ShellDest {
       : activeIcon = activeIcon ?? icon;
 }
 
-class _MobileShell extends StatefulWidget {
+class _MobileShell extends StatelessWidget {
   final List<Widget> screens;
   final List<_ShellDest> destinations;
   const _MobileShell({required this.screens, required this.destinations});
 
   @override
-  State<_MobileShell> createState() => _MobileShellState();
-}
-
-class _MobileShellState extends State<_MobileShell> {
-  int _idx = 0;
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: widget.screens[_idx],
-      bottomNavigationBar: _AppBottomNav(
-        current: _idx,
-        destinations: widget.destinations,
-        onTap: (i) => setState(() => _idx = i),
+    final idx = ValueNotifier<int>(0);
+    return ValueListenableBuilder<int>(
+      valueListenable: idx,
+      builder: (_, i, __) => Scaffold(
+        backgroundColor: AppColors.white,
+        body: screens[i],
+        bottomNavigationBar: _AppBottomNav(
+          current: i,
+          destinations: destinations,
+          onTap: (v) => idx.value = v,
+        ),
       ),
     );
   }
@@ -266,32 +263,29 @@ class _AppBottomNav extends StatelessWidget {
   }
 }
 
-class _DesktopShell extends StatefulWidget {
+class _DesktopShell extends StatelessWidget {
   final List<Widget> screens;
   final List<_ShellDest> destinations;
   const _DesktopShell({required this.screens, required this.destinations});
 
   @override
-  State<_DesktopShell> createState() => _DesktopShellState();
-}
-
-class _DesktopShellState extends State<_DesktopShell> {
-  int _idx = 0;
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: Row(
-        children: [
-          _SideRail(
-            current: _idx,
-            destinations: widget.destinations,
-            onTap: (i) => setState(() => _idx = i),
-          ),
-          const VerticalDivider(width: 1, thickness: 1, color: AppColors.warmWhite),
-          Expanded(child: widget.screens[_idx]),
-        ],
+    final idx = ValueNotifier<int>(0);
+    return ValueListenableBuilder<int>(
+      valueListenable: idx,
+      builder: (_, i, __) => Scaffold(
+        backgroundColor: AppColors.white,
+        body: Row(
+          children: [
+            _SideRail(
+              current: i,
+              destinations: destinations,
+              onTap: (v) => idx.value = v,
+            ),
+            const VerticalDivider(width: 1, thickness: 1, color: AppColors.warmWhite),
+            Expanded(child: screens[i]),
+          ],
+        ),
       ),
     );
   }
@@ -325,7 +319,7 @@ class _SideRail extends StatelessWidget {
                   child: const Icon(Icons.bolt_rounded, color: AppColors.white, size: 20),
                 ),
                 const SizedBox(width: 10),
-                const Text('core', style: TextStyle(
+                const Text('StockSense', style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.w800,
                   color: AppColors.nearBlack, letterSpacing: -0.5,
                 )),

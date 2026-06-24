@@ -13,6 +13,9 @@ import 'edit_product_screen.dart';
 import 'inventory_filter_sheet.dart';
 import 'product_details_screen.dart';
 import '../../widgets/app_confirm_dialog.dart';
+import '../../widgets/app_snack_bar.dart';
+import '../../providers/activity_log_provider.dart';
+import '../../models/activity_log_entry.dart';
 
 class InventoryScreen extends StatelessWidget {
   const InventoryScreen({super.key});
@@ -48,6 +51,7 @@ class InventoryScreen extends StatelessWidget {
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        resizeToAvoidBottomInset: false,
         floatingActionButton: _GoldFAB(
           onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const AddProductScreen())),
@@ -177,7 +181,7 @@ class _StatsStrip extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _StatItem(label: 'Total Value', value: '₹${_formatValue(totalValue)}', icon: Icons.account_balance_wallet_rounded),
+              _StatItem(label: 'Total Value', value: '₹${formatCompact(totalValue)}', icon: Icons.account_balance_wallet_rounded),
               _divider(),
               _StatItem(label: 'Low Stock', value: '$lowStock', icon: Icons.warning_amber_rounded,
                   valueColor: lowStock > 0 ? const Color(0xFFFFE082) : AppColors.white),
@@ -196,12 +200,6 @@ class _StatsStrip extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 12),
         color: Colors.white.withOpacity(0.2),
       );
-
-  String _formatValue(double v) {
-    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
-    return v.toStringAsFixed(0);
-  }
 }
 
 class _StatItem extends StatelessWidget {
@@ -331,7 +329,8 @@ class _ProductList extends StatelessWidget {
         final filter = provider.filter;
 
         if (products.isEmpty) {
-          return EmptyState(
+          return SingleChildScrollView(
+            child: EmptyState(
             icon: Icons.inventory_2_outlined,
             title: filter.isActive ? 'No products match filters' : 'No products yet',
             subtitle: filter.isActive ? 'Try adjusting your filters' : 'Tap to add your first product',
@@ -341,6 +340,7 @@ class _ProductList extends StatelessWidget {
                 ? provider.clearFilter
                 : () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const AddProductScreen())),
+          ),
           );
         }
 
@@ -517,7 +517,16 @@ class _ProductCard extends StatelessWidget {
                               message: 'Remove "${product.name}" from inventory?',
                             );
                             if (ok && context.mounted) {
+                              final name = product.name;
                               context.read<ProductProvider>().deleteProduct(product.id);
+                              context.read<ActivityLogProvider>().logDeleted(
+                                    type: ActivityType.product,
+                                    title: 'Product Deleted',
+                                    subtitle: name,
+                                  );
+                              if (context.mounted) {
+                                AppSnackBar.success(context, '$name deleted');
+                              }
                             }
                           },
                         ),

@@ -4,6 +4,8 @@ import '../../core/colors.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/inventory_provider.dart';
 import '../../providers/product_form_provider.dart';
+import '../../providers/product_unit_provider.dart';
+import '../../core/app_styles.dart';
 import '../../widgets/app_input_field.dart';
 import '../../widgets/app_section_label.dart';
 import '../../widgets/app_dropdown.dart';
@@ -17,14 +19,6 @@ import '../../widgets/app_snack_bar.dart';
 import '../../widgets/app_card.dart';
 import 'manage_brands_screen.dart';
 import 'manage_categories_screen.dart';
-
-const List<String> _kUnits = [
-  'kg', 'g', 'mg',
-  'litre', 'ml',
-  'pcs', 'box', 'dozen',
-  'pack', 'bag', 'bottle',
-  'strip', 'tablet',
-];
 
 class AddProductScreen extends StatefulWidget {
   final String? initialBarcode;
@@ -45,13 +39,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _unitQtyCtrl   = TextEditingController();
   final _barcodeCtrl   = TextEditingController();
 
-  String? _selectedUnit;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductFormProvider>().reset();
+      context.read<ProductUnitProvider>().reset();
     });
     if (widget.initialBarcode != null) {
       _barcodeCtrl.text = widget.initialBarcode!;
@@ -98,16 +91,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _thresholdCtrl.text = result.lowStockThreshold.toString();
       _barcodeCtrl.text   = result.barcode ?? '';
 
-      // Parse unit string e.g. "500 ml" → qty "500", unit "ml"
-      if (result.unit != null) {
-        final parts = result.unit!.trim().split(' ');
-        if (parts.length == 2) {
-          _unitQtyCtrl.text = parts[0];
-          setState(() => _selectedUnit = _kUnits.contains(parts[1]) ? parts[1] : null);
-        } else {
-          setState(() => _selectedUnit = _kUnits.contains(result.unit) ? result.unit : null);
+        final unitProv = context.read<ProductUnitProvider>();
+        if (result.unit != null) {
+          final parts = result.unit!.trim().split(' ');
+          if (parts.length == 2) {
+            _unitQtyCtrl.text = parts[0];
+            unitProv.setUnit(kProductUnits.contains(parts[1]) ? parts[1] : null);
+          } else {
+            unitProv.setUnit(kProductUnits.contains(result.unit) ? result.unit : null);
+          }
         }
-      }
 
       final form = context.read<ProductFormProvider>();
       form.setCategory(result.category);
@@ -126,7 +119,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    // Cross-field: selling price should not be less than cost price
+    final cost = double.tryParse(_costCtrl.text) ?? 0;
+    final sell = double.tryParse(_sellCtrl.text) ?? 0;
+    if (sell < cost) {
+      AppSnackBar.error(context, 'Selling price cannot be less than cost price');
+      return;
+    }
     final form = context.read<ProductFormProvider>();
+    final unitProv = context.read<ProductUnitProvider>();
     form.setLoading(true);
 
     await context.read<ProductProvider>().addProduct(
@@ -139,9 +140,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       expiryDate:        form.expiry?.toIso8601String(),
       barcode:           _barcodeCtrl.text.trim().isEmpty
                              ? null : _barcodeCtrl.text.trim(),
-      unit:              (_selectedUnit != null && _unitQtyCtrl.text.trim().isNotEmpty)
-                             ? '${_unitQtyCtrl.text.trim()} $_selectedUnit'
-                             : _selectedUnit,
+      unit:              (unitProv.selectedUnit != null && _unitQtyCtrl.text.trim().isNotEmpty)
+                             ? '${_unitQtyCtrl.text.trim()} ${unitProv.selectedUnit}'
+                             : unitProv.selectedUnit,
       imagePath:         form.imagePath,
       brand:             form.selectedBrand,
     );
@@ -156,6 +157,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     final form       = context.watch<ProductFormProvider>();
+    final unitProv   = context.watch<ProductUnitProvider>();
     final inv        = context.watch<InventoryProvider>();
     final categories = inv.categories;
     final brands     = inv.brands;
@@ -318,7 +320,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               keyboard: TextInputType.number,
                               validator: (v) {
                                 if (v!.isEmpty) return 'Required';
-                                if (double.tryParse(v) == null) return 'Invalid';
+                                final n = double.tryParse(v);
+                                if (n == null) return 'Invalid number';
+                                if (n < 0) return 'Cannot be negative';
                                 return null;
                               },
                             ),
@@ -342,7 +346,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               keyboard: TextInputType.number,
                               validator: (v) {
                                 if (v!.isEmpty) return 'Required';
-                                if (double.tryParse(v) == null) return 'Invalid';
+                                final n = double.tryParse(v);
+                                if (n == null) return 'Invalid number';
+                                if (n < 0) return 'Cannot be negative';
                                 return null;
                               },
                             ),
@@ -374,7 +380,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               keyboard: TextInputType.number,
                               validator: (v) {
                                 if (v!.isEmpty) return 'Required';
-                                if (int.tryParse(v) == null) return 'Whole number';
+                                final n = int.tryParse(v);
+                                if (n == null) return 'Whole number required';
+                                if (n < 0) return 'Cannot be negative';
                                 return null;
                               },
                             ),
@@ -392,7 +400,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               keyboard: TextInputType.number,
                               validator: (v) {
                                 if (v!.isEmpty) return 'Required';
-                                if (int.tryParse(v) == null) return 'Whole number';
+                                final n = int.tryParse(v);
+                                if (n == null) return 'Whole number required';
+                                if (n < 0) return 'Cannot be negative';
                                 return null;
                               },
                             ),
@@ -416,11 +426,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: AppDropdown(
-                          value: _selectedUnit,
+                          value: unitProv.selectedUnit,
                           hint: 'Select unit',
-                          items: _kUnits,
+                          items: kProductUnits,
                           onChanged: (v) =>
-                              setState(() => _selectedUnit = v),
+                              context.read<ProductUnitProvider>().setUnit(v),
                         ),
                       ),
                     ],

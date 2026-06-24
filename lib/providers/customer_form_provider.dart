@@ -14,6 +14,8 @@ class CustomerFormProvider extends ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
+  final formKey = GlobalKey<FormState>();
+
   CustomerFormProvider({Customer? existing}) {
     if (existing != null) {
       nameCtrl.text    = existing.name;
@@ -27,7 +29,29 @@ class CustomerFormProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool get isValid => nameCtrl.text.trim().isNotEmpty;
+  String? validateName(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Customer name is required';
+    if (v.trim().length < 2) return 'Name must be at least 2 characters';
+    return null;
+  }
+
+  String? validatePhone(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Phone number is required';
+    final digits = v.trim().replaceAll(RegExp(r'\s'), '');
+    if (!RegExp(r'^[0-9]{10}$').hasMatch(digits)) return 'Enter a valid 10-digit number';
+    return null;
+  }
+
+  String? validateAmount(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Initial credit amount is required';
+    final parsed = double.tryParse(v.trim());
+    if (parsed == null) return 'Enter a valid number';
+    if (parsed < 0) return 'Amount cannot be negative';
+    if (parsed > 10000000) return 'Amount seems too large. Please verify';
+    return null;
+  }
+
+  bool get isValid => formKey.currentState?.validate() ?? false;
 
   Future<bool> submit() async {
     if (!isValid) return false;

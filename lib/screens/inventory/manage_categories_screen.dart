@@ -95,9 +95,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
           padding: EdgeInsets.only(left: 12),
           child: Center(child: AppBackButton()),
         ),
-        title: const Text('Manage Categories',
+        title: Text('Manage Categories',
             style: TextStyle(
-                color: AppColors.black,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: 18)),
       ),
@@ -106,7 +106,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Container(
-              decoration: appCardDecoration(),
+              decoration: appCardDecoration(context: context),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,8 +118,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                       child: TextField(
                         controller: _ctrl,
                         textCapitalization: TextCapitalization.words,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         onSubmitted: (_) => _add(),
-                        decoration: appInputDeco('e.g. Spices, Baby Products'),
+                        decoration: appInputDeco('e.g. Spices, Baby Products', context: context),
                       ),
                     ),
                     const SizedBox(width: 10),
