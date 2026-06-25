@@ -7,8 +7,7 @@ import 'login_screen.dart';
 
 
 // CREATE ACCOUNT SCREEN 
-// Country code    ProfileProvider.selectedCode
-// createAccount   ProfileProvider.createAccount()
+
 
 class CreateAccount extends StatelessWidget {
   CreateAccount({super.key});
@@ -22,7 +21,6 @@ class CreateAccount extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Watch only selectedCode for dropdown rebuild
     final profile = context.watch<ProfileProvider>();
 
     return Scaffold(
@@ -86,15 +84,14 @@ class CreateAccount extends StatelessWidget {
                       _fieldLabel(context, 'PHONE NUMBER'),
                       const SizedBox(height: 6),
 
-                      // Phone + country code dropdown
-                      
                       TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.number,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Phone number is required';
                           if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'Only numbers are allowed';
-                          if (v.length != 10) return 'Phone number must be 10 digits';
+                          final expected = ProfileProvider.getPhoneLength(profile.selectedCode);
+                          if (v.length != expected) return 'Enter a valid $expected-digit number';
                           return null;
                         },
                         decoration: InputDecoration(
@@ -124,7 +121,6 @@ class CreateAccount extends StatelessWidget {
                                         style: const TextStyle(fontSize: 13)),
                                   );
                                 }).toList(),
-                                
                                 onChanged: (val) {
                                   if (val != null) {
                                     context.read<ProfileProvider>().selectCountryCode(val);
@@ -217,8 +213,6 @@ class CreateAccount extends StatelessWidget {
     );
   }
 
-  // CREATE ACCOUNT HANDLER 
-  
   Future<void> _onCreateAccount(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -232,28 +226,24 @@ class CreateAccount extends StatelessWidget {
     if (!context.mounted) return;
 
     if (result == 'duplicate') {
-      // Show duplicate dialog 
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
           title: const Text('Account Already Exists'),
-          content: const Text(
-              'An account with this phone number already exists.'),
+          content: const Text('An account with this phone number already exists.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.goldDark),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.goldDark),
               onPressed: () {
                 Navigator.pop(context);
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (_) => const LoginScreen()));
               },
-              child: const Text('Login',
-                  style: TextStyle(color: AppColors.white)),
+              child: const Text('Login', style: TextStyle(color: AppColors.white)),
             ),
           ],
         ),
@@ -261,24 +251,17 @@ class CreateAccount extends StatelessWidget {
       return;
     }
 
-    // Success — navigate to home
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (_) => HomeScreen()));
   }
 
-  // HELPERS 
   Widget _fieldLabel(BuildContext context, String label) => Text(label,
       style: TextStyle(
-          fontSize: 11, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface));
+          fontSize: 11, fontWeight: FontWeight.w500,
+          color: Theme.of(context).colorScheme.onSurface));
 
-  Widget _field(
-    BuildContext context,
-    String label,
-    String hint,
-    TextEditingController ctrl, {
-    int maxLines = 1,
-    bool isNameField = false,
-  }) {
+  Widget _field(BuildContext context, String label, String hint,
+      TextEditingController ctrl, {int maxLines = 1, bool isNameField = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

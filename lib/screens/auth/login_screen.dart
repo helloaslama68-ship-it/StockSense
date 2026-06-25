@@ -91,7 +91,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Phone number required';
                           if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'Numbers only';
-                          if (v.length != 10) return 'Must be 10 digits';
+                          final expected = ProfileProvider.getPhoneLength(profile.selectedCode);
+                          if (v.length != expected) return 'Must be $expected digits';
                           return null;
                         },
                         decoration: InputDecoration(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/customer.dart';
+import '../providers/profile_provider.dart';
 
 class CustomerFormProvider extends ChangeNotifier {
   final nameCtrl    = TextEditingController();
@@ -18,9 +19,12 @@ class CustomerFormProvider extends ChangeNotifier {
 
   CustomerFormProvider({Customer? existing}) {
     if (existing != null) {
-      nameCtrl.text    = existing.name;
-      phoneCtrl.text   = existing.phone.replaceFirst('+91 ', '');
-      amountCtrl.text  = existing.amountDue == 0 ? '' : existing.amountDue.toString();
+      nameCtrl.text   = existing.name;
+      
+      final phone     = existing.phone;
+      final spaceIdx  = phone.indexOf(' ');
+      phoneCtrl.text  = spaceIdx >= 0 ? phone.substring(spaceIdx + 1) : phone;
+      amountCtrl.text = existing.amountDue == 0 ? '' : existing.amountDue.toString();
     }
   }
 
@@ -35,10 +39,12 @@ class CustomerFormProvider extends ChangeNotifier {
     return null;
   }
 
-  String? validatePhone(String? v) {
+  String? validatePhone(String? v, {String dialCode = '+91'}) {
     if (v == null || v.trim().isEmpty) return 'Phone number is required';
     final digits = v.trim().replaceAll(RegExp(r'\s'), '');
-    if (!RegExp(r'^[0-9]{10}$').hasMatch(digits)) return 'Enter a valid 10-digit number';
+    if (!RegExp(r'^[0-9]+$').hasMatch(digits)) return 'Only numbers are allowed';
+    final expected = ProfileProvider.getPhoneLength(dialCode);
+    if (digits.length != expected) return 'Enter a valid $expected-digit number';
     return null;
   }
 

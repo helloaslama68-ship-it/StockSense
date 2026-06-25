@@ -47,6 +47,23 @@ class ProfileProvider extends ChangeNotifier {
     {'code': '+977', 'flag': '🇳🇵', 'name': 'Nepal'},
   ];
 
+  
+  static const Map<String, int> _phoneLength = {
+    '+91':  10, // India
+    '+1':   10, // USA/Canada
+    '+44':  10, // UK 
+    '+971':  9, // UAE
+    '+60':   9, // Malaysia
+    '+65':   8, // Singapore
+    '+92':  10, // Pakistan
+    '+880': 10, // Bangladesh
+    '+94':   9, // Sri Lanka
+    '+977': 10, // Nepal
+  };
+
+  /// Returns expected digit count for [dialCode], defaults to 10.
+  static int getPhoneLength(String dialCode) => _phoneLength[dialCode] ?? 10;
+
   ProfileProvider(this._auth, this._profile) {
     _load();
   }
@@ -111,8 +128,8 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   //  LOGOUT 
-  void logout() {
-    _auth.logout();
+  Future<void> logout() async {
+    await _auth.logout();
     _ownerName = '';
     _storeName = '';
     _phone     = '';
@@ -139,7 +156,7 @@ class ProfileProvider extends ChangeNotifier {
       await _auth.clearAllUserData();
     }
 
-    _auth.saveUserData(
+    await _auth.saveUserData(
       storeName: storeName,
       ownerName: ownerName,
       phone: fullPhone,
@@ -156,19 +173,19 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   // SAVE USER DATA 
-  void saveUserData({
+  Future<void> saveUserData({
     required String storeName,
     required String ownerName,
     required String phone,
     required String address,
-  }) {
+  }) async {
     _saving = true;
     notifyListeners();
 
-    // Always store with country code prefix so login comparison works
+    // Always store with country code prefix 
     final fullPhone = phone.startsWith('+') ? phone : '$_selectedCode $phone';
 
-    _auth.saveUserData(
+    await _auth.saveUserData(
       storeName: storeName,
       ownerName: ownerName,
       phone: fullPhone,

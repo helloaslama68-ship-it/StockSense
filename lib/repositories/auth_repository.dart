@@ -15,9 +15,9 @@ class AuthRepository {
   String getPhone()  => _storage.getPhone();
 
   //  WRITE
-  void logout() => _storage.logout();
+  Future<void> logout() => _storage.logout();
 
-  void saveUserData({
+  Future<void> saveUserData({
     required String storeName,
     required String ownerName,
     required String phone,

@@ -4,6 +4,7 @@ import '../../core/colors.dart';
 import '../../core/app_styles.dart';
 import '../../providers/customer_form_provider.dart';
 import '../../providers/customer_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/app_input_field.dart';
 import '../../widgets/app_section_label.dart';
@@ -62,105 +63,123 @@ class _AddCustomerView extends StatelessWidget {
                 child: Form(
                   key: context.read<CustomerFormProvider>().formKey,
                   child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const AppSectionLabel(label: 'CUSTOMER DETAILS'),
-                          const SizedBox(height: 14),
-                          const _FieldLabel('CUSTOMER NAME'),
-                          const SizedBox(height: 6),
-                          AppInputField(
-                            controller: context.read<CustomerFormProvider>().nameCtrl,
-                            hint: 'John Doe',
-                            validator: context.read<CustomerFormProvider>().validateName,
-                          ),
-                          const SizedBox(height: 14),
-                          const _FieldLabel('PHONE NUMBER'),
-                          const SizedBox(height: 6),
-                          AppInputField(
-                            controller: context.read<CustomerFormProvider>().phoneCtrl,
-                            hint: '00000 00000',
-                            keyboard: TextInputType.phone,
-                            validator: context.read<CustomerFormProvider>().validatePhone,
-                            prefix: Text('+91',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).colorScheme.onSurface)),
-                          ),
-                          const SizedBox(height: 14),
-                          const _FieldLabel('ADDRESS', optional: true),
-                          const SizedBox(height: 6),
-                          AppInputField(
-                            controller: context.read<CustomerFormProvider>().addressCtrl,
-                            hint: 'Shop address or location details...',
-                            maxLines: 2,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: AppColors.goldDark.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(10),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const AppSectionLabel(label: 'CUSTOMER DETAILS'),
+                            const SizedBox(height: 14),
+                            const _FieldLabel('CUSTOMER NAME'),
+                            const SizedBox(height: 6),
+                            AppInputField(
+                              controller: context.read<CustomerFormProvider>().nameCtrl,
+                              hint: 'John Doe',
+                              validator: context.read<CustomerFormProvider>().validateName,
+                            ),
+                            const SizedBox(height: 14),
+                            const _FieldLabel('PHONE NUMBER'),
+                            const SizedBox(height: 6),
+                            Consumer<ProfileProvider>(
+                              builder: (context, profile, _) => AppInputField(
+                                controller: context.read<CustomerFormProvider>().phoneCtrl,
+                                hint: '00000 00000',
+                                keyboard: TextInputType.phone,
+                                validator: (v) => context
+                                    .read<CustomerFormProvider>()
+                                    .validatePhone(v, dialCode: profile.selectedCode),
+                                prefix: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: profile.selectedCode,
+                                    isDense: true,
+                                    items: ProfileProvider.countryCodes.map((c) {
+                                      return DropdownMenuItem(
+                                        value: c['code'],
+                                        child: Text('${c['flag']} ${c['code']}',
+                                            style: const TextStyle(fontSize: 13)),
+                                      );
+                                    }).toList(),
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        context
+                                            .read<ProfileProvider>()
+                                            .selectCountryCode(val);
+                                      }
+                                    },
+                                  ),
                                 ),
-                                child: Icon(Icons.account_balance_wallet_rounded,
-                                    color: AppColors.goldDark, size: 18),
                               ),
-                              const SizedBox(width: 10),
-                              Text('Initial Credit',
+                            ),
+                            const SizedBox(height: 14),
+                            const _FieldLabel('ADDRESS', optional: true),
+                            const SizedBox(height: 6),
+                            AppInputField(
+                              controller: context.read<CustomerFormProvider>().addressCtrl,
+                              hint: 'Shop address or location details...',
+                              maxLines: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 36, height: 36,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.goldDark.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(Icons.account_balance_wallet_rounded,
+                                      color: AppColors.goldDark, size: 18),
+                                ),
+                                const SizedBox(width: 10),
+                                Text('Initial Credit',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.onSurface)),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            const _FieldLabel('EDIT AMOUNT'),
+                            const SizedBox(height: 6),
+                            AppInputField(
+                              controller: context.read<CustomerFormProvider>().amountCtrl,
+                              hint: '0.00',
+                              keyboard: const TextInputType.numberWithOptions(decimal: true),
+                              validator: context.read<CustomerFormProvider>().validateAmount,
+                              prefix: Text('₹',
                                   style: TextStyle(
                                       fontSize: 15,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
                                       color: Theme.of(context).colorScheme.onSurface)),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          const _FieldLabel('EDIT AMOUNT'),
-                          const SizedBox(height: 6),
-                          AppInputField(
-                            controller: context.read<CustomerFormProvider>().amountCtrl,
-                            hint: '0.00',
-                            keyboard: const TextInputType.numberWithOptions(decimal: true),
-                            validator: context.read<CustomerFormProvider>().validateAmount,
-                            prefix: Text('₹',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).colorScheme.onSurface)),
-                          ),
-                          const SizedBox(height: 6),
-                          Text('Enter amount if customer has pending payment',
-                              style: TextStyle(fontSize: 11, color: AppColors.warmGrey)),
-                          const SizedBox(height: 14),
-                          const _FieldLabel('DATE'),
-                          const SizedBox(height: 6),
-                          const _DatePickerField(),
-                          const SizedBox(height: 14),
-                          const _FieldLabel('NOTES', optional: true),
-                          const SizedBox(height: 6),
-                          AppInputField(
-                            controller: context.read<CustomerFormProvider>().notesCtrl,
-                            hint: 'e.g. Previous shop balance',
-                            maxLines: 2,
-                          ),
-                        ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text('Enter amount if customer has pending payment',
+                                style: TextStyle(fontSize: 11, color: AppColors.warmGrey)),
+                            const SizedBox(height: 14),
+                            const _FieldLabel('DATE'),
+                            const SizedBox(height: 6),
+                            const _DatePickerField(),
+                            const SizedBox(height: 14),
+                            const _FieldLabel('NOTES', optional: true),
+                            const SizedBox(height: 6),
+                            AppInputField(
+                              controller: context.read<CustomerFormProvider>().notesCtrl,
+                              hint: 'e.g. Previous shop balance',
+                              maxLines: 2,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -204,8 +223,7 @@ class _DatePickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<CustomerFormProvider>();
-    final label =
-        '${p.creditDate.month}/${p.creditDate.day}/${p.creditDate.year}';
+    final label = '${p.creditDate.month}/${p.creditDate.day}/${p.creditDate.year}';
 
     return GestureDetector(
       onTap: () async {
@@ -232,8 +250,7 @@ class _DatePickerField extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                       color: Theme.of(context).colorScheme.onSurface)),
             ),
-            Icon(Icons.calendar_today_rounded,
-                size: 16, color: AppColors.goldDark),
+            Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.goldDark),
           ],
         ),
       ),
@@ -275,7 +292,7 @@ class _SaveBar extends StatelessWidget {
                   ? existingId!
                   : DateTime.now().millisecondsSinceEpoch.toString(),
               name: p.nameCtrl.text.trim(),
-              phone: '+91 ${p.phoneCtrl.text.trim()}',
+              phone: '${context.read<ProfileProvider>().selectedCode} ${p.phoneCtrl.text.trim()}',
               amountDue: double.tryParse(p.amountCtrl.text) ?? 0.0,
               status: (double.tryParse(p.amountCtrl.text) ?? 0) > 0
                   ? CreditStatus.pending

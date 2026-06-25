@@ -184,11 +184,8 @@ class _ActivityList extends StatelessWidget {
     final txnItems = p.transactions
         .map((t) => (item: _ActivityItem.fromTransaction(t), txn: t))
         .toList();
-    final saleItems = p.linkedSales
-        .map((s) => (item: _ActivityItem.fromSale(s), txn: null as CreditTransaction?))
-        .toList();
 
-    final all = [...saleItems, ...txnItems]
+    final all = [...txnItems]
       ..sort((a, b) => b.item.date.compareTo(a.item.date));
 
     if (all.isEmpty) {

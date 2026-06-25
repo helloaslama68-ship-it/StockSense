@@ -108,7 +108,7 @@ class _SaleScreenBody extends StatelessWidget {
             id: custId,
             name: form.customerName.trim(),
             phone: '',
-            amountDue: creditAmt,
+            amountDue: 0,
             status: CreditStatus.pending,
           );
           await customerProvider.add(customer);

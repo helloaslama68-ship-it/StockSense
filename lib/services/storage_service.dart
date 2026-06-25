@@ -22,22 +22,22 @@ class StorageService {
   
 
   // Save store and owner information locally
-  void saveUserData({
+  Future<void> saveUserData({
     required String storeName,
     required String ownerName,
     required String phone,
     required String address,
-  }) {
+  }) async {
 
-    // Store details inside local Hive database
-    _box.put('storeName', storeName);
-    _box.put('ownerName', ownerName);
-    _box.put('phone', phone);
-    _box.put('address', address);
+    
+    await _box.put('storeName', storeName);
+    await _box.put('ownerName', ownerName);
+    await _box.put('phone', phone);
+    await _box.put('address', address);
 
     // Authentication/session flags
-    _box.put('isLoggedIn', true);
-    _box.put('hasAccount', true);
+    await _box.put('isLoggedIn', true);
+    await _box.put('hasAccount', true);
   }
 
   // Retrieve saved store information
@@ -76,10 +76,10 @@ class StorageService {
 
   // LOGOUT
   
-  void logout() {
+  Future<void> logout() async {
 
     // User becomes logged out
-    _box.put('isLoggedIn', false);
+    await _box.put('isLoggedIn', false);
 
     // hasAccount remains true
     // So next app launch opens login screen instead of onboarding
@@ -97,10 +97,10 @@ class StorageService {
     // Clear sales records
     await Hive.box<Sale>('sales').clear();
 
-    // Clear purchase records (was missing — caused new users to see old purchases)
+    // Clear purchase records (caused new users to see old purchases)
     await Hive.box<PurchaseRecord>('purchase_records').clear();
 
-    // Clear inventory losses (was missing — caused new users to see old losses)
+    // Clear inventory losses (caused new users to see old losses)
     await Hive.box<InventoryLoss>('losses').clear();
 
     // Clear customer credit data
