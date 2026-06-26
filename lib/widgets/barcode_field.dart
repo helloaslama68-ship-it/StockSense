@@ -12,9 +12,13 @@ class BarcodeField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillColor = isDark ? AppColors.dividerDark : AppColors.backgroundBottom;
+    final textColor = isDark ? AppColors.white : AppColors.black;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: fillColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -22,9 +26,10 @@ class BarcodeField extends StatelessWidget {
           Expanded(
             child: TextFormField(
               controller: controller,
+              style: TextStyle(color: textColor, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Scan or enter manual code',
-                hintStyle: TextStyle(color: AppColors.grey, fontSize: 14),
+                hintStyle: TextStyle(color: AppColors.warmGrey, fontSize: 14),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 14),
@@ -48,7 +53,7 @@ class BarcodeField extends StatelessWidget {
                 'assets/icons/barcodeicon .png',
                 width: 22,
                 height: 22,
-                color: AppColors.black, // 
+                color: textColor,
               ),
             ),
           ),

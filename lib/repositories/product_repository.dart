@@ -10,9 +10,10 @@ class ProductRepository {
   List<Product> getAll() => _box.values.toList();
 
   Product? getByBarcode(String barcode) {
+    final clean = barcode.trim();
     try {
       return _box.values.firstWhere(
-        (p) => p.barcode != null && p.barcode == barcode,
+        (p) => p.barcode != null && p.barcode!.trim() == clean,
       );
     } catch (_) {
       return null;
@@ -31,7 +32,8 @@ class ProductRepository {
     String? barcode,
     String? unit,
     String? imagePath,
-    String? brand, 
+    String? brand,
+    String? description,
   }) async {
     final p = Product()
       ..id = _uuid.v4()
@@ -46,6 +48,7 @@ class ProductRepository {
       ..unit = unit
       ..imagePath = imagePath
       ..brand = brand 
+      ..description = description
       ..createdAt = DateTime.now();
     await _box.put(p.id, p);
   }

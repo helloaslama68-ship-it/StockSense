@@ -1,4 +1,10 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 part of 'customer.dart';
+
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
 
 class CustomerAdapter extends TypeAdapter<Customer> {
   @override

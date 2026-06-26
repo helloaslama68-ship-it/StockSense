@@ -1,8 +1,10 @@
-
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'sale.dart';
 
-
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
 
 class SaleAdapter extends TypeAdapter<Sale> {
   @override
@@ -26,9 +28,9 @@ class SaleAdapter extends TypeAdapter<Sale> {
       ..receiptNumber = fields[8] as int
       ..status = fields[9] as String
       ..channel = fields[10] as String
-      ..paymentMode = fields[11] as String? ?? 'paid'
-      ..creditAmount = fields[12] as double? ?? 0.0
-      ..paidAmount = fields[13] as double? ?? 0.0;
+      ..paymentMode = fields[11] as String
+      ..creditAmount = fields[12] as double
+      ..paidAmount = fields[13] as double;
   }
 
   @override

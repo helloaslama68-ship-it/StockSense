@@ -27,13 +27,14 @@ class ProductAdapter extends TypeAdapter<Product> {
       ..unit = fields[9] as String?
       ..createdAt = fields[10] as DateTime
       ..imagePath = fields[11] as String?
-      ..brand = fields[12] as String?;
+      ..brand = fields[12] as String?
+      ..description = fields[13] as String?;
   }
 
   @override
   void write(BinaryWriter writer, Product obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -59,7 +60,9 @@ class ProductAdapter extends TypeAdapter<Product> {
       ..writeByte(11)
       ..write(obj.imagePath)
       ..writeByte(12)
-      ..write(obj.brand);
+      ..write(obj.brand)
+      ..writeByte(13)
+      ..write(obj.description);
   }
 
   @override

@@ -63,26 +63,25 @@ void main() async {
   if (!Hive.isBoxOpen('appBox')) await Hive.openBox('appBox');
   if (!Hive.isBoxOpen('settings')) await Hive.openBox('settings');
 
-  
-  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(ProductAdapter());
-  if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(SaleAdapter());
-  if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(SaleItemAdapter());
-  if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(PurchaseAdapter());
-  if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(InventoryLossAdapter());
-  if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(CustomerAdapter());
-  if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(CreditTransactionAdapter());
-  if (!Hive.isAdapterRegistered(9)) Hive.registerAdapter(PurchaseLineItemAdapter());
-  if (!Hive.isAdapterRegistered(8)) Hive.registerAdapter(PurchaseRecordAdapter());
+  if (!Hive.isAdapterRegistered(0))  Hive.registerAdapter(ProductAdapter());
+  if (!Hive.isAdapterRegistered(1))  Hive.registerAdapter(SaleAdapter());
+  if (!Hive.isAdapterRegistered(3))  Hive.registerAdapter(SaleItemAdapter());
+  if (!Hive.isAdapterRegistered(4))  Hive.registerAdapter(PurchaseAdapter());
+  if (!Hive.isAdapterRegistered(5))  Hive.registerAdapter(InventoryLossAdapter());
+  if (!Hive.isAdapterRegistered(6))  Hive.registerAdapter(CustomerAdapter());
+  if (!Hive.isAdapterRegistered(7))  Hive.registerAdapter(CreditTransactionAdapter());
+  if (!Hive.isAdapterRegistered(9))  Hive.registerAdapter(PurchaseLineItemAdapter());
+  if (!Hive.isAdapterRegistered(8))  Hive.registerAdapter(PurchaseRecordAdapter());
   if (!Hive.isAdapterRegistered(10)) Hive.registerAdapter(ActivityLogEntryAdapter());
 
-  if (!Hive.isBoxOpen('products')) await Hive.openBox<Product>('products');
-  if (!Hive.isBoxOpen('sales')) await Hive.openBox<Sale>('sales');
-  if (!Hive.isBoxOpen('purchases')) await Hive.openBox<Purchase>('purchases');
-  if (!Hive.isBoxOpen('purchase_records')) await Hive.openBox<PurchaseRecord>('purchase_records');
-  if (!Hive.isBoxOpen('losses')) await Hive.openBox<InventoryLoss>('losses');
-  if (!Hive.isBoxOpen('customers')) await Hive.openBox<Customer>('customers');
+  if (!Hive.isBoxOpen('products'))            await Hive.openBox<Product>('products');
+  if (!Hive.isBoxOpen('sales'))               await Hive.openBox<Sale>('sales');
+  if (!Hive.isBoxOpen('purchases'))           await Hive.openBox<Purchase>('purchases');
+  if (!Hive.isBoxOpen('purchase_records'))    await Hive.openBox<PurchaseRecord>('purchase_records');
+  if (!Hive.isBoxOpen('losses'))              await Hive.openBox<InventoryLoss>('losses');
+  if (!Hive.isBoxOpen('customers'))           await Hive.openBox<Customer>('customers');
   if (!Hive.isBoxOpen('credit_transactions')) await Hive.openBox<CreditTransaction>('credit_transactions');
-  if (!Hive.isBoxOpen('activity_log')) await Hive.openBox<ActivityLogEntry>('activity_log');
+  if (!Hive.isBoxOpen('activity_log'))        await Hive.openBox<ActivityLogEntry>('activity_log');
 
   runApp(
     MultiProvider(
@@ -110,7 +109,6 @@ void main() async {
           create: (_) => ProductRepository(),
         ),
 
-        
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
 
         // PROVIDERS
@@ -137,7 +135,6 @@ void main() async {
 
         ChangeNotifierProvider(create: (_) => SaleProvider()),
 
-        
         ChangeNotifierProxyProvider<SettingsProvider, AlertProvider>(
           create: (_) => AlertProvider(),
           update: (_, settings, prev) => (prev ?? AlertProvider())..update(settings),
@@ -148,7 +145,6 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProductFormProvider()),
         ChangeNotifierProvider(create: (_) => LossProvider(LossRepository())),
 
-        
         ChangeNotifierProxyProvider4<NotificationRepository, ProductProvider, SaleProvider, SettingsProvider, NotificationProvider>(
           create: (ctx) => NotificationProvider(
             ctx.read<NotificationRepository>(),
@@ -196,9 +192,6 @@ class StockSenseApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'StockSense',
-
-
-      // THEME
       themeMode: settings.themeMode,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

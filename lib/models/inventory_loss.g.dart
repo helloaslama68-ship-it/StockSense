@@ -1,4 +1,10 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 part of 'inventory_loss.dart';
+
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
 
 class InventoryLossAdapter extends TypeAdapter<InventoryLoss> {
   @override

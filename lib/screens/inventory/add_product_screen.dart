@@ -85,6 +85,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (result is Product) {
       // Known product — pre-fill everything
       _nameCtrl.text      = result.name;
+      _descCtrl.text      = result.description ?? '';
       _costCtrl.text      = result.costPrice.toString();
       _sellCtrl.text      = result.sellingPrice.toString();
       _qtyCtrl.text       = result.quantity.toString();
@@ -145,6 +146,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                              : unitProv.selectedUnit,
       imagePath:         form.imagePath,
       brand:             form.selectedBrand,
+      description:       _descCtrl.text.trim().isEmpty
+                             ? null : _descCtrl.text.trim(),
     );
 
     form.setLoading(false);

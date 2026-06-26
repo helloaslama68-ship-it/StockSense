@@ -1,4 +1,4 @@
-
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'purchase_record.dart';
 
@@ -22,10 +22,10 @@ class PurchaseRecordAdapter extends TypeAdapter<PurchaseRecord> {
       supplierName: fields[2] as String,
       quantityPurchased: fields[3] as int,
       totalAmount: fields[4] as double,
-      taxPercent: fields[5] as double? ?? 0,
+      taxPercent: fields[5] as double,
       purchaseDate: fields[6] as DateTime,
       imagePath: fields[7] as String?,
-      lineItems: (fields[8] as List?)?.cast<PurchaseLineItem>() ?? [],
+      lineItems: (fields[8] as List?)?.cast<PurchaseLineItem>(),
     );
   }
 

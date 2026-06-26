@@ -39,6 +39,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   late final TextEditingController _thresholdCtrl;
   final _unitQtyCtrl   = TextEditingController();
   late final TextEditingController _barcodeCtrl;
+  late final TextEditingController _descCtrl;
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     _qtyCtrl       = TextEditingController(text: p.quantity.toString());
     _thresholdCtrl = TextEditingController(text: p.lowStockThreshold.toString());
     _barcodeCtrl   = TextEditingController(text: p.barcode ?? '');
+    _descCtrl      = TextEditingController(text: p.description ?? '');
 
     final parts = (p.unit ?? '').split(' ');
     final parsedUnit = parts.length == 2 && kProductUnits.contains(parts[1]) ? parts[1] : null;
@@ -72,7 +74,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   @override
   void dispose() {
     for (final c in [_nameCtrl, _costCtrl, _sellCtrl,
-        _qtyCtrl, _thresholdCtrl, _unitQtyCtrl, _barcodeCtrl]) {
+        _qtyCtrl, _thresholdCtrl, _unitQtyCtrl, _barcodeCtrl, _descCtrl]) {
       c.dispose();
     }
     super.dispose();
@@ -109,6 +111,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                 ? '${_unitQtyCtrl.text.trim()} ${unitProv.selectedUnit}'
                                 : unitProv.selectedUnit;
       p.imagePath         = form.imagePath ?? p.imagePath;
+      p.description       = _descCtrl.text.trim().isEmpty
+                                ? null : _descCtrl.text.trim();
       await context.read<ProductProvider>().updateProduct(p);
       if (mounted) {
         AppSnackBar.success(context, 'Product updated!');
@@ -427,6 +431,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 children: [
                   AppCardTitle('ADDITIONAL DETAILS',
                       icon: Icons.calendar_today_rounded),
+                  AppFieldLabel('DESCRIPTION'),
+                  AppInputField(
+                    controller: _descCtrl,
+                    hint: 'Enter detailed product description...',
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 14),
                   AppFieldLabel('EXPIRY DATE'),
                   ExpiryDatePicker(
                     value: form.expiry,

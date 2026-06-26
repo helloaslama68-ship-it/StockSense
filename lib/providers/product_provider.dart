@@ -134,6 +134,7 @@ class ProductProvider extends ChangeNotifier {
     String? unit,
     String? imagePath,
     String? brand,
+    String? description,
   }) async {
     await _repo.add(
       name: name,
@@ -147,6 +148,7 @@ class ProductProvider extends ChangeNotifier {
       unit: unit,
       imagePath: imagePath,
       brand: brand,
+      description: description,
     );
     notifyListeners();
   }

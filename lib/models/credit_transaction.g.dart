@@ -1,4 +1,10 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 part of 'credit_transaction.dart';
+
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
 
 class CreditTransactionAdapter extends TypeAdapter<CreditTransaction> {
   @override
